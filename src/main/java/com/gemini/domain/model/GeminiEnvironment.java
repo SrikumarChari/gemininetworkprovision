@@ -6,6 +6,7 @@
 package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +24,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     //rackspace, openstack, etc.
     private GeminiEnvironmentType type;
     private String name;
+    private GeminiNetwork gateway;
 
     @Embedded
     private List<GeminiApplication> applications = Collections.synchronizedList(new ArrayList());
@@ -33,6 +35,9 @@ public class GeminiEnvironment extends EntityMongoDB {
     @Embedded
     private List<GeminiServer> servers;
 
+    @Embedded
+    private List<GeminiNetworkRouter> routes;
+    
     public GeminiEnvironmentType getType() {
         return type;
     }
@@ -47,6 +52,14 @@ public class GeminiEnvironment extends EntityMongoDB {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public GeminiNetwork getGateway() {
+        return gateway;
+    }
+
+    public void setGateway(GeminiNetwork gateway) {
+        this.gateway = gateway;
     }
 
     public List<GeminiApplication> getApplications() {

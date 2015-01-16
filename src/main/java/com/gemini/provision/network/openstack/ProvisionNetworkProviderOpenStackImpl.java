@@ -8,8 +8,10 @@ package com.gemini.provision.network.openstack;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSubnet;
+import com.gemini.domain.model.GeminiSubnetAllocationPool;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.provision.network.base.BaseProvisionNetworkProvider;
+import com.google.common.net.InetAddresses;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.openstack4j.openstack.OSFactory;
@@ -18,13 +20,9 @@ import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.openstack4j.api.Builders;
-import org.openstack4j.common.Buildable;
 import org.openstack4j.model.network.IPVersionType;
 import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkUpdate;
 import org.openstack4j.model.network.Subnet;
-import org.openstack4j.model.network.builder.NetworkUpdateBuilder;
-import org.openstack4j.openstack.networking.domain.NeutronNetwork;
 import org.pmw.tinylog.Logger;
 
 /**
@@ -36,6 +34,87 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
     @Override
     public String provisioningDesc() {
         return "OpenStack network provisioning service";
+    }
+
+    @Override
+    public List<GeminiNetwork> getExternalGateways(GeminiTenant tenant, GeminiEnvironment env) {
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builderV3()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .domainName(tenant.getDomainName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
+        }
+
+        //get all the networks
+        List<? extends Network> networks = os.networking().network().list();
+        List<GeminiNetwork> gateways = new ArrayList();
+
+        //map the list of network gateways and their subnets to gemini equivalents
+        networks.stream().filter(n -> n.isRouterExternal()).forEach(n -> {
+            GeminiNetwork gn = new GeminiNetwork();
+            gn.setName(n.getName());
+            gn.setCloudID(n.getId());
+            gn.setNetworkType(n.getNetworkType().name());
+            n.getNeutronSubnets().stream().forEach(s -> {
+                GeminiSubnet gs = new GeminiSubnet();
+                gs.setCloudID(s.getId());
+                gs.setParent(gn);
+                gs.setCidr(s.getCidr());
+                s.getAllocationPools().stream().forEach(p -> {
+                    GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
+                            InetAddresses.forString(p.getEnd()));
+                    gsap.setParent(gs);
+                    gs.addAllocationPool(gsap);
+                });
+
+            });
+            gateways.add(gn);
+        });
+        return gateways;
+    }
+
+    @Override
+    public List<GeminiNetwork> getNetworks(GeminiTenant tenant, GeminiEnvironment env) {
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builderV3()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .domainName(tenant.getDomainName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
+        }
+
+        //get all the networks
+        List<? extends Network> networks = os.networking().network().list();
+        List<GeminiNetwork> gemNetworks = new ArrayList();
+
+        //map the list of network gateways and their subnets to gemini equivalents
+        networks.stream().forEach(n -> {
+            GeminiNetwork gn = new GeminiNetwork();
+            gn.setName(n.getName());
+            gn.setCloudID(n.getId());
+            gn.setNetworkType(n.getNetworkType().name());
+            n.getNeutronSubnets().stream().forEach(s -> {
+                GeminiSubnet gs = new GeminiSubnet();
+                gs.setCloudID(s.getId());
+                gs.setParent(gn);
+                gs.setCidr(s.getCidr());
+                s.getAllocationPools().stream().forEach(p -> {
+                    GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
+                            InetAddresses.forString(p.getEnd()));
+                    gsap.setParent(gs);
+                    gs.addAllocationPool(gsap);
+                });
+            });
+            gemNetworks.add(gn);
+        });
+        return gemNetworks;
     }
 
     @Override
@@ -52,6 +131,8 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
             return -1;
         }
 
+        //get the gateway network
+        //Network gateway = getGateway(os);
         //check to see if this network exists
         List<? extends Network> networks = os.networking().network().list();
         if (networks.stream()
@@ -163,6 +244,12 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
     }
 
     @Override
+    public List<GeminiSubnet> getSubnets(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent) {
+        //the call to getNetworks retrieves all subnet information. Nothing additional required here.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public Integer createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet newSubnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builderV3()
@@ -181,25 +268,32 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
             Logger.error("Failed to create subnet - already exists. Tenant: {} Environment: {} subnet: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
-            return -2;        
+            return -2;
         }
-        
+
         //create the subnet
         Subnet subnet = os.networking().subnet().create(Builders.subnet()
-                  .name(newSubnet.getName())
-                  .networkId(parent.getCloudID())
-                  .tenantId(os.identity().tenants().getByName(tenant.getName()).getId())
-                  .addPool(newSubnet.getSubnetStart().getHostAddress(), newSubnet.getSubnetEnd().getHostAddress())
-                  .ipVersion(IPVersionType.V4)
-                  .cidr(newSubnet.getCidr())
-                  .build());
+                .name(newSubnet.getName())
+                .networkId(parent.getCloudID())
+                .tenantId(os.identity().tenants().getByName(tenant.getName()).getId())
+                .ipVersion(IPVersionType.V4)
+                .cidr(newSubnet.getCidr())
+                .build());
         if (subnet == null) {
             Logger.error("Failed to create subnet Tenant: {} Environment: {} Subnet: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
             return -3;
         }
-        
+
+        //add the list of subnets (this will be an update the subnet just created)
+        List<GeminiSubnetAllocationPool> pools = newSubnet.getAllocationPools();
+        pools.stream().forEach(p -> {
+            os.networking().subnet().update(subnet.toBuilder()
+                    .addPool(p.getStart().getHostAddress(), p.getEnd().getHostAddress())
+                    .build());
+        });
+
         //copy the id to the domain object
         newSubnet.setCloudID(subnet.getId());
         Logger.debug("Successfully added network - Tenant: {} Environment: {} Network: {}",
@@ -241,11 +335,13 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
 
         //update the subnet
         Subnet updatedSubnet = os.networking().subnet().update(s.toBuilder()
-                .addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
+                //.addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
                 .cidr(subnet.getCidr())
                 .name(subnet.getName())
+                .gateway(subnet.getGateway().getHostAddress())
                 .networkId(subnet.getParent().getCloudID())
                 .build());
+
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
         if (updatedSubnet == null) {
             Logger.error("Failed to update subnet Tenant: {} Environment: {} Subnet: {}",
@@ -253,6 +349,14 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
                     ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
             return -3;
         }
+
+        //add the list of subnets (this will be an update the subnet just created)
+        List<GeminiSubnetAllocationPool> pools = subnet.getAllocationPools();
+        pools.stream().forEach(p -> {
+            os.networking().subnet().update(updatedSubnet.toBuilder()
+                    .addPool(p.getStart().getHostAddress(), p.getEnd().getHostAddress())
+                    .build());
+        });
 
         Logger.debug("Successfully updated the subnet. Tenant: {} Environment: {} Subnet: {}",
                 tenant.getName(), env.getName(),
@@ -289,5 +393,12 @@ public class ProvisionNetworkProviderOpenStackImpl implements BaseProvisionNetwo
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
         return 0;
+    }
+
+    @Override
+    public List<GeminiEnvironment> getEnvironments(GeminiTenant tenant) {
+        //The environments loosely correlate to the Projects in Mirantis
+        //TODO - need to research to see how rackspace and others handle their data.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

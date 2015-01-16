@@ -5,25 +5,28 @@
  */
 package com.gemini.domain.model;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import java.net.InetAddress;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author schari
  */
 public class GeminiSubnet extends GeminiNetwork {
+
     //parent network that contains this subnet
     private GeminiNetwork parent;
-    
+
     //address pool
-    private InetAddress subnetStart;
+    private List<GeminiSubnetAllocationPool> allocationPool;
     private InetAddress subnetEnd;
 
     //network string with mask
     private String cidr;
+
+    //network gateway
+    private InetAddress gateway;
 
     public GeminiNetwork getParent() {
         return parent;
@@ -37,26 +40,38 @@ public class GeminiSubnet extends GeminiNetwork {
         return cidr;
     }
 
-    private void setCidr(String cidr) {
+    public void setCidr(String cidr) {
         this.cidr = cidr;
     }
+
+    public void setGateway(InetAddress gateway) {
+        this.gateway = gateway;
+    }
+
+    public InetAddress getGateway() {
+        return gateway;
+    }
+
+    public void addAllocationPool(InetAddress start, InetAddress end) {
+        allocationPool.add(new GeminiSubnetAllocationPool(start, end));
+    }
+
+    public void addAllocationPool(GeminiSubnetAllocationPool pool) {
+        allocationPool.add(pool);
+    }
+    public void deleteAllocationPool(InetAddress start, InetAddress end) {
+        allocationPool.removeIf(s -> s.getStart().getHostAddress().equals(start.getHostAddress())
+                && s.getEnd().getHostAddress().equals(end.getHostAddress()));
+    }
+
+    public List<String> getAllocationPoolsAsString() {
+        return allocationPool
+                .stream()
+                .map(p -> p.toString())
+                .collect(Collectors.toList());
+    }
     
-    public InetAddress getSubnetStart() {
-        return subnetStart;
-    }
-
-    public void setSubnetStart(InetAddress start) {
-        this.subnetStart = start;
-        String sStart = subnetStart.getHostAddress();
-        List<String> sStartList = Splitter.on(".").limit(3).splitToList(sStart);
-        setCidr(Joiner.on(".").join(sStartList.get(0), sStartList.get(1), sStartList.get(2), "0") + "/24");
-    }
-
-    public InetAddress getSubnetEnd() {
-        return subnetEnd;
-    }
-
-    public void setSubnetEnd(InetAddress end) {
-        this.subnetEnd = end;
+    public List<GeminiSubnetAllocationPool> getAllocationPools() {
+        return allocationPool;
     }
 }
