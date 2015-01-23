@@ -32,8 +32,9 @@ public class GeminiOpenStackJUnitTest {
     @BeforeClass
     public static void setUpClass() {
         //setup the tenant 
-        tenant.setAdminUserName("srikumar.chari@apoll.edu");
-        tenant.setAdminPassword("Slov6ni5");
+        tenant.setAdminUserName("srikumar.chari@apollo.edu");
+        tenant.setName("srikumar.chari@apollo.edu");
+        tenant.setAdminPassword("I7ixzxzN");
         tenant.setEndPoint("http://158.85.165.2:5000/v2.0");
         tenant.setDomainName("");
         tenant.setTenantID("eeb8072a87af464280531ae2f7a07c65");

@@ -46,24 +46,16 @@ public class GeminiApplicationRepositoryMongoDBImpl extends BaseRepositoryMongoD
         return a.getServers();
     }
     
-    public List<GeminiServer> getNetworkServers (String appName, String netStart, String netEnd) {
+    public List<GeminiServer> getNetworkServers (String appName, String netName) {
         List<GeminiNetwork> networks = getAppNetworks(appName);
         
         List<GeminiNetwork> net = networks.stream()
-                .filter(n -> n.getDiscNetStart().getHostAddress().equals(netStart))
-                .filter(n -> n.getDiscNetEnd().getHostAddress().equals(netEnd))
+                .filter(n -> n.getName().equals(netName))
                 .collect(Collectors.toList());
 
         if (net != null) {
             return net.get(0).getServers();
         }
-
-//        for (GeminiNetwork n : networks) {
-//            if (n.getStart().getHostAddress().equals(netStart) && n.getEnd().getHostAddress().equals(netEnd)) {
-//                return n.getServers();
-//            }
-//        }
-
         return null;
     }
 }

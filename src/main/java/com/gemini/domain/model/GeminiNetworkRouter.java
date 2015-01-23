@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Reference;
 
 /**
  *
@@ -23,10 +24,12 @@ public class GeminiNetworkRouter extends EntityMongoDB {
     private String name;
     private String status;
     private String cloudID;
+    
+    @Reference
     private GeminiNetwork gateway;
     private Map<String, String> routes = Collections.synchronizedMap(new HashMap<String, String>());
 
-    @Embedded
+    @Reference
     private List<GeminiSubnet> interfaces = Collections.synchronizedList(new ArrayList());
 
     public String getName() {

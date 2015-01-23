@@ -6,15 +6,20 @@
 package com.gemini.domain.model;
 
 import java.net.InetAddress;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Reference;
 
 /**
  *
  * @author schari
  */
+@Entity
 public class GeminiSubnetAllocationPool {
 
     private InetAddress start;
     private InetAddress end;
+    
+    @Reference
     private GeminiSubnet parent;
 
     public GeminiSubnetAllocationPool() {

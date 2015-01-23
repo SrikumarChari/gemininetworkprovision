@@ -8,11 +8,8 @@ package com.gemini.domain.model;
 import com.gemini.common.repository.EntityMongoDB;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
-import org.pmw.tinylog.Logger;
 
 /**
  *
@@ -78,79 +75,33 @@ public class GeminiApplication extends EntityMongoDB {
         this.location = location;
     }
 
-    public boolean addServer(GeminiServer s) {
-        if (servers.contains(s)) {
-            Logger.info("Did not add server:{}  already exists in application {}", s.getName(), getName());
+    public boolean addServer(GeminiServer srv) {
+        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0)
+            return servers.add(srv);
+        else
             return false;
-        } else {
-            if (!servers.add(s)) {
-                Logger.debug("Failed to add server: {} to application: {}", s.getName(), getName());
-                return false;
-            } else {
-                //s.setApp(this);
-                Logger.debug("Successfully added server: {} to application: {}", s.getName(), getName());
-                return true;
-            }
-        }
     }
 
-    public boolean deleteServer(GeminiServer s) {
-        if (servers.contains(s)) {
-            if (!servers.remove(s)) {
-                Logger.error("Failed to delete server: {} from application: {}", s.getName(), getName());
-                return false;
-            } else {
-                //remove the connection between this application and the deleted server
-                //s.setApp(null);
-                Logger.debug("Successfull deleted server: {}", s.getName(), getName());
-                return true;
-            }
-        } else {
-            Logger.error("Did not delete server: {} - server does not exist in application {}", s.getName(), getName());
-            return false;
-        }
+    public boolean deleteServer(GeminiServer srv) {
+        return servers.removeIf(s -> s.getName().equals(srv.getName()));
     }
 
-    public boolean addNetwork(GeminiNetwork n) {
-        if (networks.contains(n)) {
-            Logger.error("Did not add network start: {} end: {}, already exists in application {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
+    public boolean addNetwork(GeminiNetwork net) {
+        if (networks.stream().filter(n -> n.getName().equals(net.getName())).count() == 0)
+            return networks.add(net);
+        else
             return false;
-        } else {
-            if (!networks.add(n)) {
-                Logger.error("Failed to add network, start: {} end: {} from application {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return false;
-            } else {
-                //n.setApp(this);
-                Logger.debug("Successfully added network, start: {} end: {} to application {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return true;
-            }
-        }
     }
 
-    public boolean deleteNetwork(GeminiNetwork n) {
-        if (networks.contains(n)) {
-            if (!networks.remove(n)) {
-                Logger.error("Failed to delete network, start: {} end: {} from environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return false;
-            } else {
-                //remove the connection between this application and the deleted network
-                //n.setApp(null);
-                Logger.debug("Successfully deleted network, start: {} end: {} from environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return true;
-            }
-        } else {
-            Logger.info("Did not delete network, start: {} end: {} - network does not exist in environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-            return false;
-        }
+    public boolean deleteNetwork(GeminiNetwork net) {
+        return networks.removeIf(n -> n.getName().equals(net.getName()));
     }
 
     public List<GeminiNetwork> getNetworks() {
-        Logger.debug("getNetworks");
         return networks;
     }
 
     public List<GeminiServer> getServers() {
-        Logger.debug("getServers");
         return servers;
     }
 

@@ -51,7 +51,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
 //                .domainName(tenant.getDomainName())
 //                .tenantId(tenant.getTenantID())
-//                .tenantName(tenant.getName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
@@ -343,7 +343,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 //.addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
                 .cidr(subnet.getCidr())
                 .name(subnet.getName())
-                .gateway(subnet.getGateway().getHostAddress())
+                .gateway(subnet.getGateway().getCloudID())
                 .networkId(subnet.getParent().getCloudID())
                 .build());
 

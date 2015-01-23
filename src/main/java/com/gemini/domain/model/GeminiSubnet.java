@@ -7,26 +7,30 @@ package com.gemini.domain.model;
 
 import java.net.InetAddress;
 import java.util.List;
-import java.util.Objects;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Reference;
 
 /**
  *
  * @author schari
  */
+@Entity
 public class GeminiSubnet extends GeminiNetwork {
 
     //parent network that contains this subnet
+    @Reference
     private GeminiNetwork parent;
 
     //address pool
+    @Embedded
     private List<GeminiSubnetAllocationPool> allocationPool;
-    private InetAddress subnetEnd;
 
     //network string with mask
     private String cidr;
 
     //network gateway
-    private InetAddress gateway;
+    private GeminiNetwork gateway;
 
     public GeminiNetwork getParent() {
         return parent;
@@ -44,11 +48,11 @@ public class GeminiSubnet extends GeminiNetwork {
         this.cidr = cidr;
     }
 
-    public void setGateway(InetAddress gateway) {
+    public void setGateway(GeminiNetwork gateway) {
         this.gateway = gateway;
     }
 
-    public InetAddress getGateway() {
+    public GeminiNetwork getGateway() {
         return gateway;
     }
 
@@ -66,5 +70,9 @@ public class GeminiSubnet extends GeminiNetwork {
     
     public List<GeminiSubnetAllocationPool> getAllocationPools() {
         return allocationPool;
+    }  
+
+    public void setAllocationPools(List<GeminiSubnetAllocationPool> allocationPool) {
+        this.allocationPool = allocationPool;
     }  
 }

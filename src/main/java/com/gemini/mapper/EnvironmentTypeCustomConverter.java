@@ -34,7 +34,7 @@ public class EnvironmentTypeCustomConverter implements CustomConverter {
                     return envType;
                 }
             }
-        } else if (sourceValue instanceof InetAddress) {
+        } else if (sourceValue instanceof GeminiEnvironmentType) {
             return ((GeminiEnvironmentType) sourceValue).name();
         } else {
             Logger.error("IP Address Custom Converter used incorrectly. Arguments passed in were: source\n {} \n destination\n {}",

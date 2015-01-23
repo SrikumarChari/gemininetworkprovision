@@ -5,84 +5,64 @@
  */
 package com.gemini.domain.dto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  *
  * @author schari
  */
-public class GeminiNetworkDTO extends GeminiBaseDTO  {
+public class GeminiNetworkDTO {
+    //general 
+    private String name;
 
-    private String start;
-    private String end;
-    private String network;
-    private Integer mask;
-    private String host;
-    private String networkType;
-    private List<GeminiServerDTO> servers;
+    //is the provisioning complete
+    private boolean provisioned;
+    
+    //the provisioned IP address
+    private String provisionedAddress;
+    
+    //the servers on this network
+    List<GeminiServerDTO> servers;    
 
-    public GeminiNetworkDTO () {
-        this.networkType = "";
-        servers = new ArrayList();
+    public String getName() {
+        return name;
     }
 
-    public String getStart() {
-        return start;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setStart(String start) {
-        this.start = start;
+    public boolean isProvisioned() {
+        return provisioned;
     }
 
-    public String getEnd() {
-        return end;
+    public void setProvisioned(boolean provisioned) {
+        this.provisioned = provisioned;
     }
 
-    public void setEnd(String end) {
-        this.end = end;
+    public String getProvisionedAddress() {
+        return provisionedAddress;
     }
 
-    public String getNetwork() {
-        return network;
-    }
-
-    public void setNetwork(String network) {
-        this.network = network;
-    }
-
-    public Integer getMask() {
-        return mask;
-    }
-
-    public void setMask(Integer mask) {
-        this.mask = mask;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String getNetworkType() {
-        return networkType;
-    }
-
-    public void setNetworkType(String networkType) {
-        this.networkType = networkType;
+    public void setProvisionedAddress(String provisionedAddress) {
+        this.provisionedAddress = provisionedAddress;
     }
 
     public List<GeminiServerDTO> getServers() {
         return servers;
     }
 
-    /**
-     * @param servers the servers to set
-     */
     public void setServers(List<GeminiServerDTO> servers) {
         this.servers = servers;
+    }
+    
+    public void addServer(GeminiServerDTO server) {
+        if (servers.stream().filter(s -> s.getName().equals(server.getName())).count() == 0) {
+            servers.add(server);
+        }
+    }
+    
+    public void deleteServer(GeminiServerDTO server) {
+        servers.removeIf(s -> s.getName().equals(server.getName()));
     }
 }

@@ -6,15 +6,21 @@
 package com.gemini.mapper;
 
 import com.gemini.domain.dto.GeminiApplicationDTO;
+import com.gemini.domain.dto.GeminiDiscoveryNetworkDTO;
 import com.gemini.domain.dto.GeminiEnvironmentDTO;
 import com.gemini.domain.dto.GeminiNetworkDTO;
+import com.gemini.domain.dto.GeminiNetworkRouterDTO;
 import com.gemini.domain.dto.GeminiServerDTO;
 import com.gemini.domain.dto.GeminiTenantDTO;
+import com.gemini.domain.dto.GeminiTenantUserDTO;
 import com.gemini.domain.model.GeminiApplication;
+import com.gemini.domain.model.GeminiDiscoveryNetwork;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
+import com.gemini.domain.model.GeminiNetworkRouter;
 import com.gemini.domain.model.GeminiServer;
 import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.tenant.GeminiTenantUser;
 import com.google.inject.Inject;
 import org.dozer.DozerBeanMapper;
 
@@ -23,7 +29,6 @@ import org.dozer.DozerBeanMapper;
  * @author schari
  */
 public class GeminiMapper {
-
     @Inject
     private DozerBeanMapper mapper;
 
@@ -37,6 +42,26 @@ public class GeminiMapper {
         return newAppDTO;
     }
 
+    public GeminiDiscoveryNetwork getDiscNetFromDTO(GeminiDiscoveryNetworkDTO discNetDTO) {
+        GeminiDiscoveryNetwork discNet = mapper.map(discNetDTO, GeminiDiscoveryNetwork.class);
+        return discNet;
+    }
+
+    public GeminiDiscoveryNetworkDTO getDTOFromDiscNet(GeminiDiscoveryNetwork discNet) {
+        GeminiDiscoveryNetworkDTO discNetDTO = mapper.map(discNet, GeminiDiscoveryNetworkDTO.class);
+        return discNetDTO;
+    }
+
+    public GeminiEnvironmentDTO getDTOFromEnv(GeminiEnvironment env) {
+        GeminiEnvironmentDTO envDTO = mapper.map(env, GeminiEnvironmentDTO.class);
+        return envDTO;
+    }
+
+    public GeminiEnvironment getEnvFromDTO(GeminiEnvironmentDTO envDTO) {
+        GeminiEnvironment env = mapper.map(envDTO, GeminiEnvironment.class);
+        return env;
+    }
+
     public GeminiNetwork getNetworkFromDTO(GeminiNetworkDTO netDTO) {
         GeminiNetwork net = mapper.map(netDTO, GeminiNetwork.class);
         return net;
@@ -45,6 +70,14 @@ public class GeminiMapper {
     public GeminiNetworkDTO getDTOFromNetwork(GeminiNetwork net) {
         GeminiNetworkDTO netDTO = mapper.map(net, GeminiNetworkDTO.class);
         return netDTO;
+    }
+    
+    public GeminiNetworkRouter getNetRouteFromDTO (GeminiNetworkRouterDTO routeDTO) {
+        return mapper.map(routeDTO, GeminiNetworkRouter.class);
+    }
+
+    public GeminiNetworkRouterDTO getDTOFromNetRoute(GeminiNetworkRouter route) {
+        return mapper.map(route, GeminiNetworkRouterDTO.class);
     }
 
     public GeminiServer getServerFromDTO(GeminiServerDTO srvDTO) {
@@ -56,22 +89,22 @@ public class GeminiMapper {
         GeminiServerDTO srvDTO = mapper.map(srv, GeminiServerDTO.class);
         return srvDTO;
     }
-    
-    public GeminiEnvironment getEnvFromDTO (GeminiEnvironmentDTO envDTO) {
-        GeminiEnvironment env = mapper.map(envDTO, GeminiEnvironment.class);
-        return env;
-    }
-    public GeminiEnvironmentDTO getDTOFromEnv(GeminiEnvironment env) {
-        GeminiEnvironmentDTO envDTO = mapper.map(env, GeminiEnvironmentDTO.class);
-        return envDTO;        
-    }
 
-    public GeminiTenant getTenantFromDTO (GeminiTenantDTO tenantDTO) {
+    public GeminiTenant getTenantFromDTO(GeminiTenantDTO tenantDTO) {
         GeminiTenant tenant = mapper.map(tenantDTO, GeminiTenant.class);
         return tenant;
     }
-    public GeminiTenantDTO getDTOFromEnv(GeminiTenant tenant) {
+
+    public GeminiTenantDTO getDTOFromTenant(GeminiTenant tenant) {
         GeminiTenantDTO tenantDTO = mapper.map(tenant, GeminiTenantDTO.class);
-        return tenantDTO;        
+        return tenantDTO;
+    }
+    
+    public GeminiTenantUser getTenantUserFromDTO (GeminiTenantUserDTO tenantUserDTO) {
+        return mapper.map(tenantUserDTO, GeminiTenantUser.class);
+    }
+    
+    public GeminiTenantUserDTO getDTOFromTenantUser(GeminiTenantUser tenantUser) {
+        return mapper.map(tenantUser, GeminiTenantUserDTO.class);
     }
 }

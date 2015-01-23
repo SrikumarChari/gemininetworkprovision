@@ -22,7 +22,7 @@ public class GeminiMapperModule extends AbstractModule {
     protected void configure() {
         DozerBeanMapper mapper = new DozerBeanMapper();
         try {
-            mapper.addMapping(new FileInputStream("/Users/schari/NetBeansProjects/SriDiscover/Properties/DTOMapping.xml"));
+            mapper.addMapping(new FileInputStream("/Users/schari/NetBeansProjects/GeminiNetworkProvision/Properties/DTOMapping.xml"));
         } catch (FileNotFoundException ex) {
             Logger.error("DTOMapping file not found!!");
         }

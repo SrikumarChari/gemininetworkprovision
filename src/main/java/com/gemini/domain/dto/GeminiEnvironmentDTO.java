@@ -14,13 +14,14 @@ import java.util.List;
  * @author schari
  */
 public class GeminiEnvironmentDTO extends GeminiBaseDTO {
-
     private String type;
     private String name;
+    private GeminiNetworkDTO gateway;
 
     private List<GeminiApplicationDTO> applications = Collections.synchronizedList(new ArrayList());
     private List<GeminiNetworkDTO> networks  = Collections.synchronizedList(new ArrayList());
     private List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());
+    private List<GeminiNetworkRouterDTO> routes = Collections.synchronizedList(new ArrayList());
 
     public String getType() {
         return type;
@@ -61,4 +62,20 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
     public void setServers(List<GeminiServerDTO> servers) {
         this.servers = servers;
     }    
+
+    public GeminiNetworkDTO getGateway() {
+        return gateway;
+    }
+
+    public void setGateway(GeminiNetworkDTO gateway) {
+        this.gateway = gateway;
+    }
+
+    public List<GeminiNetworkRouterDTO> getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(List<GeminiNetworkRouterDTO> routes) {
+        this.routes = routes;
+    }
 }

@@ -6,13 +6,12 @@
 package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
-import org.pmw.tinylog.Logger;
+import org.mongodb.morphia.annotations.Reference;
 
 /**
  *
@@ -29,15 +28,15 @@ public class GeminiEnvironment extends EntityMongoDB {
     @Embedded
     private List<GeminiApplication> applications = Collections.synchronizedList(new ArrayList());
 
-    @Embedded
-    private List<GeminiNetwork> networks;
+    @Reference
+    private List<GeminiNetwork> networks = new ArrayList();
 
-    @Embedded
-    private List<GeminiServer> servers;
+    @Reference
+    private List<GeminiServer> servers = new ArrayList();
 
-    @Embedded
-    private List<GeminiNetworkRouter> routes;
-    
+    @Reference
+    private List<GeminiNetworkRouter> routes = new ArrayList();
+
     public GeminiEnvironmentType getType() {
         return type;
     }
@@ -71,36 +70,15 @@ public class GeminiEnvironment extends EntityMongoDB {
     }
 
     public boolean addApplication(GeminiApplication app) {
-        if (applications.contains(app)) {
-            Logger.info("Did not add application:{}  already exists in environment {}", app.getName(), getName());
-            return false;
+        if (applications.stream().filter(a -> a.getName().equals(app.getName())).count() == 0) {
+            return applications.add(app);
         } else {
-            if (!applications.add(app)) {
-                Logger.debug("Failed to add application: {} into environment {}", app.getName(), getName());
-                return false;
-            } else {
-                //s.setApp(this);
-                Logger.debug("Successfully added server: {} to application: {}", app.getName(), getName());
-                return true;
-            }
+            return false;
         }
     }
 
     public boolean deleteApplication(GeminiApplication app) {
-        if (applications.contains(app)) {
-            if (!applications.remove(app)) {
-                Logger.error("Failed to delete application: {} from environment: {}", app.getName(), getName());
-                return false;
-            } else {
-                //remove the connection between this application and the deleted server
-                //s.setApp(null);
-                Logger.debug("Successfull deleted application: {} from environment: {}", app.getName(), getName());
-                return true;
-            }
-        } else {
-            Logger.error("Did not delete application: {} - does not exist in environment {}", app.getName(), getName());
-            return false;
-        }
+        return applications.removeIf(a -> a.getName().equals(app.getName()));
     }
 
     public List<GeminiNetwork> getNetworks() {
@@ -111,37 +89,16 @@ public class GeminiEnvironment extends EntityMongoDB {
         this.networks = networks;
     }
 
-    public boolean addNetwork(GeminiNetwork n) {
-        if (networks.contains(n)) {
-            Logger.error("Did not add network start: {} end: {}, already exists in environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-            return false;
+    public boolean addNetwork(GeminiNetwork net) {
+        if (networks.stream().filter(n -> n.getName().equals(net.getName())).count() == 0) {
+            return networks.add(net);
         } else {
-            if (!networks.add(n)) {
-                Logger.error("Failed to add network, start: {} end: {} from environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return false;
-            } else {
-                //n.setApp(this);
-                Logger.debug("Successfully added network, start: {} end: {} to environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return true;
-            }
+            return false;
         }
     }
 
-    public boolean deleteNetwork(GeminiNetwork n) {
-        if (networks.contains(n)) {
-            if (!networks.remove(n)) {
-                Logger.error("Failed to delete network, start: {} end: {} from environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return false;
-            } else {
-                //remove the connection between this application and the deleted network
-                //n.setApp(null);
-                Logger.debug("Successfully deleted network, start: {} end: {} from environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-                return true;
-            }
-        } else {
-            Logger.info("Did not delete network, start: {} end: {} - network does not exist in environment {}", n.getDiscNetStart(), n.getDiscNetEnd(), getName());
-            return false;
-        }
+    public boolean deleteNetwork(GeminiNetwork net) {
+        return networks.removeIf(n -> n.getName().equals(net.getName()));
     }
 
     public List<GeminiServer> getServers() {
@@ -152,36 +109,23 @@ public class GeminiEnvironment extends EntityMongoDB {
         this.servers = servers;
     }
 
-    public boolean addServer(GeminiServer s) {
-        if (servers.contains(s)) {
-            Logger.info("Did not add server:{}  already exists in environment {}", s.getName(), getName());
-            return false;
+    public boolean addServer(GeminiServer srv) {
+        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
+            return servers.add(srv);
         } else {
-            if (!servers.add(s)) {
-                Logger.debug("Failed to add server: {} to environment: {}", s.getName(), getName());
-                return false;
-            } else {
-                //s.setApp(this);
-                Logger.debug("Successfully added server: {} to environment: {}", s.getName(), getName());
-                return true;
-            }
+            return false;
         }
     }
 
-    public boolean deleteServer(GeminiServer s) {
-        if (servers.contains(s)) {
-            if (!servers.remove(s)) {
-                Logger.error("Failed to delete server: {} from environment: {}", s.getName(), getName());
-                return false;
-            } else {
-                //remove the connection between this application and the deleted server
-                //s.setApp(null);
-                Logger.debug("Successfull deleted server: {} from environment {}", s.getName(), getName());
-                return true;
-            }
-        } else {
-            Logger.error("Did not delete server: {} - server does not exist in environment {}", s.getName(), getName());
-            return false;
-        }
+    public boolean deleteServer(GeminiServer srv) {
+        return servers.removeIf(s -> s.getName().equals(srv.getName()));
+    }
+
+    public List<GeminiNetworkRouter> getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(List<GeminiNetworkRouter> routes) {
+        this.routes = routes;
     }
 }
