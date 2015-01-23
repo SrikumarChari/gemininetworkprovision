@@ -7,6 +7,7 @@ package com.gemini.domain.tenant;
 
 import com.gemini.common.repository.EntityMongoDB;
 import com.gemini.domain.model.GeminiEnvironment;
+import com.gemini.domain.model.GeminiNetworkRouter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +33,9 @@ public class GeminiTenant extends EntityMongoDB {
     
     @Embedded
     private List<GeminiEnvironment> environments = Collections.synchronizedList(new ArrayList());
+    
+    @Embedded
+    List<GeminiNetworkRouter> routers = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -155,5 +159,16 @@ public class GeminiTenant extends EntityMongoDB {
             Logger.debug("Did not delete environment {} from tenant {} - does not exist", env.getName(), getName());
             return false;
         }
+    }
+
+    public boolean addRouter(GeminiNetworkRouter nRouter) {
+        if (!routers.stream().anyMatch(r -> r.equals(nRouter))) {
+            return routers.add(nRouter);            
+        }
+        return false;
+    }
+    
+    public boolean deleteRouter(GeminiNetworkRouter nRouter) {
+        return routers.removeIf(r -> r.equals(nRouter));
     }
 }

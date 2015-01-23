@@ -7,7 +7,7 @@ package com.gemini.domain.model;
 
 import java.net.InetAddress;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  *
@@ -63,15 +63,8 @@ public class GeminiSubnet extends GeminiNetwork {
         allocationPool.removeIf(s -> s.getStart().getHostAddress().equals(start.getHostAddress())
                 && s.getEnd().getHostAddress().equals(end.getHostAddress()));
     }
-
-    public List<String> getAllocationPoolsAsString() {
-        return allocationPool
-                .stream()
-                .map(p -> p.toString())
-                .collect(Collectors.toList());
-    }
     
     public List<GeminiSubnetAllocationPool> getAllocationPools() {
         return allocationPool;
-    }
+    }  
 }

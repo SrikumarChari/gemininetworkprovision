@@ -9,6 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+        <main-class>com.gemini.provision.main.GeminiProvisionMain</main-class>
         <google.guava.version>18.0</google.guava.version>
         <mongodb.java.driver.version>2.12.4</mongodb.java.driver.version>
         <google.gson.version>2.2.4</google.gson.version>
@@ -105,10 +106,34 @@
         </dependency>
         <dependency>
             <groupId>org.pacesys</groupId>
-            <artifactId>openstack4j</artifactId>
+            <artifactId>openstack4j-core</artifactId>
             <version>2.0.1</version>
-            <classifier>withdeps</classifier>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${main-class}</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <name>GeminiNetworkProvision</name>
 </project>
