@@ -5,7 +5,7 @@
  */
 package com.gemini.provision.network.base;
 
-import com.gemini.domain.model.GeminiEnvironmentType;
+import com.gemini.domain.common.GeminiEnvironmentType;
 import com.gemini.provision.network.openstack.NetworkProviderOpenStackImpl;
 import com.google.inject.AbstractModule;
 

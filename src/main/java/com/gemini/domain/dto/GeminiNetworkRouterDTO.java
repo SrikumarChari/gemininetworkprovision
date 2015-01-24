@@ -16,6 +16,7 @@ import java.util.Map;
  * @author schari
  */
 public class GeminiNetworkRouterDTO extends GeminiBaseDTO {
+
     private String name;
     private String status;
     private GeminiNetworkDTO gateway;
@@ -54,11 +55,36 @@ public class GeminiNetworkRouterDTO extends GeminiBaseDTO {
         this.routes = routes;
     }
 
+    public boolean addRouter(String nextHop, String dest) {
+        String v = routes.get(nextHop);
+        if (v == null || !v.equals(dest)) {
+            routes.put(nextHop, dest);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean deleteRouter(String nextHop, String dest) {
+        return routes.remove(nextHop, dest);
+    }
+
     public List<GeminiSubnetDTO> getInterfaces() {
         return interfaces;
     }
 
     public void setInterfaces(List<GeminiSubnetDTO> interfaces) {
         this.interfaces = interfaces;
+    }
+
+    public boolean addInterface(GeminiSubnetDTO subnet) {
+        if (interfaces.stream().filter(s -> s.equals(subnet)).count() == 0) {
+            return interfaces.add(subnet);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteInterface(GeminiSubnetDTO subnet) {
+        return interfaces.removeIf(s -> s.equals(subnet));
     }
 }

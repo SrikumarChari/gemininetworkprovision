@@ -5,6 +5,8 @@
  */
 package com.gemini.domain.dto;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -14,6 +16,7 @@ import java.util.List;
 public class GeminiNetworkDTO {
     //general 
     private String name;
+    private String networkType;
 
     //is the provisioning complete
     private boolean provisioned;
@@ -22,7 +25,7 @@ public class GeminiNetworkDTO {
     private String provisionedAddress;
     
     //the servers on this network
-    List<GeminiServerDTO> servers;    
+    List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());    
 
     public String getName() {
         return name;
@@ -30,6 +33,14 @@ public class GeminiNetworkDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getNetworkType() {
+        return networkType;
+    }
+
+    public void setNetworkType(String networkType) {
+        this.networkType = networkType;
     }
 
     public boolean isProvisioned() {
@@ -56,13 +67,15 @@ public class GeminiNetworkDTO {
         this.servers = servers;
     }
     
-    public void addServer(GeminiServerDTO server) {
+    public boolean addServer(GeminiServerDTO server) {
         if (servers.stream().filter(s -> s.getName().equals(server.getName())).count() == 0) {
-            servers.add(server);
+            return servers.add(server);
+        } else {
+            return false;
         }
     }
     
-    public void deleteServer(GeminiServerDTO server) {
-        servers.removeIf(s -> s.getName().equals(server.getName()));
+    public boolean deleteServer(GeminiServerDTO server) {
+        return servers.removeIf(s -> s.getName().equals(server.getName()));
     }
 }

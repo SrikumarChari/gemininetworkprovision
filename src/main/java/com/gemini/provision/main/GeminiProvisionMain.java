@@ -1,7 +1,7 @@
 package com.gemini.provision.main;
 
 import com.gemini.domain.model.GeminiEnvironment;
-import com.gemini.domain.model.GeminiEnvironmentType;
+import com.gemini.domain.common.GeminiEnvironmentType;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;

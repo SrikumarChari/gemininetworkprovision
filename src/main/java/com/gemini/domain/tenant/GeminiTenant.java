@@ -94,33 +94,15 @@ public class GeminiTenant extends EntityMongoDB {
     }
 
     public boolean addUser (GeminiTenantUser user) {
-        if (users.contains(user)) {
-            Logger.debug("Did not add user, {} already exists in tenant {}", user.getName(), getName());
-            return false;
+        if (users.stream().filter(u -> u.getName().equals(user.getName())).count() == 0) {
+            return users.add(user);
         } else {
-            if (!users.add(user)) {
-                Logger.error("Failed to add user {} to tenant {}, system error", user.getName(), getName());
-                return false;
-            } else {
-                Logger.debug("Successfully added user {} to tenant {}", user.getName(), getName());
-                return true;
-            }
+            return false;
         }
     }
     
     public boolean deleteUser(GeminiTenantUser user) {
-        if (users.contains(user)) {
-            if (!users.remove(user)) {
-                Logger.error("Failed to remove user {} from tenant {} - system error", user.getName(), getName());
-                return false;
-            } else {
-                Logger.debug("Successfully deleted user {} from tenant {}", user.getName(), getName());
-                return true;
-            }
-        } else {
-            Logger.debug("Did not delete user {} from tenant {} - does not exist", user.getName(), getName());
-            return false;
-        }
+        return users.removeIf(u -> u.getName().equals(user.getName()));
     }
     
     public List<GeminiEnvironment> getEnvironments() {
@@ -132,37 +114,19 @@ public class GeminiTenant extends EntityMongoDB {
     }
     
     public boolean addEnvironment (GeminiEnvironment env) {
-        if (environments.contains(env)) {
-            Logger.debug("Did not add environment, {} already exists in tenant {}", env.getName(), getName());
-            return false;
+        if (environments.stream().filter(e -> e.getName().equals(env.getName())).count() == 0) {
+            return environments.add(env);
         } else {
-            if (!environments.add(env)) {
-                Logger.error("Failed to add environment {} to tenant {}, system error", env.getName(), getName());
-                return false;
-            } else {
-                Logger.debug("Successfully added environment {} to tenant {}", env.getName(), getName());
-                return true;
-            }
+            return false;
         }
     }
     
     public boolean deleteEnvironment(GeminiEnvironment env) {
-        if (environments.contains(env)) {
-            if (!environments.remove(env)) {
-                Logger.error("Failed to remove environment {} from tenant {} - system error", env.getName(), getName());
-                return false;
-            } else {
-                Logger.debug("Successfully deleted environment {} from tenant {}", env.getName(), getName());
-                return true;
-            }
-        } else {
-            Logger.debug("Did not delete environment {} from tenant {} - does not exist", env.getName(), getName());
-            return false;
-        }
+        return environments.removeIf(e -> e.getName().equals(env.getName()));
     }
 
     public boolean addRouter(GeminiNetworkRouter nRouter) {
-        if (!routers.stream().anyMatch(r -> r.equals(nRouter))) {
+        if (routers.stream().filter(r -> r.getName().equals(nRouter.getName())).count() == 0) {
             return routers.add(nRouter);            
         }
         return false;

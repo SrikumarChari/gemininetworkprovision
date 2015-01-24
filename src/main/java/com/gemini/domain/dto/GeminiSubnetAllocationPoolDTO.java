@@ -5,8 +5,6 @@
  */
 package com.gemini.domain.dto;
 
-import com.gemini.domain.dto.GeminiSubnetDTO;
-
 /**
  *
  * @author schari

@@ -5,6 +5,7 @@
  */
 package com.gemini.domain.model;
 
+import com.gemini.domain.common.GeminiEnvironmentType;
 import com.gemini.common.repository.EntityMongoDB;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +36,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     private List<GeminiServer> servers = new ArrayList();
 
     @Reference
-    private List<GeminiNetworkRouter> routes = new ArrayList();
+    private List<GeminiNetworkRouter> routers = new ArrayList();
 
     public GeminiEnvironmentType getType() {
         return type;
@@ -121,11 +122,23 @@ public class GeminiEnvironment extends EntityMongoDB {
         return servers.removeIf(s -> s.getName().equals(srv.getName()));
     }
 
-    public List<GeminiNetworkRouter> getRoutes() {
-        return routes;
+    public List<GeminiNetworkRouter> getRouters() {
+        return routers;
     }
 
-    public void setRoutes(List<GeminiNetworkRouter> routes) {
-        this.routes = routes;
+    public void setRouters(List<GeminiNetworkRouter> routers) {
+        this.routers = routers;
+    }
+    
+    public boolean addRouter (GeminiNetworkRouter router) {
+        if (routers.stream().filter(r -> r.getName().equals(router.getName())).count() == 0) {
+            return routers.add(router);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteRouter(GeminiNetworkRouter router) {
+        return routers.removeIf(r -> r.getName().equals(router.getName()));
     }
 }

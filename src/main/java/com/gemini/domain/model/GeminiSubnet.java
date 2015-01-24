@@ -60,19 +60,25 @@ public class GeminiSubnet extends GeminiNetwork {
         allocationPool.add(new GeminiSubnetAllocationPool(start, end));
     }
 
-    public void addAllocationPool(GeminiSubnetAllocationPool pool) {
-        allocationPool.add(pool);
+    public boolean addAllocationPool(GeminiSubnetAllocationPool pool) {
+        if (allocationPool.stream().filter(p -> p.getStart().getHostAddress().equals(pool.getStart().getHostAddress())
+                && p.getEnd().getHostAddress().equals(pool.getEnd().getHostAddress())).count() == 0) {
+            return allocationPool.add(pool);
+        } else {
+            return false;
+        }
     }
+
     public void deleteAllocationPool(InetAddress start, InetAddress end) {
         allocationPool.removeIf(s -> s.getStart().getHostAddress().equals(start.getHostAddress())
                 && s.getEnd().getHostAddress().equals(end.getHostAddress()));
     }
-    
+
     public List<GeminiSubnetAllocationPool> getAllocationPools() {
         return allocationPool;
-    }  
+    }
 
     public void setAllocationPools(List<GeminiSubnetAllocationPool> allocationPool) {
         this.allocationPool = allocationPool;
-    }  
+    }
 }

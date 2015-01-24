@@ -6,6 +6,7 @@
 package com.gemini.domain.dto;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,20 +14,14 @@ import java.util.List;
  * @author schari
  */
 public class GeminiApplicationDTO extends GeminiBaseDTO {
-
     private String name;
     private String description;
     private String custom; //string for any custom description, URL's etc.
     private Integer backupSize;
     private String location; //TODO: convert to a geo coordinate 
 
-    private List<GeminiNetworkDTO> networks;
-    private List<GeminiServerDTO> servers;
-
-    public GeminiApplicationDTO() {
-        networks = new ArrayList();
-        servers = new ArrayList();
-    }
+    private List<GeminiNetworkDTO> networks = Collections.synchronizedList(new ArrayList());
+    private List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -71,16 +66,40 @@ public class GeminiApplicationDTO extends GeminiBaseDTO {
     public List<GeminiNetworkDTO> getNetworks() {
         return networks;
     }
-    
+
     public void setNetworks(List<GeminiNetworkDTO> n) {
         networks = n;
+    }
+
+    public boolean addNetwork(GeminiNetworkDTO net) {
+        if (networks.stream().filter(n -> n.getName().equals(net)).count() == 0) {
+            return networks.add(net);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteNetwork(GeminiNetworkDTO net) {
+        return networks.removeIf(n -> n.getName().equals(net.getName()));
     }
 
     public List<GeminiServerDTO> getServers() {
         return servers;
     }
-    
+
     public void setServers(List<GeminiServerDTO> s) {
         servers = s;
+    }
+
+    public boolean addServer(GeminiServerDTO srv) {
+        if (servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
+            return servers.add(srv);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteServer(GeminiServerDTO srv) {
+        return servers.removeIf(s -> s.getName().equals(srv.getName()));
     }
 }

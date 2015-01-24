@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 
@@ -72,12 +71,17 @@ public class GeminiNetworkRouter extends EntityMongoDB {
         this.routes = routes;
     }
 
-    public void addRoute(String nextHop, String dest) {
-        routes.putIfAbsent(nextHop, dest);
+    public boolean addRoute(String nextHop, String dest) {
+        String v = routes.get(nextHop);
+        if (v == null || !v.equals(dest)) {
+            routes.put(nextHop, dest);
+            return true;
+        }
+        return false;
     }
     
-    public void deleteRoute(String nextHop, String dest) {
-        routes.remove(nextHop, dest);
+    public boolean deleteRoute(String nextHop, String dest) {
+        return routes.remove(nextHop, dest);
     }
 
     public List<GeminiSubnet> getInterfaces() {
@@ -88,13 +92,15 @@ public class GeminiNetworkRouter extends EntityMongoDB {
         this.interfaces = interfaces;
     }
     
-    public void addInterface (GeminiSubnet subnet) {
-        if (!interfaces.stream().anyMatch(s -> s.equals(subnet))) {
-            interfaces.add(subnet);
+    public boolean addInterface (GeminiSubnet subnet) {
+        if (interfaces.stream().filter(s -> s.equals(subnet)).count() == 0) {
+            return interfaces.add(subnet);
+        } else {
+            return false;
         }
     }
     
-    public void deleteInterface(GeminiSubnet subnet) {
-        interfaces.removeIf(s -> s.equals(subnet));
+    public boolean deleteInterface(GeminiSubnet subnet) {
+        return interfaces.removeIf(s -> s.equals(subnet));
     }
 }

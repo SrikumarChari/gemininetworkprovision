@@ -5,6 +5,7 @@
  */
 package com.gemini.domain.dto;
 
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -18,7 +19,6 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
 
     //address pool
     private List<GeminiSubnetAllocationPoolDTO> allocationPool;
-    private String subnetEnd;
 
     //network string with mask
     private String cidr;
@@ -42,12 +42,18 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
         this.allocationPool = allocationPool;
     }
 
-    public String getSubnetEnd() {
-        return subnetEnd;
+    public boolean addAllocationPool(GeminiSubnetAllocationPoolDTO pool) {
+        if (allocationPool.stream().filter(p -> p.getStart().equals(pool.getStart())
+                && p.getEnd().equals(pool.getEnd())).count() == 0) {
+            return allocationPool.add(pool);
+        } else {
+            return false;
+        }
     }
 
-    public void setSubnetEnd(String subnetEnd) {
-        this.subnetEnd = subnetEnd;
+    public void deleteAllocationPool(InetAddress start, InetAddress end) {
+        allocationPool.removeIf(s -> s.getStart().equals(start.getHostAddress())
+                && s.getEnd().equals(end.getHostAddress()));
     }
 
     public String getCidr() {
