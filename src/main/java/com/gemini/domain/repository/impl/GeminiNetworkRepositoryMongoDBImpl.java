@@ -57,11 +57,11 @@ public class GeminiNetworkRepositoryMongoDBImpl extends BaseRepositoryMongoDBImp
 
     public List<GeminiServer> getServers(String start, String end) {
         List<GeminiServer> l = null;
-        GeminiNetwork net = getNetByStartAndEnd(start, end);
-        if (net != null) {
-            Logger.debug("get network servers by start and end - returning servers for network {} to {}", start, end);
-            l = net.getServers();
-        }
+//        GeminiNetwork net = getNetByStartAndEnd(start, end);
+//        if (net != null) {
+//            Logger.debug("get network servers by start and end - returning servers for network {} to {}", start, end);
+//            l = net.getServers();
+//        }
         return l;
     }
 }

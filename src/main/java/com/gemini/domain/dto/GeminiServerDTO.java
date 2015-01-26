@@ -5,8 +5,6 @@
  */
 package com.gemini.domain.dto;
 
-import java.net.InetAddress;
-
 /**
  *
  * @author schari

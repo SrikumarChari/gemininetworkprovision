@@ -21,11 +21,8 @@ public class GeminiNetworkDTO {
     //is the provisioning complete
     private boolean provisioned;
     
-    //the provisioned IP address
-    private String provisionedAddress;
-    
-    //the servers on this network
-    List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());    
+    //the subnets
+    List<GeminiSubnetDTO> subnets = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -51,31 +48,23 @@ public class GeminiNetworkDTO {
         this.provisioned = provisioned;
     }
 
-    public String getProvisionedAddress() {
-        return provisionedAddress;
+    public List<GeminiSubnetDTO> getSubnets() {
+        return subnets;
     }
 
-    public void setProvisionedAddress(String provisionedAddress) {
-        this.provisionedAddress = provisionedAddress;
-    }
-
-    public List<GeminiServerDTO> getServers() {
-        return servers;
-    }
-
-    public void setServers(List<GeminiServerDTO> servers) {
-        this.servers = servers;
+    public void setSubnets(List<GeminiSubnetDTO> subnets) {
+        this.subnets = subnets;
     }
     
-    public boolean addServer(GeminiServerDTO server) {
-        if (servers.stream().filter(s -> s.getName().equals(server.getName())).count() == 0) {
-            return servers.add(server);
+    public boolean addSubnet (GeminiSubnetDTO subnet) {
+        if (subnets.stream().filter(s -> s.equals(subnet)).count() == 0) {
+            return subnets.add(subnet);
         } else {
             return false;
         }
     }
     
-    public boolean deleteServer(GeminiServerDTO server) {
-        return servers.removeIf(s -> s.getName().equals(server.getName()));
+    public boolean deleteSubnet (GeminiSubnetDTO subnet) {
+        return subnets.removeIf(s -> s.equals(subnet));
     }
 }

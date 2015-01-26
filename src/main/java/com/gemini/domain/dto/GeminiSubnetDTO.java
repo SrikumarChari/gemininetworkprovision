@@ -6,19 +6,23 @@
 package com.gemini.domain.dto;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
  * @author schari
  */
 public class GeminiSubnetDTO extends GeminiBaseDTO {
-
     //parent network that contains this subnet
     private GeminiNetworkDTO parent;
 
+    private String name;
+    
     //address pool
-    private List<GeminiSubnetAllocationPoolDTO> allocationPool;
+    private List<GeminiSubnetAllocationPoolDTO> allocationPool = Collections.synchronizedList(new ArrayList());
 
     //network string with mask
     private String cidr;
@@ -70,5 +74,46 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
 
     public void setGateway(String gateway) {
         this.gateway = gateway;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final GeminiSubnetDTO other = (GeminiSubnetDTO) obj;
+        if (!Objects.equals(getParent(), other.getParent())) {
+            return false;
+        }
+        if (!Objects.equals(this.getAllocationPool(), other.getAllocationPool())) {
+            return false;
+        }
+        if (!Objects.equals(this.cidr, other.cidr)) {
+            return false;
+        }
+        if (!Objects.equals(this.gateway, other.gateway)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.parent);
+        hash = 59 * hash + Objects.hashCode(this.cidr);
+        hash = 59 * hash + Objects.hashCode(this.gateway);
+        return hash;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

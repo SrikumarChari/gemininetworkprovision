@@ -47,15 +47,6 @@ public class GeminiApplicationRepositoryMongoDBImpl extends BaseRepositoryMongoD
     }
     
     public List<GeminiServer> getNetworkServers (String appName, String netName) {
-        List<GeminiNetwork> networks = getAppNetworks(appName);
-        
-        List<GeminiNetwork> net = networks.stream()
-                .filter(n -> n.getName().equals(netName))
-                .collect(Collectors.toList());
-
-        if (net != null) {
-            return net.get(0).getServers();
-        }
         return null;
     }
 }

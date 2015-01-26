@@ -6,8 +6,8 @@
 package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
-import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -23,23 +23,13 @@ public class GeminiNetwork extends EntityMongoDB {
     private String networkType;
 
     //is the provisioning complete
-    private boolean provisioned;
+    private boolean provisioned = false;
     
-    //the provisioned IP address
-    private InetAddress provisionedAddress;
-
-    //the servers on this network
     @Reference
-    List<GeminiServer> servers;
-    
+    List<GeminiSubnet> subnets = Collections.synchronizedList(new ArrayList());
+
     //will be used to set the ID returned for this network from the cloud provider
     private String cloudID;
-
-    public GeminiNetwork() {
-        this.name = "";
-        provisioned = false;
-        servers = new ArrayList();
-    }
 
     public String getName() {
         return name;
@@ -65,34 +55,31 @@ public class GeminiNetwork extends EntityMongoDB {
         this.provisioned = provisioned;
     }
 
-    public InetAddress getProvisionedAddress() {
-        return provisionedAddress;
-    }
-
-    public void setProvisionedAddress(InetAddress provisionedAddress) {
-        this.provisionedAddress = provisionedAddress;
-    }
-
-    public boolean addServer(GeminiServer srv) {
-        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0)
-            return servers.add(srv);
-        else
-            return false;
-    }
-
-    public boolean deleteServer(GeminiServer srv) {
-        return servers.removeIf(s -> s.getName().equals(srv.getName()));
-    }
-
-    public List<GeminiServer> getServers() {
-        return servers;
-    }
-
     public String getCloudID () {
         return cloudID;
     }
     
     public void setCloudID(String id) {
         this.cloudID = id;
+    }
+
+    public List<GeminiSubnet> getSubnets() {
+        return subnets;
+    }
+
+    public void setSubnets(List<GeminiSubnet> subnets) {
+        this.subnets = subnets;
+    }
+    
+    public boolean addSubnet(GeminiSubnet subnet) {
+        if (subnets.stream().filter(s -> s.equals(subnet)).count() == 0) {
+            return subnets.add(subnet);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteSubnet (GeminiSubnet subnet) {
+        return subnets.removeIf(s -> s.equals(subnet));
     }
 }

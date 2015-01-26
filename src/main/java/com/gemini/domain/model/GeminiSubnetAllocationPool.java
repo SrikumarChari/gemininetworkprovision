@@ -6,6 +6,9 @@
 package com.gemini.domain.model;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 
@@ -18,12 +21,13 @@ public class GeminiSubnetAllocationPool {
 
     private InetAddress start;
     private InetAddress end;
-    
+
+    //the servers on this network
+    @Reference
+    List<GeminiServer> servers = Collections.synchronizedList(new ArrayList());
+
     @Reference
     private GeminiSubnet parent;
-
-    public GeminiSubnetAllocationPool() {
-    }
 
     public GeminiSubnetAllocationPool(InetAddress start, InetAddress end) {
         this.start = start;
@@ -52,6 +56,26 @@ public class GeminiSubnetAllocationPool {
 
     public void setParent(GeminiSubnet parent) {
         this.parent = parent;
+    }
+
+    public boolean addServer(GeminiServer srv) {
+        if (servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
+            return servers.add(srv);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteServer(GeminiServer srv) {
+        return servers.removeIf(s -> s.getName().equals(srv.getName()));
+    }
+
+    public List<GeminiServer> getServers() {
+        return servers;
+    }
+
+    public void setServer(List<GeminiServer> servers) {
+        this.servers = servers;
     }
 
     @Override

@@ -5,7 +5,10 @@
  */
 package com.gemini.domain.model;
 
+import com.gemini.common.repository.EntityMongoDB;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -16,15 +19,19 @@ import org.mongodb.morphia.annotations.Reference;
  * @author schari
  */
 @Entity
-public class GeminiSubnet extends GeminiNetwork {
+public class GeminiSubnet extends EntityMongoDB {
 
     //parent network that contains this subnet
     @Reference
     private GeminiNetwork parent;
 
+    private String name;
+    private String cloudID;
+    boolean provisioned = false;
+
     //address pool
     @Embedded
-    private List<GeminiSubnetAllocationPool> allocationPool;
+    private List<GeminiSubnetAllocationPool> allocationPool = Collections.synchronizedList(new ArrayList());
 
     //network string with mask
     private String cidr;
@@ -81,4 +88,28 @@ public class GeminiSubnet extends GeminiNetwork {
     public void setAllocationPools(List<GeminiSubnetAllocationPool> allocationPool) {
         this.allocationPool = allocationPool;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
+    }
+
+    public boolean isProvisioned() {
+        return provisioned;
+    }
+
+    public void setProvisioned(boolean provisioned) {
+        this.provisioned = provisioned;
+    }    
 }
