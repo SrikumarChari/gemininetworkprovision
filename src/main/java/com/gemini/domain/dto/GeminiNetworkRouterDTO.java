@@ -18,7 +18,6 @@ import java.util.Map;
 public class GeminiNetworkRouterDTO extends GeminiBaseDTO {
 
     private String name;
-    private String status;
     private GeminiNetworkDTO gateway;
     private Map<String, String> routes = Collections.synchronizedMap(new HashMap<String, String>());
     private List<GeminiSubnetDTO> interfaces = Collections.synchronizedList(new ArrayList());
@@ -29,14 +28,6 @@ public class GeminiNetworkRouterDTO extends GeminiBaseDTO {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public GeminiNetworkDTO getGateway() {

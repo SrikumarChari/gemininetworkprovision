@@ -29,11 +29,11 @@ public class GeminiEnvironment extends EntityMongoDB {
     @Embedded
     private List<GeminiApplication> applications = Collections.synchronizedList(new ArrayList());
 
-    @Reference
-    private List<GeminiNetwork> networks = new ArrayList();
-
-    @Reference
-    private List<GeminiServer> servers = new ArrayList();
+//    @Reference
+//    private List<GeminiNetwork> networks = new ArrayList();
+//
+//    @Reference
+//    private List<GeminiServer> servers = new ArrayList();
 
     @Reference
     private List<GeminiNetworkRouter> routers = new ArrayList();
@@ -82,45 +82,45 @@ public class GeminiEnvironment extends EntityMongoDB {
         return applications.removeIf(a -> a.getName().equals(app.getName()));
     }
 
-    public List<GeminiNetwork> getNetworks() {
-        return networks;
-    }
-
-    public void setNetworks(List<GeminiNetwork> networks) {
-        this.networks = networks;
-    }
-
-    public boolean addNetwork(GeminiNetwork net) {
-        if (networks.stream().filter(n -> n.getName().equals(net.getName())).count() == 0) {
-            return networks.add(net);
-        } else {
-            return false;
-        }
-    }
-
-    public boolean deleteNetwork(GeminiNetwork net) {
-        return networks.removeIf(n -> n.getName().equals(net.getName()));
-    }
-
-    public List<GeminiServer> getServers() {
-        return servers;
-    }
-
-    public void setServers(List<GeminiServer> servers) {
-        this.servers = servers;
-    }
-
-    public boolean addServer(GeminiServer srv) {
-        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
-            return servers.add(srv);
-        } else {
-            return false;
-        }
-    }
-
-    public boolean deleteServer(GeminiServer srv) {
-        return servers.removeIf(s -> s.getName().equals(srv.getName()));
-    }
+//    public List<GeminiNetwork> getNetworks() {
+//        return networks;
+//    }
+//
+//    public void setNetworks(List<GeminiNetwork> networks) {
+//        this.networks = networks;
+//    }
+//
+//    public boolean addNetwork(GeminiNetwork net) {
+//        if (networks.stream().filter(n -> n.getName().equals(net.getName())).count() == 0) {
+//            return networks.add(net);
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    public boolean deleteNetwork(GeminiNetwork net) {
+//        return networks.removeIf(n -> n.getName().equals(net.getName()));
+//    }
+//
+//    public List<GeminiServer> getServers() {
+//        return servers;
+//    }
+//
+//    public void setServers(List<GeminiServer> servers) {
+//        this.servers = servers;
+//    }
+//
+//    public boolean addServer(GeminiServer srv) {
+//        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
+//            return servers.add(srv);
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    public boolean deleteServer(GeminiServer srv) {
+//        return servers.removeIf(s -> s.getName().equals(srv.getName()));
+//    }
 
     public List<GeminiNetworkRouter> getRouters() {
         return routers;

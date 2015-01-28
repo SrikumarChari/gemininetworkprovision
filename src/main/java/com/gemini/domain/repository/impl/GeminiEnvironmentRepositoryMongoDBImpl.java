@@ -39,11 +39,11 @@ public class GeminiEnvironmentRepositoryMongoDBImpl extends BaseRepositoryMongoD
 
     public List<GeminiNetwork> getEnvNetworks(String envName) {
         Logger.debug("get env networks: {}", envName);
-        return getEnvByName(envName).getNetworks();
+        return null; //getEnvByName(envName).getNetworks();
     }
 
     public List<GeminiServer> getEnvServers(String envName) {
         Logger.debug("get env servers: {}", envName);
-        return getEnvByName(envName).getServers();
+        return null; //getEnvByName(envName).getServers();
     }
 }

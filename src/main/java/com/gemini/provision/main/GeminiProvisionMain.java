@@ -1,18 +1,22 @@
 package com.gemini.provision.main;
 
+import com.gemini.domain.dto.GeminiTenantDTO;
+import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
 import com.gemini.domain.model.GeminiEnvironment;
-import com.gemini.domain.common.GeminiEnvironmentType;
-import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;
 import com.gemini.mapper.GeminiMapperModule;
-import com.gemini.provision.network.base.NetworkProvider;
 import com.gemini.provision.network.base.NetworkProviderModule;
 import com.gemini.provision.network.base.NetworkProvisioningService;
-import com.gemini.provision.network.openstack.NetworkProviderOpenStackImpl;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import java.util.List;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.QueueingConsumer;
+import java.io.IOException;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -31,41 +35,42 @@ public class GeminiProvisionMain {
     static GeminiEnvironment env = new GeminiEnvironment();
     static NetworkProvisioningService provisioningService;
     static GeminiMapper mapper;
+    final static String QUEUE_NAME = "hello";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, InterruptedException {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
-
-        //setup the tenant 
-        tenant.setAdminUserName("srikumar.chari@apollo.edu");
-        tenant.setName("srikumar.chari@apollo.edu");
-        tenant.setAdminPassword("I7ixzxzN");
-        tenant.setEndPoint("http://158.85.165.2:9696");
-        tenant.setDomainName("");
-        tenant.setTenantID("eeb8072a87af464280531ae2f7a07c65");
-
-        System.out.println(ToStringBuilder.reflectionToString(
-                mapper.getDTOFromTenant(tenant), ToStringStyle.MULTI_LINE_STYLE));
-
-        //setup the environment
-        env.setName("Test Project");
-        env.setType(GeminiEnvironmentType.OPENSTACK);
-        System.out.println(ToStringBuilder.reflectionToString(
-                mapper.getDTOFromEnv(env), ToStringStyle.MULTI_LINE_STYLE));
-        tenant.addEnvironment(env);
-
-        for (GeminiEnvironmentType c : GeminiEnvironmentType.values()) {
-            System.out.println(c);
-        }
 
         //create the provisioning service 
         Injector provisioningInjector = Guice.createInjector(
                 new NetworkProviderModule(env.getType()));
         provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
-        List<GeminiNetwork> gateways = provisioningService.getProvisioningService().getExternalGateways(tenant, env);
-        //we should only one have one gateway
-        assert (gateways.size() == 1);
-        gateways.stream().forEach(System.out::println);
+//        List<GeminiNetwork> gateways = provisioningService.getProvisioningService().getExternalGateways(tenant, env);
+//        //we should only one have one gateway
+//        gateways.stream().forEach(System.out::println);
+
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("127.0.0.1");
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+        QueueingConsumer consumer = new QueueingConsumer(channel);
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        while (true) {
+            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+            String message = new String(delivery.getBody());
+            System.out.println(" [x] Received '" + message + "'");
+            GeminiTenantDTO tenantDTO = gson.fromJson(message, GeminiTenantDTO.class);
+            System.out.print(ToStringBuilder.reflectionToString(tenantDTO, ToStringStyle.MULTI_LINE_STYLE));
+            //System.out.println(" [x] Received '" + message + "'");
+        }
     }
 }

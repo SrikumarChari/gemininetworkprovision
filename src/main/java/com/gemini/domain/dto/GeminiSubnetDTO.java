@@ -16,19 +16,17 @@ import java.util.Objects;
  * @author schari
  */
 public class GeminiSubnetDTO extends GeminiBaseDTO {
+    private String name; 
+    //network string with mask
+    private String cidr;
+    //network gateway
+    private String gateway;
+    
     //parent network that contains this subnet
     private GeminiNetworkDTO parent;
 
-    private String name;
-    
     //address pool
     private List<GeminiSubnetAllocationPoolDTO> allocationPool = Collections.synchronizedList(new ArrayList());
-
-    //network string with mask
-    private String cidr;
-
-    //network gateway
-    private String gateway;
 
     public GeminiNetworkDTO getParent() {
         return parent;

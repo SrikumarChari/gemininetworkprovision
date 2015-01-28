@@ -21,7 +21,6 @@ public class GeminiApplicationDTO extends GeminiBaseDTO {
     private String location; //TODO: convert to a geo coordinate 
 
     private List<GeminiNetworkDTO> networks = Collections.synchronizedList(new ArrayList());
-    private List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -83,23 +82,23 @@ public class GeminiApplicationDTO extends GeminiBaseDTO {
         return networks.removeIf(n -> n.getName().equals(net.getName()));
     }
 
-    public List<GeminiServerDTO> getServers() {
-        return servers;
-    }
-
-    public void setServers(List<GeminiServerDTO> s) {
-        servers = s;
-    }
-
-    public boolean addServer(GeminiServerDTO srv) {
-        if (servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
-            return servers.add(srv);
-        } else {
-            return false;
-        }
-    }
-
-    public boolean deleteServer(GeminiServerDTO srv) {
-        return servers.removeIf(s -> s.getName().equals(srv.getName()));
-    }
+//    public List<GeminiServerDTO> getServers() {
+//        return servers;
+//    }
+//
+//    public void setServers(List<GeminiServerDTO> s) {
+//        servers = s;
+//    }
+//
+//    public boolean addServer(GeminiServerDTO srv) {
+//        if (servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0) {
+//            return servers.add(srv);
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    public boolean deleteServer(GeminiServerDTO srv) {
+//        return servers.removeIf(s -> s.getName().equals(srv.getName()));
+//    }
 }

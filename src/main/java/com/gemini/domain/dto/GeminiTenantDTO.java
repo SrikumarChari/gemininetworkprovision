@@ -16,7 +16,6 @@ import java.util.List;
 public class GeminiTenantDTO extends GeminiBaseDTO {
 
     private String name;
-    private String tenantID;    
     private String adminUserName;
     private String adminPassword;
     private String endPoint;
@@ -24,7 +23,7 @@ public class GeminiTenantDTO extends GeminiBaseDTO {
 
     private List<GeminiTenantUserDTO> users = Collections.synchronizedList(new ArrayList());
     private List<GeminiEnvironmentDTO> environments = Collections.synchronizedList(new ArrayList());
-    List<GeminiNetworkRouterDTO> routers = Collections.synchronizedList(new ArrayList());
+//    List<GeminiNetworkRouterDTO> routers = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -32,14 +31,6 @@ public class GeminiTenantDTO extends GeminiBaseDTO {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getTenantID() {
-        return tenantID;
-    }
-
-    public void setTenantID(String tenantID) {
-        this.tenantID = tenantID;
     }
 
     public String getAdminUserName() {
@@ -118,25 +109,25 @@ public class GeminiTenantDTO extends GeminiBaseDTO {
         return environments.removeIf(e -> e.getName().equals(env.getName()));
     }
     
-    public List<GeminiNetworkRouterDTO> getRouters() {
-        return routers;
-    }
-
-    public void setRouters(List<GeminiNetworkRouterDTO> routers) {
-        this.routers = routers;
-    }
-
-    public boolean addRouter(GeminiNetworkRouterDTO router) {
-        //this function provided only for a java client - it is not used by the mapper
-        if (routers.stream().filter(r -> r.getName().equals(router.getName())).count() == 0) {
-            return routers.add(router);
-        } else {
-            return false;
-        }        
-    }
-    
-    public boolean deleteRouter(GeminiNetworkRouterDTO router) {
-        //this function provided only for a java client - it is not used by the mapper
-        return routers.removeIf(r -> r.getName().equals(router.getName()));
-    }
+//    public List<GeminiNetworkRouterDTO> getRouters() {
+//        return routers;
+//    }
+//
+//    public void setRouters(List<GeminiNetworkRouterDTO> routers) {
+//        this.routers = routers;
+//    }
+//
+//    public boolean addRouter(GeminiNetworkRouterDTO router) {
+//        //this function provided only for a java client - it is not used by the mapper
+//        if (routers.stream().filter(r -> r.getName().equals(router.getName())).count() == 0) {
+//            return routers.add(router);
+//        } else {
+//            return false;
+//        }        
+//    }
+//    
+//    public boolean deleteRouter(GeminiNetworkRouterDTO router) {
+//        //this function provided only for a java client - it is not used by the mapper
+//        return routers.removeIf(r -> r.getName().equals(router.getName()));
+//    }
 }

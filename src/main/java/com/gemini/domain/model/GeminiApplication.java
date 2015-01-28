@@ -27,12 +27,12 @@ public class GeminiApplication extends EntityMongoDB {
     @Reference
     private final List<GeminiNetwork> networks;
 
-    @Reference
-    private final List<GeminiServer> servers;
+//    @Reference
+//    private final List<GeminiServer> servers;
 
     public GeminiApplication() {
         networks = new ArrayList();
-        servers = new ArrayList();
+        //servers = new ArrayList();
     }
 
     public String getName() {
@@ -75,17 +75,17 @@ public class GeminiApplication extends EntityMongoDB {
         this.location = location;
     }
 
-    public boolean addServer(GeminiServer srv) {
-        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0)
-            return servers.add(srv);
-        else
-            return false;
-    }
-
-    public boolean deleteServer(GeminiServer srv) {
-        return servers.removeIf(s -> s.getName().equals(srv.getName()));
-    }
-
+//    public boolean addServer(GeminiServer srv) {
+//        if(servers.stream().filter(s -> s.getName().equals(srv.getName())).count() == 0)
+//            return servers.add(srv);
+//        else
+//            return false;
+//    }
+//
+//    public boolean deleteServer(GeminiServer srv) {
+//        return servers.removeIf(s -> s.getName().equals(srv.getName()));
+//    }
+//
     public boolean addNetwork(GeminiNetwork net) {
         if (networks.stream().filter(n -> n.getName().equals(net.getName())).count() == 0)
             return networks.add(net);
@@ -101,8 +101,8 @@ public class GeminiApplication extends EntityMongoDB {
         return networks;
     }
 
-    public List<GeminiServer> getServers() {
-        return servers;
-    }
-
+//    public List<GeminiServer> getServers() {
+//        return servers;
+//    }
+//
 }

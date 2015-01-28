@@ -43,7 +43,7 @@ public class GeminiApplicationRepositoryMongoDBImpl extends BaseRepositoryMongoD
 
     public List<GeminiServer> getAppServers(String appName) {
         GeminiApplication a = getAppByName(appName);
-        return a.getServers();
+        return null; //a.getServers();
     }
     
     public List<GeminiServer> getNetworkServers (String appName, String netName) {

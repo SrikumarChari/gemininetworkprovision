@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author schari
  */
-public class GeminiSubnetAllocationPoolDTO {
+public class GeminiSubnetAllocationPoolDTO extends GeminiBaseDTO {
 
     private String start;
     private String end;

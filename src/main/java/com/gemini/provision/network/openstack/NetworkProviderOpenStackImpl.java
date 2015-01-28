@@ -5,6 +5,7 @@
  */
 package com.gemini.provision.network.openstack;
 
+import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiNetworkRouter;
@@ -453,7 +454,9 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 //so we can use findOne or findAny
                 GeminiNetwork gemGateway = tenant.getEnvironments()
                         .stream()
-                        .map(GeminiEnvironment::getNetworks)
+                        .map(GeminiEnvironment::getApplications)
+                        .flatMap(List::stream)
+                        .map(GeminiApplication::getNetworks)
                         .flatMap(List::stream)
                         .filter(n -> n.getCloudID().equals(gID))
                         .findFirst()
