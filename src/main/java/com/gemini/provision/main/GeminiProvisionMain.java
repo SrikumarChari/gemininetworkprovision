@@ -36,6 +36,11 @@ public class GeminiProvisionMain {
     static NetworkProvisioningService provisioningService;
     static GeminiMapper mapper;
     final static String QUEUE_NAME = "hello";
+    private static String SECTION_MSG_QUEUES = "msg_queues";
+    private static String IN_QUEUE = "netprov_in_queue";
+    private static String OUT_QUEUE = "netprov_out_queue";
+    private static String LOCAL_IN_QUEUE = "netprov_local_in_queue";
+    private static String LOCAL_OUT_QUEUE = "netprov_local_out_queue";
 
     public static void main(String[] args) throws IOException, InterruptedException {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
@@ -70,7 +75,6 @@ public class GeminiProvisionMain {
             System.out.println(" [x] Received '" + message + "'");
             GeminiTenantDTO tenantDTO = gson.fromJson(message, GeminiTenantDTO.class);
             System.out.print(ToStringBuilder.reflectionToString(tenantDTO, ToStringStyle.MULTI_LINE_STYLE));
-            //System.out.println(" [x] Received '" + message + "'");
         }
     }
 }

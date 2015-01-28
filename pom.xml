@@ -109,6 +109,22 @@
             <artifactId>openstack4j-core</artifactId>
             <version>2.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ini4j</groupId>
+            <artifactId>ini4j</artifactId>
+            <version>0.5.2</version>
+            <classifier>jdk14</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.jcommon</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
