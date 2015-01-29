@@ -212,7 +212,16 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
 
         //check to see if this network exists
-        Network n = os.networking().network().get(delNetwork.getCloudID());
+        Network n;
+        try {
+            n = os.networking().network().get(delNetwork.getCloudID());
+        } catch (NullPointerException ex) {
+            Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
+                    tenant.getName(), env.getName(),
+                    ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
+            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+        }
+
         if (n == null) {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
@@ -249,16 +258,18 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
 
         // Get a network by ID
-        Network network = os.networking().network().get(n.getCloudID());
-        if (network == null) {
-            Logger.error("Failed to update network - doesn't exist. Tenant: {} Environment: {} Network: {}",
+        Network network;
+        try {
+            network = os.networking().network().get(n.getCloudID());
+        }  catch (NullPointerException ex) {
+            Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
             return NetworkProviderResponseType.OBJECT_NOT_FOUND;
         }
-
+        
         //update the network
-        Network updatedNetwork = null;
+        Network updatedNetwork;
         try {
             updatedNetwork = os.networking().network().update(n.getCloudID(), Builders.networkUpdate().name(n.getName()).build());
         } catch (ClientResponseException ex) {
@@ -379,15 +390,15 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //update the subnet
         Subnet updatedSubnet;
-        
+
         try {
             updatedSubnet = os.networking().subnet().update(s.toBuilder()
-                //.addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
-                .cidr(subnet.getCidr())
-                .name(subnet.getName())
-                .gateway(subnet.getGateway().getCloudID())
-                .networkId(subnet.getParent().getCloudID())
-                .build());
+                    //.addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
+                    .cidr(subnet.getCidr())
+                    .name(subnet.getName())
+                    .gateway(subnet.getGateway().getCloudID())
+                    .networkId(subnet.getParent().getCloudID())
+                    .build());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
             return NetworkProviderResponseType.CLOUD_EXCEPTION;
