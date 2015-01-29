@@ -132,4 +132,9 @@ public class NetworkProviderDefaultImpl implements NetworkProvider {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public List<GeminiSubnet> getAllSubnets(GeminiTenant tenant, GeminiEnvironment env) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

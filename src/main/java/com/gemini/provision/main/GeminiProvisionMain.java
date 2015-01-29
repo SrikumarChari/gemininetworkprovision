@@ -47,7 +47,7 @@ public class GeminiProvisionMain {
 //        Injector provisioningInjector = Guice.createInjector(
 //                new NetworkProviderModule(env.getType()));
 //        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
-//        List<GeminiNetwork> gateways = provisioningService.getProvisioningService().getExternalGateways(tenant, env);
+//        List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, env);
 //        //we should only one have one gateway
 //        gateways.stream().forEach(System.out::println);
 //        OSClient os = OSFactory.builder()
@@ -83,7 +83,7 @@ public class GeminiProvisionMain {
                     new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
             provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
-            List<GeminiNetwork> gateways = provisioningService.getProvisioningService().getExternalGateways(tenant, tenant.getEnvironments().get(0));
+            List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, tenant.getEnvironments().get(0));
             //we should only one have one gateway
             gateways.stream().forEach(System.out::println);
 

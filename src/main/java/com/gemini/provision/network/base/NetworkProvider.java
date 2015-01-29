@@ -35,6 +35,7 @@ public interface NetworkProvider {
     public NetworkProviderResponseType updateNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n);
     
     //the subnet API
+    public List<GeminiSubnet> getAllSubnets(GeminiTenant tenant, GeminiEnvironment env);
     public List<GeminiSubnet> getSubnets(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent);
     public NetworkProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet subnet);
     public List<NetworkProviderResponseType> bulkCreateSubnet (GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, List<GeminiSubnet> subnets);

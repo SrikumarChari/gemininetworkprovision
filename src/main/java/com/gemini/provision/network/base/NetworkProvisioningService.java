@@ -15,13 +15,13 @@ public class NetworkProvisioningService {
     private NetworkProvider provisioningService;
     
     @Inject
-    public void setProvisioningService(NetworkProvider svc) {
+    public void setProvider(NetworkProvider svc) {
         provisioningService = svc;
     }
     
     //for now provide a get service
     //TODO: add functions to match the NetworkProvider service, i.e., hide the service
-    public NetworkProvider getProvisioningService() {
+    public NetworkProvider getProvider() {
         return provisioningService;
     }
 }
