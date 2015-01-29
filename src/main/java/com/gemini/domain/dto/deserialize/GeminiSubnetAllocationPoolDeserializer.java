@@ -13,6 +13,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import java.lang.reflect.Type;
 import org.pmw.tinylog.Logger;
 
@@ -25,16 +26,21 @@ public class GeminiSubnetAllocationPoolDeserializer implements JsonDeserializer<
     @Override
     public GeminiSubnetAllocationPoolDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         GeminiSubnetAllocationPoolDTO newAllocPool = new GeminiSubnetAllocationPoolDTO();
-        newAllocPool.setStart(json.getAsJsonObject().get("start").getAsString());
-        newAllocPool.setEnd(json.getAsJsonObject().get("end").getAsString());
 
-        //ignore the parent, it will be set when the parent subnet is deserialized
-        String parent = json.getAsJsonObject().get("parent").getAsString();
-
+        try {
+            newAllocPool.setStart(json.getAsJsonObject().get("start").getAsString());
+            newAllocPool.setEnd(json.getAsJsonObject().get("end").getAsString());
+            //ignore the parent, it will be set when the parent subnet is deserialized
+            String parent = json.getAsJsonObject().get("parent").getAsString();
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid subnet allocation pool, no start and end");
+        }
         //now the servers
         try {
             JsonArray serverArray = json.getAsJsonObject().get("servers").getAsJsonArray();
             for (JsonElement e : serverArray) {
+                //we don't need a custom deserializer for the server object because it is a simple
+                //class with no hierarchical references to other objects 
                 newAllocPool.addServer(new Gson().fromJson(e, GeminiServerDTO.class));
             }
         } catch (NullPointerException npe) {

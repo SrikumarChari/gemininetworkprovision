@@ -37,7 +37,7 @@ public class GeminiApplicationDeserializer implements JsonDeserializer<GeminiApp
             newApp.setBackupSize(json.getAsJsonObject().get("backupSize").getAsInt());
             newApp.setLocation(json.getAsJsonObject().get("location").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON Application Deserializer - no name, description, custom, backupSize and location");
+            Logger.error("Malformed JSON Application Deserializer - no application name, description, custom, backupSize and location");
         }
 
         //now the networks

@@ -2,7 +2,7 @@ package com.gemini.provision.main;
 
 import com.gemini.domain.dto.GeminiTenantDTO;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
-import com.gemini.domain.model.GeminiEnvironment;
+import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;
 import com.gemini.mapper.GeminiMapperModule;
@@ -17,8 +17,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.QueueingConsumer;
 import java.io.IOException;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import java.util.List;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -31,8 +30,6 @@ import org.apache.commons.lang.builder.ToStringStyle;
  */
 public class GeminiProvisionMain {
 
-    static GeminiTenant tenant = new GeminiTenant();
-    static GeminiEnvironment env = new GeminiEnvironment();
     static NetworkProvisioningService provisioningService;
     static GeminiMapper mapper;
     final static String QUEUE_NAME = "hello";
@@ -46,14 +43,20 @@ public class GeminiProvisionMain {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
 
-        //create the provisioning service 
-        Injector provisioningInjector = Guice.createInjector(
-                new NetworkProviderModule(env.getType()));
-        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
-
+//        //create the provisioning service 
+//        Injector provisioningInjector = Guice.createInjector(
+//                new NetworkProviderModule(env.getType()));
+//        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 //        List<GeminiNetwork> gateways = provisioningService.getProvisioningService().getExternalGateways(tenant, env);
 //        //we should only one have one gateway
 //        gateways.stream().forEach(System.out::println);
+//        OSClient os = OSFactory.builder()
+//                .endpoint("http://198.11.209.34:5000/v2.0")
+//                .credentials("sri", "srikumar12")
+//                .tenantName("Gemini-network-prj")
+//                .authenticate();
+//        List<? extends Network> networks = os.networking().network().list();
+//        networks.stream().forEach(s -> System.out.println(s.getName()));
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("127.0.0.1");
@@ -72,9 +75,18 @@ public class GeminiProvisionMain {
         while (true) {
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
             String message = new String(delivery.getBody());
-            System.out.println(" [x] Received '" + message + "'");
             GeminiTenantDTO tenantDTO = gson.fromJson(message, GeminiTenantDTO.class);
-            System.out.print(ToStringBuilder.reflectionToString(tenantDTO, ToStringStyle.MULTI_LINE_STYLE));
+            GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+            //create the provisioning service 
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
+            provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+            List<GeminiNetwork> gateways = provisioningService.getProvisioningService().getExternalGateways(tenant, tenant.getEnvironments().get(0));
+            //we should only one have one gateway
+            gateways.stream().forEach(System.out::println);
+
         }
     }
 }

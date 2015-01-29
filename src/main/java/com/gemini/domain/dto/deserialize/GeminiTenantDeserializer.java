@@ -35,12 +35,17 @@ public class GeminiTenantDeserializer implements JsonDeserializer<GeminiTenantDT
         for (JsonElement t : tenantArray) {
             try {
                 newTenant.setName(t.getAsJsonObject().get("name").getAsString());
+            } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+                Logger.error("Malformed JSON - no tenant name specified");
+            }
+
+            try {
                 newTenant.setAdminUserName(t.getAsJsonObject().get("adminUserName").getAsString());
                 newTenant.setAdminPassword(t.getAsJsonObject().get("adminPassword").getAsString());
                 newTenant.setEndPoint(t.getAsJsonObject().get("endPoint").getAsString());
                 newTenant.setDomainName(t.getAsJsonObject().get("domainName").getAsString());
             } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-                Logger.error("Malformed JSON in tenant deserialization");
+                Logger.error("Malformed JSON - no adminUserName, adminPassword, endpoint for tenant {}", newTenant.getName());
             }
 
             //now the users
@@ -68,5 +73,4 @@ public class GeminiTenantDeserializer implements JsonDeserializer<GeminiTenantDT
         }
         return newTenant;
     }
-
 }

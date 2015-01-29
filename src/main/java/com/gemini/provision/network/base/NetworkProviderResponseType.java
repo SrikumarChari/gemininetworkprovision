@@ -10,5 +10,5 @@ package com.gemini.provision.network.base;
  * @author schari
  */
 public enum NetworkProviderResponseType {
-    CLOUD_AUTH_FAILURE, OBJECT_EXISTS, OBJECT_NOT_FOUND, CLOUD_FAILURE, SUCCESS
+    CLOUD_AUTH_FAILURE, OBJECT_EXISTS, OBJECT_NOT_FOUND, CLOUD_FAILURE, SUCCESS, CLOUD_EXCEPTION
 }

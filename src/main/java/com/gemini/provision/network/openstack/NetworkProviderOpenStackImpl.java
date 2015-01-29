@@ -23,7 +23,9 @@ import org.openstack4j.api.OSClient;
 import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.http.HttpException;
 import org.openstack4j.api.Builders;
+import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.model.network.AttachInterfaceType;
 import org.openstack4j.model.network.HostRoute;
 import org.openstack4j.model.network.IPVersionType;
@@ -50,8 +52,6 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-//                .domainName(tenant.getDomainName())
-//                .tenantId(tenant.getTenantID())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -68,19 +68,23 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             GeminiNetwork gn = new GeminiNetwork();
             gn.setName(n.getName());
             gn.setCloudID(n.getId());
-            gn.setNetworkType(n.getNetworkType().name());
-            n.getNeutronSubnets().stream().forEach(s -> {
-                GeminiSubnet gs = new GeminiSubnet();
-                gs.setCloudID(s.getId());
-                gs.setParent(gn);
-                gs.setCidr(s.getCidr());
-                s.getAllocationPools().stream().forEach(p -> {
-                    GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
-                            InetAddresses.forString(p.getEnd()));
-                    gsap.setParent(gs);
-                    gs.addAllocationPool(gsap);
+            if (n.getNetworkType() != null) {
+                gn.setNetworkType(n.getNetworkType().name());
+            }
+            if (n.getNeutronSubnets() != null) {
+                n.getNeutronSubnets().stream().filter(s -> s != null).forEach(s -> {
+                    GeminiSubnet gs = new GeminiSubnet();
+                    gs.setCloudID(s.getId());
+                    gs.setParent(gn);
+                    gs.setCidr(s.getCidr());
+                    s.getAllocationPools().stream().forEach(p -> {
+                        GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
+                                InetAddresses.forString(p.getEnd()));
+                        gsap.setParent(gs);
+                        gs.addAllocationPool(gsap);
+                    });
                 });
-            });
+            }
             gateways.add(gn);
         });
         return gateways;
@@ -89,10 +93,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public List<GeminiNetwork> getNetworks(GeminiTenant tenant, GeminiEnvironment env) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
@@ -104,23 +109,27 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         List<GeminiNetwork> gemNetworks = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
-        networks.stream().forEach(n -> {
+        networks.stream().filter(n -> n != null).forEach(n -> {
             GeminiNetwork gn = new GeminiNetwork();
             gn.setName(n.getName());
             gn.setCloudID(n.getId());
-            gn.setNetworkType(n.getNetworkType().name());
-            n.getNeutronSubnets().stream().forEach(s -> {
-                GeminiSubnet gs = new GeminiSubnet();
-                gs.setCloudID(s.getId());
-                gs.setParent(gn);
-                gs.setCidr(s.getCidr());
-                s.getAllocationPools().stream().forEach(p -> {
-                    GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
-                            InetAddresses.forString(p.getEnd()));
-                    gsap.setParent(gs);
-                    gs.addAllocationPool(gsap);
+            if (n.getNetworkType() != null) {
+                gn.setNetworkType(n.getNetworkType().name());
+            }
+            if (n.getNeutronSubnets() != null) {
+                n.getNeutronSubnets().stream().filter(s -> s != null).forEach(s -> {
+                    GeminiSubnet gs = new GeminiSubnet();
+                    gs.setCloudID(s.getId());
+                    gs.setParent(gn);
+                    gs.setCidr(s.getCidr());
+                    s.getAllocationPools().stream().forEach(p -> {
+                        GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
+                                InetAddresses.forString(p.getEnd()));
+                        gsap.setParent(gs);
+                        gs.addAllocationPool(gsap);
+                    });
                 });
-            });
+            }
             gemNetworks.add(gn);
         });
         return gemNetworks;
@@ -129,10 +138,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork newNetwork) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
@@ -150,10 +160,16 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
 
         //create the network
-        Network network = os.networking().network().create(Builders.network()
-                .name(newNetwork.getName())
-                .tenantId(os.identity().tenants().getByName(tenant.getName()).getId())
-                .build());
+        Network network;
+        try {
+            network = os.networking().network().create(Builders.network()
+                    .name(newNetwork.getName())
+                    .tenantId(tenant.getTenantID())
+                    .build());
+        } catch (ClientResponseException ex) {
+            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+        }
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
         if (network == null) {
@@ -182,10 +198,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType deleteNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork delNetwork) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
 
         if (os == null) {
@@ -203,7 +220,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             return NetworkProviderResponseType.OBJECT_NOT_FOUND;
         }
 
-        os.networking().network().delete(delNetwork.getCloudID());
+        try {
+            os.networking().network().delete(delNetwork.getCloudID());
+        } catch (ClientResponseException ex) {
+            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+        }
+
         Logger.debug("Successfully deleted network - Tenant: {} Environment: {} Network: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
@@ -213,10 +236,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType updateNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
@@ -234,7 +258,14 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
 
         //update the network
-        Network updatedNetwork = os.networking().network().update(n.getCloudID(), Builders.networkUpdate().name(n.getName()).build());
+        Network updatedNetwork = null;
+        try {
+            updatedNetwork = os.networking().network().update(n.getCloudID(), Builders.networkUpdate().name(n.getName()).build());
+        } catch (ClientResponseException ex) {
+            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+        }
+
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
         if (updatedNetwork == null) {
             Logger.error("Failed to update network, Cloud provider failure Tenant: {} Environment: {} Network: {}",
@@ -278,13 +309,20 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
 
         //create the subnet
-        Subnet subnet = os.networking().subnet().create(Builders.subnet()
-                .name(newSubnet.getName())
-                .networkId(parent.getCloudID())
-                .tenantId(os.identity().tenants().getByName(tenant.getName()).getId())
-                .ipVersion(IPVersionType.V4)
-                .cidr(newSubnet.getCidr())
-                .build());
+        Subnet subnet;
+        try {
+            subnet = os.networking().subnet().create(Builders.subnet()
+                    .name(newSubnet.getName())
+                    .networkId(parent.getCloudID())
+                    .tenantId(tenant.getTenantID())
+                    .ipVersion(IPVersionType.V4)
+                    .cidr(newSubnet.getCidr())
+                    .build());
+        } catch (ClientResponseException ex) {
+            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+        }
+
         if (subnet == null) {
             Logger.error("Failed to create subnet, Cloud provider failure Tenant: {} Environment: {} Subnet: {}",
                     tenant.getName(), env.getName(),
@@ -319,10 +357,10 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType updateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
@@ -340,13 +378,20 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
 
         //update the subnet
-        Subnet updatedSubnet = os.networking().subnet().update(s.toBuilder()
+        Subnet updatedSubnet;
+        
+        try {
+            updatedSubnet = os.networking().subnet().update(s.toBuilder()
                 //.addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
                 .cidr(subnet.getCidr())
                 .name(subnet.getName())
                 .gateway(subnet.getGateway().getCloudID())
                 .networkId(subnet.getParent().getCloudID())
                 .build());
+        } catch (ClientResponseException ex) {
+            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+        }
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
         if (updatedSubnet == null) {
@@ -374,12 +419,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType deleteSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
-
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
@@ -421,10 +465,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public List<GeminiNetworkRouter> getAllRouters(GeminiTenant tenant) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
@@ -489,10 +534,10 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter newRouter) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
@@ -543,10 +588,10 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeUpdated) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
@@ -584,10 +629,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public NetworkProviderResponseType deleteRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeDeleted) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",

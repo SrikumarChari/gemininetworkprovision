@@ -25,7 +25,7 @@ public class GeminiApplication extends EntityMongoDB {
     private String location; //TODO: convert to a geo coordinate 
 
     @Reference
-    private final List<GeminiNetwork> networks;
+    private List<GeminiNetwork> networks;
 
 //    @Reference
 //    private final List<GeminiServer> servers;
@@ -101,6 +101,9 @@ public class GeminiApplication extends EntityMongoDB {
         return networks;
     }
 
+    public void setNetworks(List<GeminiNetwork> networks) {
+        this.networks = networks;
+    }
 //    public List<GeminiServer> getServers() {
 //        return servers;
 //    }

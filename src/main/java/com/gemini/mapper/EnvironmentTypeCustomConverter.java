@@ -6,8 +6,6 @@
 package com.gemini.mapper;
 
 import com.gemini.domain.common.GeminiEnvironmentType;
-import com.google.common.net.InetAddresses;
-import java.net.InetAddress;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.dozer.CustomConverter;

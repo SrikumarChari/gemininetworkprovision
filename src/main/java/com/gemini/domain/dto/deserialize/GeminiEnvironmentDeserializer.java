@@ -39,12 +39,19 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
                 .create();
 
         //using multiple try/catch blocks to enable error specific messaging
-        //first the primitive fields
+        //first the name
         try {
             newEnv.setName(json.getAsJsonObject().get("name").getAsString());
-            newEnv.setName(json.getAsJsonObject().get("type").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - no name or type for environment");
+            Logger.error("Malformed JSON - no name for environment");
+        }
+
+        //now the environment type
+        try {
+            newEnv.setType(json.getAsJsonObject().get("type").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            //TODO: SHOULD WE JUST RETURN AN ERROR AT THIS POINT?
+            Logger.error("Malformed JSON - no type for environment {}", newEnv.getName());
         }
 
         //now the gatweay

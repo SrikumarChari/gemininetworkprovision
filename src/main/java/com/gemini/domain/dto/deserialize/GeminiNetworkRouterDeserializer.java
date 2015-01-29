@@ -37,7 +37,6 @@ public class GeminiNetworkRouterDeserializer implements JsonDeserializer<GeminiN
         //first the name
         try {
             newRouter.setName(json.getAsJsonObject().get("name").getAsString());
-            newRouter.setGateway(gson.fromJson(json.getAsJsonObject().get("gateway"), GeminiNetworkDTO.class));
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - no name specified");
         }
@@ -56,19 +55,18 @@ public class GeminiNetworkRouterDeserializer implements JsonDeserializer<GeminiN
                 //format is nextHop, dest
                 String strRoute = e.getAsString();
                 List<String> splitRoutes = Splitter.on(',').splitToList(strRoute);
-                if (splitRoutes.size() > 2) {
-                    Logger.error("Invalid route, has more than two map entries");
+                if (splitRoutes.size() != 2) {
+                    Logger.error("Invalid route, does not have two map entries");
                 } else {
                     newRouter.addRouter(splitRoutes.get(0), splitRoutes.get(1));
                 }
             }
         } catch (NullPointerException npe) {
-            Logger.debug("No routes set for ", newRouter.getName());
+            Logger.debug("No routes provided for {}", newRouter.getName());
         }
 
         //the interfaces will be handled at the environment level because they
         //need to added by reference instead of new objects
         return newRouter;
     }
-
 }

@@ -22,8 +22,8 @@ import org.mongodb.morphia.annotations.Reference;
 public class GeminiEnvironment extends EntityMongoDB {
 
     //rackspace, openstack, etc.
-    private GeminiEnvironmentType type;
     private String name;
+    private GeminiEnvironmentType type;
     private GeminiNetwork gateway;
 
     @Embedded
@@ -36,7 +36,7 @@ public class GeminiEnvironment extends EntityMongoDB {
 //    private List<GeminiServer> servers = new ArrayList();
 
     @Reference
-    private List<GeminiNetworkRouter> routers = new ArrayList();
+    private List<GeminiNetworkRouter> routers = Collections.synchronizedList(new ArrayList());
 
     public GeminiEnvironmentType getType() {
         return type;
