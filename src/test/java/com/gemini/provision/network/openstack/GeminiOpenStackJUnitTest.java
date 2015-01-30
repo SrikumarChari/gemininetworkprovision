@@ -12,7 +12,7 @@ import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.provision.network.base.NetworkProviderModule;
-import com.gemini.provision.network.base.NetworkProviderResponseType;
+import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.network.base.NetworkProvisioningService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -120,9 +120,9 @@ public class GeminiOpenStackJUnitTest {
     @Test
     public void createNetwork() {
         //create the network
-        NetworkProviderResponseType result = provisioningService.getProvider().createNetwork(tenant, env, newNet);
+        ProvisioningProviderResponseType result = provisioningService.getProvider().createNetwork(tenant, env, newNet);
         //check the return value
-        assert (result == NetworkProviderResponseType.SUCCESS);
+        assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         //now check to see if the network was actually created
         List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
@@ -132,9 +132,9 @@ public class GeminiOpenStackJUnitTest {
     @Test
     public void deleteNetwork() {
         //now delete the network
-        NetworkProviderResponseType result = provisioningService.getProvider().deleteNetwork(tenant, env, newNet);
+        ProvisioningProviderResponseType result = provisioningService.getProvider().deleteNetwork(tenant, env, newNet);
         //check the return value
-        assert (result == NetworkProviderResponseType.SUCCESS);
+        assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         //now check to see if the network was actually created
         List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
@@ -146,15 +146,15 @@ public class GeminiOpenStackJUnitTest {
         //change the name of the network
         String oldName = newNet.getName();
         newNet.setName("Temporary Change");
-        NetworkProviderResponseType result = provisioningService.getProvider().updateNetwork(tenant, env, newNet);
+        ProvisioningProviderResponseType result = provisioningService.getProvider().updateNetwork(tenant, env, newNet);
         //check the return value
-        assert (result == NetworkProviderResponseType.SUCCESS);
+        assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         //change the name based to the old name
         newNet.setName(oldName);
         result = provisioningService.getProvider().updateNetwork(tenant, env, newNet);
         //check the return value
-        assert (result == NetworkProviderResponseType.SUCCESS);
+        assert (result == ProvisioningProviderResponseType.SUCCESS);
     }
     
     @Test

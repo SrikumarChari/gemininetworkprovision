@@ -12,16 +12,16 @@ import com.google.inject.Inject;
  * @author schari
  */
 public class NetworkProvisioningService {
-    private NetworkProvider provisioningService;
+    private NetworkProvider networkProvisioningService;
     
     @Inject
     public void setProvider(NetworkProvider svc) {
-        provisioningService = svc;
+        networkProvisioningService = svc;
     }
     
     //for now provide a get service
     //TODO: add functions to match the NetworkProvider service, i.e., hide the service
     public NetworkProvider getProvider() {
-        return provisioningService;
+        return networkProvisioningService;
     }
 }

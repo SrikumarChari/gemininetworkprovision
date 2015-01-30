@@ -13,7 +13,7 @@ import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.model.GeminiSubnetAllocationPool;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.provision.network.base.NetworkProvider;
-import com.gemini.provision.network.base.NetworkProviderResponseType;
+import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.google.common.net.InetAddresses;
 import com.google.inject.Singleton;
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     }
 
     @Override
-    public NetworkProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork newNetwork) {
+    public ProvisioningProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork newNetwork) {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
@@ -146,7 +146,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         //check to see if this network exists
@@ -155,7 +155,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to create network - already exists. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newNetwork, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_EXISTS;
+            return ProvisioningProviderResponseType.OBJECT_EXISTS;
         }
 
         //create the network
@@ -167,7 +167,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .build());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
-            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
@@ -175,7 +175,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to create network, failure in Cloud provider. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newNetwork, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //copy the cloud ID to the Gemini object as it is required later
@@ -183,19 +183,19 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Logger.debug("Successfully added network - Tenant: {} Environment: {} Network: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(newNetwork, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public List<NetworkProviderResponseType> bulkCreateNetwork(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetwork> networks) {
-        List<NetworkProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
+    public List<ProvisioningProviderResponseType> bulkCreateNetwork(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetwork> networks) {
+        List<ProvisioningProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
         //TODO: Only the first element is set ... NEED to research whether it is possible to get the current position from the stream
         networks.stream().forEach(n -> retValues.set(0, createNetwork(tenant, env, n)));
         return retValues;
     }
 
     @Override
-    public NetworkProviderResponseType deleteNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork delNetwork) {
+    public ProvisioningProviderResponseType deleteNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork delNetwork) {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
@@ -207,7 +207,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         //check to see if this network exists
@@ -218,31 +218,31 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         if (n == null) {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         try {
             os.networking().network().delete(delNetwork.getCloudID());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
-            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         Logger.debug("Successfully deleted network - Tenant: {} Environment: {} Network: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public NetworkProviderResponseType updateNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
+    public ProvisioningProviderResponseType updateNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
@@ -253,7 +253,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         // Get a network by ID
@@ -264,7 +264,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
         
         //update the network
@@ -273,7 +273,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             updatedNetwork = os.networking().network().update(n.getCloudID(), Builders.networkUpdate().name(n.getName()).build());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
-            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
@@ -281,13 +281,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to update network, Cloud provider failure Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         Logger.debug("Successfully updated the network. Tenant: {} Environment: {} Network: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
@@ -361,7 +361,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     }
 
     @Override
-    public NetworkProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet newSubnet) {
+    public ProvisioningProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet newSubnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builderV3()
                 .endpoint(tenant.getEndPoint())
@@ -371,7 +371,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         //check to see if this subnet exists
@@ -379,7 +379,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to create subnet - already exists. Tenant: {} Environment: {} subnet: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_EXISTS;
+            return ProvisioningProviderResponseType.OBJECT_EXISTS;
         }
 
         //create the subnet
@@ -394,14 +394,14 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .build());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
-            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         if (subnet == null) {
             Logger.error("Failed to create subnet, Cloud provider failure Tenant: {} Environment: {} Subnet: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //add the list of subnets (this will be an update the subnet just created)
@@ -417,19 +417,19 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Logger.debug("Successfully added network - Tenant: {} Environment: {} Network: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public List<NetworkProviderResponseType> bulkCreateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, List<GeminiSubnet> subnets) {
-        List<NetworkProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
+    public List<ProvisioningProviderResponseType> bulkCreateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, List<GeminiSubnet> subnets) {
+        List<ProvisioningProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
         //TODO: Only the first element is set ... NEED to research whether it is possible to get the current position from the stream
         subnets.stream().forEach(n -> retValues.set(0, createSubnet(tenant, env, parent, n)));
         return retValues;
     }
 
     @Override
-    public NetworkProviderResponseType updateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
+    public ProvisioningProviderResponseType updateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
@@ -439,7 +439,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         // Get a subnet by ID
@@ -448,7 +448,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to update subnet - doesn't exist. Tenant: {} Environment: {} Sbunet: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         //update the subnet
@@ -464,7 +464,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .build());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
-            return NetworkProviderResponseType.CLOUD_EXCEPTION;
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
@@ -472,7 +472,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to update subnet, Cloud provider failure. Tenant: {} Environment: {} Subnet: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //add the list of subnets (this will be an update the subnet just created)
@@ -487,11 +487,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Logger.debug("Successfully updated the subnet. Tenant: {} Environment: {} Subnet: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public NetworkProviderResponseType deleteSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
+    public ProvisioningProviderResponseType deleteSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
@@ -501,7 +501,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         // Get a subnet by ID
@@ -510,19 +510,19 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         if (os.networking().subnet().delete(subnet.getCloudID()).isSuccess()) {
             Logger.debug("Successfully deleted network - Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.SUCCESS;
+            return ProvisioningProviderResponseType.SUCCESS;
         } else {
             Logger.error("Failed to delete network, cloud provider failure - Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
     }
 
@@ -606,7 +606,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     }
 
     @Override
-    public NetworkProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter newRouter) {
+    public ProvisioningProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter newRouter) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
@@ -616,7 +616,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         //see if this already exists
@@ -624,7 +624,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (existingRoutes.stream().anyMatch(r -> r.getName().equals(newRouter.getName()))) {
             Logger.error("Failed to add Router, already exists: Tenant: {} Environment: {}, Router: {}",
                     tenant.getName(), env.getName(), ToStringBuilder.reflectionToString(newRouter, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_EXISTS;
+            return ProvisioningProviderResponseType.OBJECT_EXISTS;
         }
 
         //create the router
@@ -636,7 +636,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (createdRouter == null) {
             Logger.error("Failed to add Router, cloud provider failure: Tenant: {} Environment: {}, Router: {}",
                     tenant.getName(), env.getName(), ToStringBuilder.reflectionToString(newRouter, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //now add the host routes
@@ -648,19 +648,19 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Logger.debug("Successfully added router - Tenant: {} Environment: {} Router: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(newRouter, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public List<NetworkProviderResponseType> bulkCreateRouter(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetworkRouter> routes) {
-        List<NetworkProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
+    public List<ProvisioningProviderResponseType> bulkCreateRouter(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetworkRouter> routes) {
+        List<ProvisioningProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
         //TODO: Only the first element is set ... NEED to research whether it is possible to get the current position from the stream
         routes.stream().forEach(r -> retValues.set(0, createRouter(tenant, env, r)));
         return retValues;
     }
 
     @Override
-    public NetworkProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeUpdated) {
+    public ProvisioningProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeUpdated) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
@@ -670,7 +670,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         //see if this already exists
@@ -678,7 +678,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (existingRouter == null) {
             Logger.error("Failed to update Router, it does not exist: Tenant: {} Environment: {}, Router: {}",
                     tenant.getName(), env.getName(), ToStringBuilder.reflectionToString(routerToBeUpdated, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         //first update the non-array/list items
@@ -697,11 +697,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Logger.debug("Successfully updated router - Tenant: {} Environment: {} Router: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(routerToBeUpdated, ToStringStyle.MULTI_LINE_STYLE));
-        return NetworkProviderResponseType.SUCCESS;
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public NetworkProviderResponseType deleteRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeDeleted) {
+    public ProvisioningProviderResponseType deleteRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeDeleted) {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
@@ -712,7 +712,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_AUTH_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
         }
 
         //see if this already exists
@@ -720,18 +720,18 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         if (existingRouter == null) {
             Logger.error("Failed to delete Router, it does not exist: Tenant: {} Environment: {}, Router: {}",
                     tenant.getName(), env.getName(), ToStringBuilder.reflectionToString(routerToBeDeleted, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.OBJECT_NOT_FOUND;
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         //now delete the router
         if (!os.networking().router().delete(existingRouter.getId()).isSuccess()) {
             Logger.error("Failed to delete Router, failure in Cloud Provider: Tenant: {} Environment: {}, Router: {}",
                     tenant.getName(), env.getName(), ToStringBuilder.reflectionToString(routerToBeDeleted, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.CLOUD_FAILURE;
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         } else {
             Logger.debug("Successfully deleted Router: Tenant: {} Environment: {}, Router: {}",
                     tenant.getName(), env.getName(), ToStringBuilder.reflectionToString(routerToBeDeleted, ToStringStyle.MULTI_LINE_STYLE));
-            return NetworkProviderResponseType.SUCCESS;
+            return ProvisioningProviderResponseType.SUCCESS;
         }
     }
 }

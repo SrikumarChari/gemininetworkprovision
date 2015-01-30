@@ -5,6 +5,7 @@
  */
 package com.gemini.provision.network.base;
 
+import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiNetworkRouter;
@@ -44,25 +45,25 @@ public class NetworkProviderDefaultImpl implements NetworkProvider {
     }
 
     @Override
-    public NetworkProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
+    public ProvisioningProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List<NetworkProviderResponseType> bulkCreateNetwork(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetwork> networks) {
+    public List<ProvisioningProviderResponseType> bulkCreateNetwork(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetwork> networks) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NetworkProviderResponseType deleteNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
+    public ProvisioningProviderResponseType deleteNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NetworkProviderResponseType updateNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
+    public ProvisioningProviderResponseType updateNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork n) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
@@ -74,25 +75,25 @@ public class NetworkProviderDefaultImpl implements NetworkProvider {
     }
 
     @Override
-    public NetworkProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet subnet) {
+    public ProvisioningProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet subnet) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List<NetworkProviderResponseType> bulkCreateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, List<GeminiSubnet> subnets) {
+    public List<ProvisioningProviderResponseType> bulkCreateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, List<GeminiSubnet> subnets) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NetworkProviderResponseType updateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet network) {
+    public ProvisioningProviderResponseType updateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet network) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NetworkProviderResponseType deleteSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet network) {
+    public ProvisioningProviderResponseType deleteSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet network) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
@@ -110,25 +111,25 @@ public class NetworkProviderDefaultImpl implements NetworkProvider {
     }
 
     @Override
-    public NetworkProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route) {
+    public ProvisioningProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List<NetworkProviderResponseType> bulkCreateRouter(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetworkRouter> routes) {
+    public List<ProvisioningProviderResponseType> bulkCreateRouter(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetworkRouter> routes) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NetworkProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route) {
+    public ProvisioningProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NetworkProviderResponseType deleteRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route) {
+    public ProvisioningProviderResponseType deleteRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
     }
