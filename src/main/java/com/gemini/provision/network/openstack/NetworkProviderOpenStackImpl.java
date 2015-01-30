@@ -260,13 +260,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Network network;
         try {
             network = os.networking().network().get(n.getCloudID());
-        } catch (NullPointerException ex) {
+        }  catch (NullPointerException ex) {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
             return NetworkProviderResponseType.OBJECT_NOT_FOUND;
         }
-
+        
         //update the network
         Network updatedNetwork;
         try {
