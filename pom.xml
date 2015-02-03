@@ -12,7 +12,7 @@
         <main-class>com.gemini.provision.main.GeminiProvisionMain</main-class>
         <google.guava.version>18.0</google.guava.version>
         <mongodb.java.driver.version>2.12.4</mongodb.java.driver.version>
-        <google.gson.version>2.2.4</google.gson.version>
+        <google.gson.version>2.3.1</google.gson.version>
         <org.tinylog.version>1.0-rc-2</org.tinylog.version>
         <apache-httpcomponents-version>4.3.6</apache-httpcomponents-version>
     </properties>
@@ -123,7 +123,7 @@
         <dependency>
             <groupId>org.pacesys</groupId>
             <artifactId>openstack4j</artifactId>
-            <version>2.0.1</version>
+            <version>2.0.2-SNAPSHOT</version>
             <classifier>withdeps</classifier>
         </dependency>
         <dependency>
@@ -148,6 +148,13 @@
             <version>1.0</version>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>st-snapshots</id>
+            <name>sonatype-snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
     <build>
         <plugins>
             <plugin>

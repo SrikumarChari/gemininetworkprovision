@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -40,14 +41,14 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public List<GeminiLoadBalancer> listAllVIPs(GeminiTenant tenant, GeminiEnvironment env) {
-        List<GeminiLoadBalancer> vips = new ArrayList();
+        List<GeminiLoadBalancer> vips = Collections.synchronizedList(new ArrayList());
 
         //authenticate with the server
         URL url;
         try {
             url = new URL(tenant.getEndPoint());
         } catch (MalformedURLException ex) {
-            Logger.error("Invalid Endpoint - not a valid URL", tenant.getEndPoint());
+            Logger.error("Invalid Endpoint - {} not a valid URL. Exception: {}", tenant.getEndPoint(), ex.getMessage());
             return null;
         }
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
@@ -58,9 +59,9 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
                 .setDefaultCredentialsProvider(credsProvider)
                 .build();
         try {
-            HttpGet httpget = new HttpGet(tenant.getEndPoint());
+            HttpGet httpGet = new HttpGet(tenant.getEndPoint());
             //System.out.println("Executing request " + httpget.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(httpget);
+            CloseableHttpResponse response = httpclient.execute(httpGet);
             try {
                 //get the response status code 
                 String respStatus = response.getStatusLine().getReasonPhrase();
