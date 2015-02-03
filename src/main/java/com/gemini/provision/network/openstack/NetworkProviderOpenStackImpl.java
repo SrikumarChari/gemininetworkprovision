@@ -23,7 +23,6 @@ import org.openstack4j.api.OSClient;
 import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.apache.http.HttpException;
 import org.openstack4j.api.Builders;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.model.network.AttachInterfaceType;

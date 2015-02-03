@@ -5,32 +5,27 @@
  */
 package com.gemini.provision.loadbalancer.openstack;
 
+import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiLoadBalancer;
 import com.gemini.domain.model.GeminiLoadBalancerHealthMonitor;
 import com.gemini.domain.model.GeminiLoadBalancerPool;
+import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiPoolMember;
+import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.loadbalancer.base.LoadBalancerProvider;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import jersey.repackaged.com.google.common.net.InetAddresses;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.exceptions.ClientResponseException;
+import org.openstack4j.model.network.ext.Vip;
+import org.openstack4j.openstack.OSFactory;
 import org.pmw.tinylog.Logger;
 
 /**
@@ -43,57 +38,56 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     public List<GeminiLoadBalancer> listAllVIPs(GeminiTenant tenant, GeminiEnvironment env) {
         List<GeminiLoadBalancer> vips = Collections.synchronizedList(new ArrayList());
 
-        //authenticate with the server
-        URL url;
-        try {
-            url = new URL(tenant.getEndPoint());
-        } catch (MalformedURLException ex) {
-            Logger.error("Invalid Endpoint - {} not a valid URL. Exception: {}", tenant.getEndPoint(), ex.getMessage());
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
             return null;
         }
-        CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                new AuthScope(url.getHost(), 443),
-                new UsernamePasswordCredentials(tenant.getAdminUserName(), tenant.getAdminPassword()));
-        CloseableHttpClient httpclient = HttpClients.custom()
-                .setDefaultCredentialsProvider(credsProvider)
-                .build();
+
+        //try to get the list of VIP's
+        List<? extends Vip> osVips;
         try {
-            HttpGet httpGet = new HttpGet(tenant.getEndPoint());
-            //System.out.println("Executing request " + httpget.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(httpGet);
-            try {
-                //get the response status code 
-                String respStatus = response.getStatusLine().getReasonPhrase();
-                
-                //get the response body
-                EntityUtils.consume(response.getEntity());
-                int bytes = response.getEntity().getContent().available();
-                InputStream body = response.getEntity().getContent();
-                BufferedReader in =  new BufferedReader (new InputStreamReader (body));
-                String line;
-                StringBuffer sbJSON = new StringBuffer();
-                while ( (line = in.readLine()) != null) {
-                    sbJSON.append(line);
-                }
-                String json = sbJSON.toString();
-            } catch (IOException ex) {
-                Logger.error(ex);
-            } finally {
-                response.close();
-            }
-        } catch (IOException ex) {
-            Logger.error(ex);
-        } finally {
-            //lots of exceptions, just the connection and exit
-            try {
-                httpclient.close();
-            } catch (IOException ex) {
-                Logger.error(ex);
-                return null;
-            }
+            osVips = os.networking().loadbalancers().vip().list();
+        } catch (ClientResponseException e) {
+            Logger.error("Cloud failure - could not retrieve load balancer Vips. Exception: {}", e);
+            return null;
         }
 
+        //copy them to the gemini load balancer objects
+        osVips.stream().filter(v -> v != null).forEach(v -> {
+            GeminiLoadBalancer newLB = new GeminiLoadBalancer();
+
+            //the simple stuff
+            newLB.setCloudID(v.getId());
+            newLB.setVirtualPvtIP(InetAddresses.forString(v.getAddress()));
+
+            //Load balancer object references a subnet - this subnet must be 
+            //previously created and therefore MSUT BE AVAILABLE in the environment
+            //scan the environment networks and find the subnet
+            GeminiSubnet subnet = env.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .map(GeminiNetwork::getSubnets)
+                    .flatMap(List::stream)
+                    .filter(s -> s.getCloudID().equals(v.getId()))
+                    .findFirst().get();
+            if (subnet == null) {
+                Logger.info("Load Balancer cloud ID {} references a subnet not available in environment {}  Subnet ID: {}",
+                        v.getId(), env.getName(), v.getSubnetId());
+            } else {
+                newLB.setVirtualPvtSubnet(subnet);
+            }
+            
+            //now the pool
+            String poolID = v.getPoolId();
+            String protocol = v.getProtocol();
+            vips.add(newLB);
+        });
         return vips;
     }
 
