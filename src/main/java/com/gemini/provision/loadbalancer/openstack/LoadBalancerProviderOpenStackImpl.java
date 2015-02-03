@@ -5,6 +5,9 @@
  */
 package com.gemini.provision.loadbalancer.openstack;
 
+import com.gemini.domain.common.AdminState;
+import com.gemini.domain.common.LoadBalancerAlgorithm;
+import com.gemini.domain.common.Protocol;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiLoadBalancer;
@@ -24,6 +27,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.ClientResponseException;
+import org.openstack4j.model.network.ext.LbPool;
 import org.openstack4j.model.network.ext.Vip;
 import org.openstack4j.openstack.OSFactory;
 import org.pmw.tinylog.Logger;
@@ -138,7 +142,52 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public List<GeminiLoadBalancerPool> listAllPools(GeminiTenant tenant, GeminiEnvironment env) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<GeminiLoadBalancerPool> lbPools = Collections.synchronizedList(new ArrayList());
+
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
+        }
+        List<? extends LbPool> osLbPools = os.networking().loadbalancers().lbPool().list();
+
+        osLbPools.stream().filter(lbPool -> lbPool != null).forEach( lbPool -> {
+                    GeminiLoadBalancerPool loadBalancerPool = new GeminiLoadBalancerPool();
+                    loadBalancerPool.setCloudID(lbPool.getId());
+                    loadBalancerPool.setName(lbPool.getName());
+                    loadBalancerPool.setDescription(lbPool.getDescription());
+                    //TODO get the VpId from the pool
+                    loadBalancerPool.setVipID(lbPool.getVipId());
+                    loadBalancerPool.setProtocol(Protocol.fromString(lbPool.getProtocol()));
+                    loadBalancerPool.setLoadBalancerAlgorithm(LoadBalancerAlgorithm.fromString(lbPool.getLbMethod()));
+                    //TODO set the pool member
+                    loadBalancerPool.setAdminState(lbPool.isAdminStateUp()? AdminState.ADMIN_UP : AdminState.ADMIN_DOWN);
+
+                    GeminiSubnet subnet = env.getApplications().stream()
+                            .map(GeminiApplication::getNetworks)
+                            .flatMap(List::stream)
+                            .map(GeminiNetwork::getSubnets)
+                            .flatMap(List::stream)
+                            .filter(s -> s.getCloudID().equals(lbPool.getId()))
+                            .findFirst().get();
+                    if (subnet == null) {
+                        Logger.info("Load Balancer cloud ID {} references a subnet not available in environment {}  Subnet ID: {}",
+                                lbPool.getId(), env.getName(), lbPool.getSubnetId());
+                    } else {
+                        loadBalancerPool.setGeminiSubnet(subnet);
+                    }
+                    lbPools.add(loadBalancerPool);
+                }
+        );
+
+
+        return lbPools;
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
