@@ -13,13 +13,29 @@ public class GeminiLoadBalancerPool {
     private String name;
     private String description;
     private Protocol protocol;
-    private GeminiLoadBalancer loadBalancer;
     private LoadBalancerAlgorithm loadBalancerAlgorithm;
     private AdminState adminState;
     private ProvisionState provisionState;
     private LoadBalancerSessionType sessionType;
     private List<GeminiPoolMember> poolMembers = new ArrayList<>();
     private GeminiLoadBalancerHealthMonitor loadBalancerHealthMonitor;
+    private String vipID;//TODO change to domain object
+    private GeminiSubnet geminiSubnet;
+
+    public GeminiSubnet getGeminiSubnet() {
+        return geminiSubnet;
+    }
+
+    public void setGeminiSubnet(GeminiSubnet geminiSubnet) {
+        this.geminiSubnet = geminiSubnet;
+    }
+
+    public String getVipID() {
+        return vipID;
+    }
+    public void setVipID(String vipID) {
+        this.vipID = vipID;
+    }
 
     public GeminiLoadBalancerHealthMonitor getLoadBalancerHealthMonitor() {
         return loadBalancerHealthMonitor;
@@ -84,14 +100,6 @@ public class GeminiLoadBalancerPool {
 
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
-    }
-
-    public GeminiLoadBalancer getLoadBalancer() {
-        return loadBalancer;
-    }
-
-    public void setLoadBalancer(GeminiLoadBalancer loadBalancer) {
-        this.loadBalancer = loadBalancer;
     }
 
     public LoadBalancerAlgorithm getLoadBalancerAlgorithm() {
