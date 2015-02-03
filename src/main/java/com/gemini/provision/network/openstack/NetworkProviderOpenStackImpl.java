@@ -58,32 +58,44 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             return null;
         }
 
-        //get all the subnets
         List<? extends Network> networks = os.networking().network().list();
         List<GeminiNetwork> gateways = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
-        networks.stream().filter(n -> n.isRouterExternal()).forEach(n -> {
-            GeminiNetwork gn = new GeminiNetwork();
-            gn.setName(n.getName());
-            gn.setCloudID(n.getId());
-            if (n.getNetworkType() != null) {
-                gn.setNetworkType(n.getNetworkType().name());
-            }
-            if (n.getNeutronSubnets() != null) {
-                n.getNeutronSubnets().stream().filter(s -> s != null).forEach(s -> {
+        networks.stream().filter(osn -> osn.isRouterExternal()).forEach(osn -> {
+            GeminiNetwork gn = env.getApplications().stream()
+                    .map(GeminiApplication::getNetworks).flatMap(List::stream) //invoke the getNetworks on each application and convert the result into one large stream
+                    .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
+                    .findFirst().get();
+            if (gn == null) {
+                //the network has not created in gemini data model - create and it's subnets, etc
+                GeminiNetwork newGn = new GeminiNetwork();
+                newGn.setName(osn.getName());
+                newGn.setCloudID(osn.getId());
+                if (osn.getNetworkType() != null) {
+                    newGn.setNetworkType(osn.getNetworkType().name());
+                }
+                //add the subnets to the new network. For some reason Network::getNeutronSubnets
+                //always returned null. List all subnets and filter by the parent network id
+                List<? extends Subnet> osSubnets = os.networking().subnet().list();
+                osSubnets.stream().filter(osSubnet -> osSubnet != null)
+                        .filter(osSubnet -> osSubnet.getNetworkId().equals(osn.getId()))
+                        .forEach(osSubnet -> {
                     GeminiSubnet gs = new GeminiSubnet();
-                    gs.setCloudID(s.getId());
-                    gs.setParent(gn);
-                    gs.setCidr(s.getCidr());
-                    s.getAllocationPools().stream().forEach(p -> {
-                        GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
-                                InetAddresses.forString(p.getEnd()));
-                        gsap.setParent(gs);
-                        gs.addAllocationPool(gsap);
+                    gs.setCloudID(osSubnet.getId());
+                    gs.setParent(newGn);
+                    gs.setCidr(osSubnet.getCidr());
+                    osSubnet.getAllocationPools().stream().forEach(ap -> {
+                        GeminiSubnetAllocationPool geminiAp = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()),
+                                InetAddresses.forString(ap.getEnd()));
+                        geminiAp.setParent(gs);
+                        gs.addAllocationPool(geminiAp);
                     });
                 });
+                gn = newGn;
             }
+            //TODO: When gn != null, do we need to check if subnet objects are correctly captured
+            //      in the Gemini data model
             gateways.add(gn);
         });
         return gateways;
@@ -107,26 +119,38 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         List<GeminiNetwork> gemNetworks = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
-        networks.stream().filter(n -> n != null).forEach(n -> {
-            GeminiNetwork gn = new GeminiNetwork();
-            gn.setName(n.getName());
-            gn.setCloudID(n.getId());
-            if (n.getNetworkType() != null) {
-                gn.setNetworkType(n.getNetworkType().name());
-            }
-            if (n.getNeutronSubnets() != null) {
-                n.getNeutronSubnets().stream().filter(s -> s != null).forEach(s -> {
-                    GeminiSubnet gs = new GeminiSubnet();
-                    gs.setCloudID(s.getId());
-                    gs.setParent(gn);
-                    gs.setCidr(s.getCidr());
-                    s.getAllocationPools().stream().forEach(p -> {
-                        GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(p.getStart()),
-                                InetAddresses.forString(p.getEnd()));
-                        gsap.setParent(gs);
-                        gs.addAllocationPool(gsap);
-                    });
-                });
+        networks.stream().filter(osn -> osn != null).forEach(osn -> {
+            GeminiNetwork gn = env.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .filter(x -> x.getCloudID().equals(osn.getId()))
+                    .findFirst().get();
+            if (gn == null) {
+                GeminiNetwork newGn = new GeminiNetwork();
+                newGn.setName(osn.getName());
+                newGn.setCloudID(osn.getId());
+                if (osn.getNetworkType() != null) {
+                    newGn.setNetworkType(osn.getNetworkType().name());
+                }
+
+                //add the subnets to the new network. For some reason Network::getNeutronSubnets
+                //always returned null. List all subnets and filter by the parent network id
+                List<? extends Subnet> osSubnets = os.networking().subnet().list();
+                osSubnets.stream().filter(osSubnet -> osSubnet != null)
+                        .filter(osSubnet -> osSubnet.getNetworkId().equals(osn.getId()))
+                        .forEach(osSubnet -> {
+                            GeminiSubnet geminiSubnet = new GeminiSubnet();
+                            geminiSubnet.setCloudID(osSubnet.getId());
+                            geminiSubnet.setParent(newGn);
+                            geminiSubnet.setCidr(osSubnet.getCidr());
+                            osSubnet.getAllocationPools().stream().forEach(ap -> {
+                                GeminiSubnetAllocationPool geminiAp = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()),
+                                        InetAddresses.forString(ap.getEnd()));
+                                geminiAp.setParent(geminiSubnet);
+                                geminiSubnet.addAllocationPool(geminiAp);
+                            });
+                        });
+                gn = newGn;
             }
             gemNetworks.add(gn);
         });
@@ -259,13 +283,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Network network;
         try {
             network = os.networking().network().get(n.getCloudID());
-        }  catch (NullPointerException ex) {
+        } catch (NullPointerException ex) {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
             return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
-        
+
         //update the network
         Network updatedNetwork;
         try {
@@ -342,7 +366,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         List<GeminiSubnet> gemSubnets = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
-        subnets.stream().filter(s -> s != null).filter (s -> s.getNetworkId().equals(parent.getCloudID())).forEach(s -> {
+        subnets.stream().filter(s -> s != null).filter(s -> s.getNetworkId().equals(parent.getCloudID())).forEach(s -> {
             GeminiSubnet gn = new GeminiSubnet();
             //the basic elements
             gn.setName(s.getName());
