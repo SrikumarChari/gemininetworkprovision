@@ -3,22 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.gemini.domain.model;
+package com.gemini.domain.dto;
 
-import com.gemini.common.repository.EntityMongoDB;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
  *
- * @author schari
+ * @author Srikumar
  */
-public class GeminiSecurityGroup extends EntityMongoDB {
+public class GeminiSecurityGroupDTO {
     private String name;
     private String description;
-    private String cloudID;
-    private List<GeminiSecurityGroupRule> securityRules = Collections.synchronizedList(new ArrayList());
+    private List<GeminiSecurityGroupRuleDTO> securityRules = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -36,23 +34,15 @@ public class GeminiSecurityGroup extends EntityMongoDB {
         this.description = description;
     }
 
-    public String getCloudID() {
-        return cloudID;
-    }
-
-    public void setCloudID(String cloudID) {
-        this.cloudID = cloudID;
-    }
-
-    public List<GeminiSecurityGroupRule> getSecurityRules() {
+   public List<GeminiSecurityGroupRuleDTO> getSecurityRules() {
         return securityRules;
     }
 
-    public void setSecurityRules(List<GeminiSecurityGroupRule> securityRules) {
+    public void setSecurityRules(List<GeminiSecurityGroupRuleDTO> securityRules) {
         this.securityRules = securityRules;
     }
-    
-    public boolean addSecurityRule (GeminiSecurityGroupRule newRule) {
+
+    public boolean addSecurityRule (GeminiSecurityGroupRuleDTO newRule) {
         if (securityRules.stream().filter(sr -> sr.equals(newRule)).count() == 0) {
             securityRules.add(newRule);
             return true;
@@ -61,7 +51,7 @@ public class GeminiSecurityGroup extends EntityMongoDB {
         }
     }
     
-    public boolean deleteSecurityRule(GeminiSecurityGroupRule rule) {
+    public boolean deleteSecurityRule(GeminiSecurityGroupRuleDTO rule) {
         return securityRules.removeIf(r -> r.equals(rule));
     }
 }

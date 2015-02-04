@@ -6,7 +6,15 @@
 package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
+import com.gemini.domain.common.IPAddressType;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import jersey.repackaged.com.google.common.net.InetAddresses;
 import org.mongodb.morphia.annotations.Entity;
 
 /**
@@ -15,22 +23,25 @@ import org.mongodb.morphia.annotations.Entity;
  */
 @Entity
 public class GeminiServer extends EntityMongoDB {
+
     private String name;
     private String description;
+    private Date dateCreated;
     private InetAddress address;
+    private IPAddressType addressType;
+    private GeminiServerType serverType;
     private String subnetMask;
     private Integer port;
     private String os;
-    private String type; //TODO: Convert to an enum when the types are finalized
-    private String manufacturer;
-    private Integer backupSize = 0;
-    private String location; //TODO: convert to geo coordinates later 
     private String admin;
     private String password;
+    private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
+    private GeminiServerImage image;
+    private List<GeminiSecurityGroup> secGroups = Collections.synchronizedList(new ArrayList());
 
     public GeminiServer() {
     }
-    
+
     public String getName() {
         return name;
     }
@@ -47,13 +58,54 @@ public class GeminiServer extends EntityMongoDB {
         this.description = description;
     }
 
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public String getDateCreateString() {
+        return dateCreated.toString();
+    }
+    
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public InetAddress getAddress() {
+        return address;
+    }
+
+    public String getAddressString() {
+        return InetAddresses.toAddrString(address);
+    }
+
+    public IPAddressType getAddressType() {
+        return addressType;
+    }
+
+    public void setAddressType(IPAddressType addressType) {
+        this.addressType = addressType;
+    }
+
+    public GeminiServerType getServerType() {
+        return serverType;
+    }
+
+    public void setServerType(GeminiServerType serverType) {
+        this.serverType = serverType;
+    }
+
     public void setAddress(InetAddress address) {
         this.address = address;
+    }
+
+    public String getSubnetMask() {
+        return subnetMask;
     }
 
     public void setSubnetMask(String subnetMask) {
         this.subnetMask = subnetMask;
     }
+
     public Integer getPort() {
         return port;
     }
@@ -70,45 +122,6 @@ public class GeminiServer extends EntityMongoDB {
         this.os = os;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setManufacturer(String manufacturer) {
-        this.manufacturer = manufacturer;
-    }
-    public InetAddress getAddress() {
-        return address;
-    }
-
-    public String getSubnetMask() {
-        return subnetMask;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getManufacturer() {
-        return manufacturer;
-    }
-
-    public Integer getBackupSize() {
-        return backupSize;
-    }
-
-    public void setBackupSize(Integer backupSize) {
-        this.backupSize = backupSize;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public String getAdmin() {
         return admin;
     }
@@ -123,5 +136,53 @@ public class GeminiServer extends EntityMongoDB {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetaData(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public void addMetadata(String key, String value) {
+        metadata.putIfAbsent(key, value);
+    }
+
+    public void updateMetadata(String key, String value) {
+        metadata.replace(key, value);
+    }
+    
+    public void deleteMetadata(String key, String value) {
+        metadata.remove(key, value);
+    }
+    
+    public GeminiServerImage getImage() {
+        return image;
+    }
+
+    public void setImage(GeminiServerImage image) {
+        this.image = image;
+    }
+
+    public List<GeminiSecurityGroup> getSecGroups() {
+        return secGroups;
+    }
+
+    public void setSecGroups(List<GeminiSecurityGroup> secGroups) {
+        this.secGroups = secGroups;
+    }
+    
+    public boolean addSecGroup(GeminiSecurityGroup secGroup) {
+        if (secGroups.stream().filter(s -> s.equals(secGroup)).count() == 0) {
+            return secGroups.add(secGroup);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteSecGroup (GeminiSecurityGroup secGroup) {
+        return secGroups.removeIf(s -> s.equals(secGroup));
     }
 }

@@ -54,4 +54,32 @@
             <b>end</b>
         </field>
     </mapping>                    
+    <mapping>
+        <class-a>com.gemini.domain.model.GeminiLink</class-a>
+        <class-b>com.gemini.domain.dto.GeminiLinkDTO</class-b>
+        <field custom-converter="com.gemini.mapper.URLCustomConverter">
+            <a>link</a>
+            <b>link</b>
+        </field>
+    </mapping>                    
+    <mapping>
+        <class-a>com.gemini.domain.model.GeminiSecurityGroupRule</class-a>
+        <class-b>com.gemini.domain.dto.GeminiSecurityGroupRuleDTO</class-b>
+        <field custom-converter="com.gemini.mapper.IPAddressTypeCustomConverter">
+            <a>ipAddressType</a>
+            <b>ipAddressType</b>
+        </field>
+        <field custom-converter="com.gemini.mapper.SecurityGroupRuleDirectionCustomConverter">
+            <a>direction</a>
+            <b>direction</b>
+        </field>
+    </mapping>
+    <mapping date-format="MM-dd-yyyy HH:mm:ss">
+        <class-a>com.gemini.domain.model.GeminiServerImage</class-a>
+        <class-b>com.gemini.domain.dto.GeminiServerImageDTO</class-b>
+        <field>
+            <a>updated</a>
+            <b>updated</b>
+        </field>
+    </mapping>
 </mappings>  

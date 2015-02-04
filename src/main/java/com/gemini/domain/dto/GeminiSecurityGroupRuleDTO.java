@@ -3,57 +3,44 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.gemini.domain.model;
-
-import com.gemini.common.repository.EntityMongoDB;
-import com.gemini.domain.common.GeminiSecurityGroupRuleDirection;
-import com.gemini.domain.common.IPAddressType;
+package com.gemini.domain.dto;
 
 /**
  *
- * @author schari
+ * @author Srikumar
  */
-public class GeminiSecurityGroupRule extends EntityMongoDB {
-    private GeminiSecurityGroup parent;
-    private GeminiSecurityGroupRuleDirection direction;
-    private String cloudID;
-    private IPAddressType ipAddressType;
+public class GeminiSecurityGroupRuleDTO {
+    private GeminiSecurityGroupDTO parent;
+    private String direction;
+    private String ipAddressType;
     private Integer protocol;
     private Integer portRangeMin;
     private Integer portRangeMax;
     private String remoteGroupId;
     private String remoteIpPrefix;
 
-    public GeminiSecurityGroup getParent() {
+    public GeminiSecurityGroupDTO getParent() {
         return parent;
     }
 
-    public void setParent(GeminiSecurityGroup parent) {
+    public void setParent(GeminiSecurityGroupDTO parent) {
         this.parent = parent;
     }
 
-    public GeminiSecurityGroupRuleDirection getDirection() {
+    public String getDirection() {
         return direction;
     }
 
-    public void setDirection(GeminiSecurityGroupRuleDirection direction) {
+    public void setDirection(String direction) {
         this.direction = direction;
     }
 
-    public String getCloudID() {
-        return cloudID;
-    }
-
-    public void setCloudID(String cloudID) {
-        this.cloudID = cloudID;
-    }
-
-    public IPAddressType getEthertype() {
+    public String getIpAddressType() {
         return ipAddressType;
     }
 
-    public void setEthertype(IPAddressType ethertype) {
-        this.ipAddressType = ethertype;
+    public void setIpAddressType(String ipAddressType) {
+        this.ipAddressType = ipAddressType;
     }
 
     public Integer getProtocol() {
@@ -95,4 +82,5 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
     public void setRemoteIpPrefix(String remoteIpPrefix) {
         this.remoteIpPrefix = remoteIpPrefix;
     }
+
 }

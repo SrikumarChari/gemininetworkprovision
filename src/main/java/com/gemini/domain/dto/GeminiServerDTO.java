@@ -5,23 +5,33 @@
  */
 package com.gemini.domain.dto;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  *
  * @author schari
  */
-public class GeminiServerDTO extends GeminiBaseDTO  {
+public class GeminiServerDTO extends GeminiBaseDTO {
+
     private String name;
     private String description;
+    private String dateCreated;
     private String address;
+    private String addressType;
+    private GeminiServerTypeDTO serverType;
     private String subnetMask;
     private Integer port;
     private String os;
     private String type; //TODO: Convert to an enum when the types are finalized
-    private String manufacturer;
-    private Integer backupSize = 0;
-    private String location; //TODO: convert to geo coordinates later 
     private String admin;
     private String password;
+    private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
+    private GeminiServerImageDTO image;
+    private List<GeminiSecurityGroupDTO> secGroups = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -67,9 +77,6 @@ public class GeminiServerDTO extends GeminiBaseDTO  {
         this.type = type;
     }
 
-    public void setManufacturer(String manufacturer) {
-        this.manufacturer = manufacturer;
-    }
     public String getAddress() {
         return address;
     }
@@ -80,26 +87,6 @@ public class GeminiServerDTO extends GeminiBaseDTO  {
 
     public String getType() {
         return type;
-    }
-
-    public String getManufacturer() {
-        return manufacturer;
-    }
-
-    public Integer getBackupSize() {
-        return backupSize;
-    }
-
-    public void setBackupSize(Integer backupSize) {
-        this.backupSize = backupSize;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public String getAdmin() {
@@ -117,4 +104,77 @@ public class GeminiServerDTO extends GeminiBaseDTO  {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(String dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public String getAddressType() {
+        return addressType;
+    }
+
+    public void setAddressType(String addressType) {
+        this.addressType = addressType;
+    }
+
+    public GeminiServerTypeDTO getServerType() {
+        return serverType;
+    }
+
+    public void setServerType(GeminiServerTypeDTO serverType) {
+        this.serverType = serverType;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public void addMetadata(String key, String value) {
+        metadata.putIfAbsent(key, value);
+    }
+
+    public void updateMetadata(String key, String value) {
+        metadata.replace(key, value);
+    }
+    
+    public void deleteMetadata(String key, String value) {
+        metadata.remove(key, value);
+    }
+
+    public GeminiServerImageDTO getImage() {
+        return image;
+    }
+
+    public void setImage(GeminiServerImageDTO image) {
+        this.image = image;
+    }
+
+    public List<GeminiSecurityGroupDTO> getSecGroups() {
+        return secGroups;
+    }
+
+    public void setSecGroups(List<GeminiSecurityGroupDTO> secGroups) {
+        this.secGroups = secGroups;
+    }
+
+    public boolean addSecGroup(GeminiSecurityGroupDTO secGroup) {
+        if (secGroups.stream().filter(s -> s.equals(secGroup)).count() == 0) {
+            return secGroups.add(secGroup);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteSecGroup(GeminiSecurityGroupDTO secGroup) {
+        return secGroups.removeIf(s -> s.equals(secGroup));
+    }
+
 }
