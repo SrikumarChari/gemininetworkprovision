@@ -8,6 +8,7 @@ package com.gemini.provision.loadbalancer.openstack;
 import com.gemini.domain.common.AdminState;
 import com.gemini.domain.common.LoadBalancerAlgorithm;
 import com.gemini.domain.common.Protocol;
+import com.gemini.domain.common.ProvisionState;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiLoadBalancer;
@@ -25,9 +26,11 @@ import java.util.List;
 import jersey.repackaged.com.google.common.net.InetAddresses;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.model.network.ext.LbPool;
+import org.openstack4j.model.network.ext.Member;
 import org.openstack4j.model.network.ext.Vip;
 import org.openstack4j.openstack.OSFactory;
 import org.pmw.tinylog.Logger;
@@ -222,12 +225,61 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public List<GeminiPoolMember> getPoolMembers(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool pool) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<GeminiPoolMember> lbPools = Collections.synchronizedList(new ArrayList());
+
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
+        }
+        List<? extends Member> members = os.networking().loadbalancers().member().list();
+        members.stream().filter(member -> member != null).forEach(member -> {
+            GeminiPoolMember geminiPoolMember = new GeminiPoolMember();
+            geminiPoolMember.setCloudID(member.getId());
+            geminiPoolMember.setAdminState(member.isAdminStateUp()?AdminState.ADMIN_UP:AdminState.ADMIN_DOWN);
+            geminiPoolMember.setProvisionState(ProvisionState.fromString(member.getStatus()));
+            geminiPoolMember.setIpAddress(member.getAddress());
+            geminiPoolMember.setProtocolPort(member.getProtocolPort());
+            geminiPoolMember.setWeight(member.getWeight());
+            geminiPoolMember.setPoolId(member.getPoolId());
+            lbPools.add(geminiPoolMember);
+        });
+        return lbPools;
     }
 
     @Override
     public ProvisioningProviderResponseType addPoolMember(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool pool, GeminiPoolMember poolMember) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        Member member = Builders.member().address(poolMember.getIpAddress())
+                .adminStateUp(poolMember.getAdminState() == AdminState.ADMIN_DOWN? false :true)
+                .poolId(poolMember.getPoolId())
+                .protocolPort(poolMember.getProtocolPort())
+                .weight(poolMember.getWeight())
+                .tenantId(tenant.getTenantID())
+                .weight(poolMember.getWeight()).build();
+        Member newMember = os.networking().loadbalancers().member().create(member);
+        if (newMember == null) {
+            Logger.error("Failed to create network, failure in Cloud provider. Tenant: {} Environment: {} Network: {}",
+                    tenant.getName(), env.getName(),
+                    ToStringBuilder.reflectionToString(newMember, ToStringStyle.MULTI_LINE_STYLE));
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
+        }
+
+        //copy the cloud ID to the Gemini object as it is required later
+        poolMember.setCloudID(newMember.getId());
+        Logger.debug("Successfully added network - Tenant: {} Environment: {} Network: {}",
+                tenant.getName(), env.getName(),
+                ToStringBuilder.reflectionToString(newMember, ToStringStyle.MULTI_LINE_STYLE));
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override

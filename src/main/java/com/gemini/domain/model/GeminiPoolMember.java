@@ -9,11 +9,21 @@ import com.gemini.domain.common.ProvisionState;
  */
 public class GeminiPoolMember {
     private String cloudID;//uuid returned by cloud provider
-    private GeminiNetwork ipAddress;
+    private String ipAddress;
     private GeminiSubnet subnet;
-    private int weight;//??
+    private int weight;
     private AdminState adminState;
     private ProvisionState provisionState;
+    private int protocolPort;
+    private String poolId;
+
+    public String getPoolId() {
+        return poolId;
+    }
+
+    public void setPoolId(String poolId) {
+        this.poolId = poolId;
+    }
 
     public int getProtocolPort() {
         return protocolPort;
@@ -31,11 +41,11 @@ public class GeminiPoolMember {
         this.cloudID = cloudID;
     }
 
-    public GeminiNetwork getIpAddress() {
+    public String getIpAddress() {
         return ipAddress;
     }
 
-    public void setIpAddress(GeminiNetwork ipAddress) {
+    public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
     }
 
@@ -71,5 +81,4 @@ public class GeminiPoolMember {
         this.provisionState = provisionState;
     }
 
-    private int protocolPort;
 }
