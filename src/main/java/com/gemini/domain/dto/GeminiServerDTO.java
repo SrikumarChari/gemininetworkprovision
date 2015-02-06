@@ -22,7 +22,7 @@ public class GeminiServerDTO extends GeminiBaseDTO {
     private String dateCreated;
     private String address;
     private String addressType;
-    private GeminiServerTypeDTO serverType;
+    private String serverType;
     private String subnetMask;
     private Integer port;
     private String os;
@@ -31,7 +31,7 @@ public class GeminiServerDTO extends GeminiBaseDTO {
     private String password;
     private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
     private GeminiServerImageDTO image;
-    private List<GeminiSecurityGroupDTO> secGroups = Collections.synchronizedList(new ArrayList());
+    private List<String> securityGroupNames = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
         return name;
@@ -121,11 +121,11 @@ public class GeminiServerDTO extends GeminiBaseDTO {
         this.addressType = addressType;
     }
 
-    public GeminiServerTypeDTO getServerType() {
+    public String getServerType() {
         return serverType;
     }
 
-    public void setServerType(GeminiServerTypeDTO serverType) {
+    public void setServerType(String serverType) {
         this.serverType = serverType;
     }
 
@@ -157,24 +157,24 @@ public class GeminiServerDTO extends GeminiBaseDTO {
         this.image = image;
     }
 
-    public List<GeminiSecurityGroupDTO> getSecGroups() {
-        return secGroups;
+    public List<String> getSecGroups() {
+        return securityGroupNames;
     }
 
-    public void setSecGroups(List<GeminiSecurityGroupDTO> secGroups) {
-        this.secGroups = secGroups;
+    public void setSecGroups(List<String> securityGroupNames) {
+        this.securityGroupNames = securityGroupNames;
     }
 
-    public boolean addSecGroup(GeminiSecurityGroupDTO secGroup) {
-        if (secGroups.stream().filter(s -> s.equals(secGroup)).count() == 0) {
-            return secGroups.add(secGroup);
+    public boolean addSecGroup(String securityGroupName) {
+        if (securityGroupNames.stream().filter(s -> s.equals(securityGroupName)).count() == 0) {
+            return securityGroupNames.add(securityGroupName);
         } else {
             return false;
         }
     }
 
-    public boolean deleteSecGroup(GeminiSecurityGroupDTO secGroup) {
-        return secGroups.removeIf(s -> s.equals(secGroup));
+    public boolean deleteSecGroup(String securityGroupName) {
+        return securityGroupNames.removeIf(s -> s.equals(securityGroupName));
     }
 
 }

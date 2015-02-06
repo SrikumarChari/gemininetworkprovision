@@ -14,9 +14,11 @@ import com.gemini.domain.common.IPAddressType;
  * @author schari
  */
 public class GeminiSecurityGroupRule extends EntityMongoDB {
+    private String name;
     private GeminiSecurityGroup parent;
     private GeminiSecurityGroupRuleDirection direction;
     private String cloudID;
+    private String cidr;
     private IPAddressType ipAddressType;
     private Integer protocol;
     private Integer portRangeMin;
@@ -24,6 +26,23 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
     private String remoteGroupId;
     private String remoteIpPrefix;
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public IPAddressType getIpAddressType() {
+        return ipAddressType;
+    }
+
+    public void setIpAddressType(IPAddressType ipAddressType) {
+        this.ipAddressType = ipAddressType;
+    }
+
+    
     public GeminiSecurityGroup getParent() {
         return parent;
     }
@@ -48,12 +67,12 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
         this.cloudID = cloudID;
     }
 
-    public IPAddressType getEthertype() {
-        return ipAddressType;
+    public String getCidr() {
+        return cidr;
     }
 
-    public void setEthertype(IPAddressType ethertype) {
-        this.ipAddressType = ethertype;
+    public void setCidr(String cidr) {
+        this.cidr = cidr;
     }
 
     public Integer getProtocol() {

@@ -5,10 +5,8 @@
  */
 package com.gemini.domain.dto.deserialize;
 
-import com.gemini.domain.dto.GeminiNetworkDTO;
 import com.gemini.domain.dto.GeminiSecurityGroupDTO;
 import com.gemini.domain.dto.GeminiServerDTO;
-import com.gemini.domain.dto.GeminiServerTypeDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -61,7 +59,7 @@ public class GeminiServerDeserializer implements JsonDeserializer<GeminiServerDT
 
         //now the server type
         try {
-            GeminiServerTypeDTO srvType = gson.fromJson(json.getAsJsonObject().get("serverType"), null);
+            String srvType = json.getAsJsonObject().get("serverType").getAsString();
             newServer.setServerType(srvType);
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - invalid server type object in server {}", newServer.getName());
@@ -75,12 +73,12 @@ public class GeminiServerDeserializer implements JsonDeserializer<GeminiServerDT
             Logger.error("Malformed JSON - invalid metadata for server {}", newServer.getName());
         }
 
-        //now the list of security groups
+        //now the list of security group names
         try {
-            JsonArray secGroups = json.getAsJsonObject().get("secGroups").getAsJsonArray();
+            JsonArray secGroups = json.getAsJsonObject().get("securityGroups").getAsJsonArray();
             //parse all the security group objects
             for (JsonElement e : secGroups) {
-                GeminiSecurityGroupDTO n = gson.fromJson(e, GeminiSecurityGroupDTO.class);
+                String n = gson.fromJson(e, String.class);
                 newServer.addSecGroup(n);
             }
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {

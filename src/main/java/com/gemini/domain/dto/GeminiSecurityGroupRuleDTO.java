@@ -10,14 +10,24 @@ package com.gemini.domain.dto;
  * @author Srikumar
  */
 public class GeminiSecurityGroupRuleDTO {
+    private String name;
     private GeminiSecurityGroupDTO parent;
     private String direction;
+    private String cidr;
     private String ipAddressType;
     private Integer protocol;
     private Integer portRangeMin;
     private Integer portRangeMax;
     private String remoteGroupId;
     private String remoteIpPrefix;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public GeminiSecurityGroupDTO getParent() {
         return parent;
@@ -33,6 +43,14 @@ public class GeminiSecurityGroupRuleDTO {
 
     public void setDirection(String direction) {
         this.direction = direction;
+    }
+
+    public String getCidr() {
+        return cidr;
+    }
+
+    public void setCidr(String cidr) {
+        this.cidr = cidr;
     }
 
     public String getIpAddressType() {

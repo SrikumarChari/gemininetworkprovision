@@ -29,7 +29,7 @@ public class GeminiServer extends EntityMongoDB {
     private Date dateCreated;
     private InetAddress address;
     private IPAddressType addressType;
-    private GeminiServerType serverType;
+    private String serverType;
     private String subnetMask;
     private Integer port;
     private String os;
@@ -37,7 +37,7 @@ public class GeminiServer extends EntityMongoDB {
     private String password;
     private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
     private GeminiServerImage image;
-    private List<GeminiSecurityGroup> secGroups = Collections.synchronizedList(new ArrayList());
+    private List<String> securityGroupNames = Collections.synchronizedList(new ArrayList());
 
     public GeminiServer() {
     }
@@ -86,11 +86,11 @@ public class GeminiServer extends EntityMongoDB {
         this.addressType = addressType;
     }
 
-    public GeminiServerType getServerType() {
+    public String getServerType() {
         return serverType;
     }
 
-    public void setServerType(GeminiServerType serverType) {
+    public void setServerType(String serverType) {
         this.serverType = serverType;
     }
 
@@ -166,23 +166,23 @@ public class GeminiServer extends EntityMongoDB {
         this.image = image;
     }
 
-    public List<GeminiSecurityGroup> getSecGroups() {
-        return secGroups;
+    public List<String> getSecGroups() {
+        return securityGroupNames;
     }
 
-    public void setSecGroups(List<GeminiSecurityGroup> secGroups) {
-        this.secGroups = secGroups;
+    public void setSecGroups(List<String> secGroups) {
+        this.securityGroupNames = secGroups;
     }
     
-    public boolean addSecGroup(GeminiSecurityGroup secGroup) {
-        if (secGroups.stream().filter(s -> s.equals(secGroup)).count() == 0) {
-            return secGroups.add(secGroup);
+    public boolean addSecGroup(String secGroupName) {
+        if (securityGroupNames.stream().filter(s -> s.equals(secGroupName)).count() == 0) {
+            return securityGroupNames.add(secGroupName);
         } else {
             return false;
         }
     }
     
     public boolean deleteSecGroup (GeminiSecurityGroup secGroup) {
-        return secGroups.removeIf(s -> s.equals(secGroup));
+        return securityGroupNames.removeIf(s -> s.equals(secGroup));
     }
 }

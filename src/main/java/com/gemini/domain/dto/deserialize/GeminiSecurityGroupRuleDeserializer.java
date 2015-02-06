@@ -24,9 +24,17 @@ class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecu
     public GeminiSecurityGroupRuleDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         GeminiSecurityGroupRuleDTO newRule = new GeminiSecurityGroupRuleDTO();
 
+        //first the name
+        try {
+            newRule.setName(json.getAsJsonObject().get("name").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid security group rule object, no name specified");
+        }
+
         //ignore the parent object, it will be set when the parent security group is being deserialized
         try {
             newRule.setDirection(json.getAsJsonObject().get("direction").getAsString());
+            newRule.setCidr(json.getAsJsonObject().get("cidr").getAsString());
             newRule.setIpAddressType(json.getAsJsonObject().get("ipAddressType").getAsString());
             newRule.setPortRangeMax(json.getAsJsonObject().get("portRangeMax").getAsInt());
             newRule.setPortRangeMin(json.getAsJsonObject().get("portRangeMin").getAsInt());
@@ -34,7 +42,7 @@ class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecu
             newRule.setRemoteGroupId(json.getAsJsonObject().get("remoteGroupId").getAsString());
             newRule.setRemoteIpPrefix(json.getAsJsonObject().get("remoteIpPrefix").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid security group rule object {}");
+            Logger.error("Malformed JSON - invalid security group rule object {}", newRule.getName());
         }
         return newRule;
     }
