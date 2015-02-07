@@ -157,24 +157,23 @@ public class GeminiServerDTO extends GeminiBaseDTO {
         this.image = image;
     }
 
-    public List<String> getSecGroups() {
+    public List<String> getSecGroupNames() {
         return securityGroupNames;
     }
 
-    public void setSecGroups(List<String> securityGroupNames) {
-        this.securityGroupNames = securityGroupNames;
+    public void setSecGroupNames(List<String> secGroups) {
+        this.securityGroupNames = secGroups;
     }
-
-    public boolean addSecGroup(String securityGroupName) {
-        if (securityGroupNames.stream().filter(s -> s.equals(securityGroupName)).count() == 0) {
-            return securityGroupNames.add(securityGroupName);
+    
+    public boolean addSecGroupName(String secGroupName) {
+        if (securityGroupNames.stream().noneMatch(s -> s.equals(secGroupName))) {
+            return securityGroupNames.add(secGroupName);
         } else {
             return false;
         }
     }
-
-    public boolean deleteSecGroup(String securityGroupName) {
-        return securityGroupNames.removeIf(s -> s.equals(securityGroupName));
+    
+    public boolean deleteSecGroupName (String secGroup) {
+        return securityGroupNames.removeIf(s -> s.equals(secGroup));
     }
-
 }

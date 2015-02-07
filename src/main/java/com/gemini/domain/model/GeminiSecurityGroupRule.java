@@ -8,6 +8,7 @@ package com.gemini.domain.model;
 import com.gemini.common.repository.EntityMongoDB;
 import com.gemini.domain.common.GeminiSecurityGroupRuleDirection;
 import com.gemini.domain.common.IPAddressType;
+import com.gemini.domain.common.Protocol;
 
 /**
  *
@@ -20,7 +21,7 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
     private String cloudID;
     private String cidr;
     private IPAddressType ipAddressType;
-    private Integer protocol;
+    private Protocol protocol;
     private Integer portRangeMin;
     private Integer portRangeMax;
     private String remoteGroupId;
@@ -75,11 +76,11 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
         this.cidr = cidr;
     }
 
-    public Integer getProtocol() {
+    public Protocol getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(Integer protocol) {
+    public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
     }
 

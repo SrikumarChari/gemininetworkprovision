@@ -70,19 +70,19 @@ public class GeminiServerDeserializer implements JsonDeserializer<GeminiServerDT
             Map<String, String> metadata = gson.fromJson(json.getAsJsonObject().get("metadata"), HashMap.class);
             newServer.setMetadata(metadata);
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid metadata for server {}", newServer.getName());
+            Logger.error("Malformed JSON - no metadata for server {}", newServer.getName());
         }
 
         //now the list of security group names
         try {
-            JsonArray secGroups = json.getAsJsonObject().get("securityGroups").getAsJsonArray();
+            JsonArray secGroups = json.getAsJsonObject().get("securityGroupNames").getAsJsonArray();
             //parse all the security group objects
             for (JsonElement e : secGroups) {
                 String n = gson.fromJson(e, String.class);
-                newServer.addSecGroup(n);
+                newServer.addSecGroupName(n);
             }
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid security groups for server {}", newServer.getName());
+            Logger.error("Malformed JSON - no security groups for server {}", newServer.getName());
         }
 
         return newServer;

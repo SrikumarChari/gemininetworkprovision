@@ -10,5 +10,39 @@ package com.gemini.provision.base;
  * @author schari
  */
 public enum ProvisioningProviderResponseType {
-    CLOUD_AUTH_FAILURE, OBJECT_EXISTS, OBJECT_NOT_FOUND, CLOUD_FAILURE, SUCCESS, CLOUD_EXCEPTION
+
+    /**
+     * Failure to authenticate with the cloud
+     */
+    CLOUD_AUTH_FAILURE, 
+
+    /**
+     * Attempting to create a cloud object that already exists
+     */
+    OBJECT_EXISTS, 
+
+    /**
+     * Attempting to modify or delete an object that doesn't exist
+     */
+    OBJECT_NOT_FOUND, 
+    
+    /**
+     * Cloud operation (CRUD) failed
+     */
+    CLOUD_FAILURE, 
+
+    /**
+     * Cloud operation was successful
+     */
+    SUCCESS, 
+
+    /**
+     * Exception at Cloud - most likely trying to access a empty list, etc.
+     */
+    CLOUD_EXCEPTION,
+    
+    /**
+     * Most likely the Cloud object represented by the Gemini object are mismatched
+     */
+    CLOUD_MISMATCH
 }

@@ -25,6 +25,7 @@ import org.mongodb.morphia.annotations.Entity;
 public class GeminiServer extends EntityMongoDB {
 
     private String name;
+    private String cloudID;
     private String description;
     private Date dateCreated;
     private InetAddress address;
@@ -39,15 +40,20 @@ public class GeminiServer extends EntityMongoDB {
     private GeminiServerImage image;
     private List<String> securityGroupNames = Collections.synchronizedList(new ArrayList());
 
-    public GeminiServer() {
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public String getDescription() {
@@ -166,23 +172,23 @@ public class GeminiServer extends EntityMongoDB {
         this.image = image;
     }
 
-    public List<String> getSecGroups() {
+    public List<String> getSecGroupNames() {
         return securityGroupNames;
     }
 
-    public void setSecGroups(List<String> secGroups) {
+    public void setSecGroupNames(List<String> secGroups) {
         this.securityGroupNames = secGroups;
     }
     
-    public boolean addSecGroup(String secGroupName) {
-        if (securityGroupNames.stream().filter(s -> s.equals(secGroupName)).count() == 0) {
+    public boolean addSecGroupName(String secGroupName) {
+        if (securityGroupNames.stream().noneMatch(s -> s.equals(secGroupName))) {
             return securityGroupNames.add(secGroupName);
         } else {
             return false;
         }
     }
     
-    public boolean deleteSecGroup (GeminiSecurityGroup secGroup) {
-        return securityGroupNames.removeIf(s -> s.equals(secGroup));
+    public boolean deleteSecGroupName (String secGroupName) {
+        return securityGroupNames.removeIf(s -> s.equals(secGroupName));
     }
 }

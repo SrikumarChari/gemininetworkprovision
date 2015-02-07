@@ -73,6 +73,10 @@
             <a>direction</a>
             <b>direction</b>
         </field>
+        <field custom-converter="com.gemini.mapper.ProtocolCustomConverter">
+            <a>protocol</a>
+            <b>protocol</b>
+        </field>
     </mapping>
     <mapping date-format="MM-dd-yyyy HH:mm:ss">
         <class-a>com.gemini.domain.model.GeminiServerImage</class-a>
