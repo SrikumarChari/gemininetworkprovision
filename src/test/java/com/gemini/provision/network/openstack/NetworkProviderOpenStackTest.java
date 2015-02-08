@@ -28,7 +28,7 @@ import org.openstack4j.api.OSClient;
  *
  * @author schari
  */
-public class GeminiOpenStackJUnitTest {
+public class NetworkProviderOpenStackTest {
 
     static GeminiTenant tenant = new GeminiTenant();
     static GeminiEnvironment env = new GeminiEnvironment();
@@ -37,7 +37,7 @@ public class GeminiOpenStackJUnitTest {
     static NetworkProvisioningService provisioningService;
     static OSClient os;
 
-    public GeminiOpenStackJUnitTest() {
+    public NetworkProviderOpenStackTest() {
     }
 
     @BeforeClass
@@ -98,7 +98,7 @@ public class GeminiOpenStackJUnitTest {
         List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
         System.out.println("Networks in the cloud");
         assert (networks.size() == 2);
-        
+
         //add the networks to the application
         networks.stream().forEach(n -> newApp.addNetwork(n));
         networks.stream().forEach(n -> System.out.println(n.getName()));
@@ -109,28 +109,38 @@ public class GeminiOpenStackJUnitTest {
         List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, env);
         //we should only one have one gateway
         assert (gateways.size() == 1);
-        
+
         //keep a record of the first one, required for further tests
         env.setGateway(gateways.get(0));
-        
+
         System.out.println("Gateways in the cloud");
         gateways.stream().forEach(n -> System.out.println(n.getName()));
     }
 
     @Test
     public void createNetwork() {
+        //first get the number of networks in the cloud
+        int numNets = provisioningService.getProvider().getNetworks(tenant, env).size();
+
         //create the network
         ProvisioningProviderResponseType result = provisioningService.getProvider().createNetwork(tenant, env, newNet);
+        
         //check the return value
         assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         //now check to see if the network was actually created
         List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
+        assert (numNets == networks.size() - 1);
+
+        //now check to see if the new network was actually created
         assert (networks.stream().filter(s -> s.getName().equals(newNet.getName())).count() == 1);
     }
 
     @Test
     public void deleteNetwork() {
+        //first get the number of networks in the cloud
+        int numNets = provisioningService.getProvider().getNetworks(tenant, env).size();
+
         //now delete the network
         ProvisioningProviderResponseType result = provisioningService.getProvider().deleteNetwork(tenant, env, newNet);
         //check the return value
@@ -138,11 +148,12 @@ public class GeminiOpenStackJUnitTest {
 
         //now check to see if the network was actually created
         List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
+        assert (numNets == networks.size() + 1);
         assert (networks.stream().filter(s -> s.getName().equals(newNet.getName())).count() == 0);
     }
-    
+
     @Test
-    public void updateNetwork () {
+    public void updateNetwork() {
         //change the name of the network
         String oldName = newNet.getName();
         newNet.setName("Temporary Change");
@@ -150,20 +161,20 @@ public class GeminiOpenStackJUnitTest {
         //check the return value
         assert (result == ProvisioningProviderResponseType.SUCCESS);
 
-        //change the name based to the old name
+        //change the name back to the old name
         newNet.setName(oldName);
         result = provisioningService.getProvider().updateNetwork(tenant, env, newNet);
         //check the return value
         assert (result == ProvisioningProviderResponseType.SUCCESS);
     }
-    
+
     @Test
     public void listAllSubnets() {
         List<GeminiSubnet> networks = provisioningService.getProvider().getAllSubnets(tenant, env);
-        System.out.println("Subnet in the cloud");
+        System.out.println("Subnets in the cloud");
         networks.stream().forEach(n -> System.out.println(n.getName()));
     }
-    
+
     @Test
     public void listNetworkSubnets() {
         //gets all the networks and lists their subnets

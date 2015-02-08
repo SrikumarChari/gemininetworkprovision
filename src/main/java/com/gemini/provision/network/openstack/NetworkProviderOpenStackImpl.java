@@ -77,23 +77,24 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 if (osn.getNetworkType() != null) {
                     newGn.setNetworkType(osn.getNetworkType().name());
                 }
-                //add the subnets to the new network. For some reason Network::getNeutronSubnets
-                //always returned null. List all subnets and filter by the parent network id
+                //add the subnets to the new network. List all subnets and filter by the parent network id
                 List<? extends Subnet> osSubnets = os.networking().subnet().list();
                 osSubnets.stream().filter(osSubnet -> osSubnet != null)
                         .filter(osSubnet -> osSubnet.getNetworkId().equals(osn.getId()))
                         .forEach(osSubnet -> {
-                    GeminiSubnet gs = new GeminiSubnet();
-                    gs.setCloudID(osSubnet.getId());
-                    gs.setParent(newGn);
-                    gs.setCidr(osSubnet.getCidr());
-                    osSubnet.getAllocationPools().stream().forEach(ap -> {
-                        GeminiSubnetAllocationPool geminiAp = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()),
-                                InetAddresses.forString(ap.getEnd()));
-                        geminiAp.setParent(gs);
-                        gs.addAllocationPool(geminiAp);
-                    });
-                });
+                            GeminiSubnet gs = new GeminiSubnet();
+                            gs.setCloudID(osSubnet.getId());
+                            gs.setParent(newGn);
+                            gs.setCidr(osSubnet.getCidr());
+                            osSubnet.getAllocationPools().stream().forEach(ap -> {
+                                GeminiSubnetAllocationPool geminiAp = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()),
+                                        InetAddresses.forString(ap.getEnd()));
+                                geminiAp.setParent(gs);
+                                gs.addAllocationPool(geminiAp);
+                            });
+                            gs.setParent(newGn);
+                            newGn.addSubnet(gs);
+                        });
                 gn = newGn;
             }
             //TODO: When gn != null, do we need to check if subnet objects are correctly captured
@@ -151,6 +152,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                                 geminiAp.setParent(geminiSubnet);
                                 geminiSubnet.addAllocationPool(geminiAp);
                             });
+                            geminiSubnet.setParent(newGn);
+                            newGn.addSubnet(geminiSubnet);
                         });
                 gn = newGn;
             }
@@ -189,10 +192,10 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             network = os.networking().network().create(Builders.network()
                     .tenantId(tenant.getTenantID())
                     .name(newNetwork.getName())
-                    .tenantId(tenant.getTenantID())
                     .build());
         } catch (ClientResponseException ex) {
-            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            Logger.error("Cloud exception, failed to create network: status code {} tenant: {}, env: {} network {}",
+                    ex.getStatusCode(), tenant.getName(), env.getName(), newNetwork.getName());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
@@ -206,7 +209,33 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //copy the cloud ID to the Gemini object as it is required later
         newNetwork.setCloudID(network.getId());
-        Logger.debug("Successfully added network - Tenant: {} Environment: {} Network: {}",
+
+        //now create subnets in network
+        newNetwork.getSubnets().stream().forEach(gs -> {
+            //create the subnet
+            Subnet subnet = null;
+            try {
+                subnet = os.networking().subnet().create(Builders.subnet()
+                        .tenantId(tenant.getTenantID())
+                        .gateway(gs.getGateway().getCloudID())
+                        .enableDHCP(gs.isEnableDHCP())
+                        .ipVersion(gs.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
+                        .name(gs.getName())
+                        .networkId(gs.getCloudID())
+                        .cidr(gs.getCidr())
+                        .build());
+            } catch (ClientResponseException ex) {
+                Logger.error("Cloud exception, failed to create subnet. status code {} tenant: {} env: {} network: {} subnet: {}",
+                        ex.getStatusCode(), tenant.getName(), env.getName(), newNetwork.getName(), gs.getName());
+            }
+
+            if (subnet == null) {
+                Logger.error("Cloud failure, failed to create subnet. tenant: {} env: {} network: {} subnet: {}",
+                        tenant.getName(), env.getName(), newNetwork.getName(), gs.getName());
+            }
+        });
+
+        Logger.debug("Successfully created network and it's subnets - Tenant: {} Environment: {} Network: {}",
                 tenant.getName(), env.getName(),
                 ToStringBuilder.reflectionToString(newNetwork, ToStringStyle.MULTI_LINE_STYLE));
         return ProvisioningProviderResponseType.SUCCESS;
@@ -240,30 +269,22 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Network n;
         try {
             n = os.networking().network().get(delNetwork.getCloudID());
-        } catch (NullPointerException ex) {
+        } catch (NullPointerException | ClientResponseException ex) {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
-            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
-        }
-
-        if (n == null) {
-            Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
+                    tenant.getName(), env.getName(), delNetwork.getName());
             return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
         try {
             os.networking().network().delete(delNetwork.getCloudID());
         } catch (ClientResponseException ex) {
-            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            Logger.error("Cloud exception, could not delete network. status code {} Tenant: {} Environment: {} Network: {}",
+                    ex.getStatusCode(), tenant.getName(), env.getName(), delNetwork.getName());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         Logger.debug("Successfully deleted network - Tenant: {} Environment: {} Network: {}",
-                tenant.getName(), env.getName(),
-                ToStringBuilder.reflectionToString(delNetwork, ToStringStyle.MULTI_LINE_STYLE));
+                tenant.getName(), env.getName(), delNetwork.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
@@ -288,8 +309,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             network = os.networking().network().get(n.getCloudID());
         } catch (NullPointerException ex) {
             Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
+                    tenant.getName(), env.getName(), n.getName());
             return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
 
@@ -298,24 +318,32 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         try {
             updatedNetwork = os.networking().network().update(n.getCloudID(), Builders.networkUpdate().name(n.getName()).build());
         } catch (ClientResponseException ex) {
-            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            Logger.error("Cloud exception, could not update network. status code {} Tenant: {} Environment: {} Network: {}",
+                    ex.getStatusCode(), tenant.getName(), env.getName(), n.getName());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
         if (updatedNetwork == null) {
             Logger.error("Failed to update network, Cloud provider failure Tenant: {} Environment: {} Network: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
+                    tenant.getName(), env.getName(), n.getName());
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         Logger.debug("Successfully updated the network. Tenant: {} Environment: {} Network: {}",
-                tenant.getName(), env.getName(),
-                ToStringBuilder.reflectionToString(n, ToStringStyle.MULTI_LINE_STYLE));
+                tenant.getName(), env.getName(), n.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
+    /**
+     * getAllSubnets. Lists all the subnets in the cloud - function may not have
+     * practical use in OpenStack. Use getSubnets and provide a network to get
+     * subnets specific to a network.
+     *
+     * @param tenant - the tenant
+     * @param env - the environment with the subnets
+     * @return
+     */
     @Override
     public List<GeminiSubnet> getAllSubnets(GeminiTenant tenant, GeminiEnvironment env) {
         //authenticate the session with the OpenStack installation
@@ -354,6 +382,18 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         return gemSubnets;
     }
 
+    /**
+     * getSubnets. Find all subnets related to a parent network. For each subnet
+     * found it create an equivalent gemini object and adds it to the parent
+     * network
+     *
+     * @param tenant - contains the environment, provides the auth parameters
+     * @param env - contains the parent network whose subnets needs to be
+     * retrieved
+     * @param parent - the parent network whose subnets need to be retrieved
+     * @return List<GeminiSubnet> list of the subnets found or null if there was
+     * an error
+     */
     @Override
     public List<GeminiSubnet> getSubnets(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent) {
         //authenticate the session with the OpenStack installation
@@ -369,12 +409,15 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //get all the subnets
         List<? extends Subnet> subnets = os.networking().subnet().list();
+        if (subnets == null) {
+            Logger.info("No subnets for tenant: {} env: {} network {}", tenant.getName(), env.getName(), parent.getName());
+            return null;
+        }
         List<GeminiSubnet> gemSubnets = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
         subnets.stream().filter(s -> s != null).filter(s -> s.getNetworkId().equals(parent.getCloudID())).forEach(s -> {
             GeminiSubnet gn = new GeminiSubnet();
-            //the basic elements
             gn.setName(s.getName());
             gn.setCloudID(s.getId());
             gn.setCidr(s.getCidr());
@@ -387,6 +430,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 gn.addAllocationPool(gsap);
             });
             gemSubnets.add(gn);
+            gn.setParent(parent);
+            parent.addSubnet(gn);
         });
         return gemSubnets;
     }
@@ -407,9 +452,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //check to see if this subnet exists
         if (os.networking().subnet().list().stream().filter(n -> n.getName().equals(newSubnet.getName())).count() != 0) {
-            Logger.error("Failed to create subnet - already exists. Tenant: {} Environment: {} subnet: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
+            Logger.error("Failed to create subnet - already exists. Tenant: {} Environment: {} network: {} subnet: {}",
+                    tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
             return ProvisioningProviderResponseType.OBJECT_EXISTS;
         }
 
@@ -426,30 +470,32 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .cidr(newSubnet.getCidr())
                     .build());
         } catch (ClientResponseException ex) {
-            Logger.error("Cloud exception: status code {}", ex.getStatusCode());
+            Logger.error("Cloud exception: failed to create subnet. status code {} tenant: {} env: {} parent network: {} subnet {} ",
+                    ex.getStatusCode(), tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
         if (subnet == null) {
-            Logger.error("Failed to create subnet, Cloud provider failure Tenant: {} Environment: {} Subnet: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
+            Logger.error("Failed to create subnet, Cloud provider failure tenant: {} env: {} parent network: {} subnet {} ",
+                    tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //add the list of subnets (this will be an update the subnet just created)
         List<GeminiSubnetAllocationPool> pools = newSubnet.getAllocationPools();
         pools.stream().forEach(p -> {
-            os.networking().subnet().update(subnet.toBuilder()
+            if (os.networking().subnet().update(subnet.toBuilder()
                     .addPool(p.getStart().getHostAddress(), p.getEnd().getHostAddress())
-                    .build());
+                    .build()) == null) {
+                Logger.error("Failed to create subnet allocation pool, Tenant: {} Environment: {} Parent Network: {} Subnet: {} Allocation Pool {} {}",
+                        tenant.getName(), env.getName(), parent.getName(), newSubnet.getName(), p.getStart().getHostAddress(), p.getEnd().getHostAddress());
+            }
         });
 
         //copy the id to the domain object
         newSubnet.setCloudID(subnet.getId());
-        Logger.debug("Successfully added network - Tenant: {} Environment: {} Network: {}",
-                tenant.getName(), env.getName(),
-                ToStringBuilder.reflectionToString(newSubnet, ToStringStyle.MULTI_LINE_STYLE));
+        Logger.debug("Successfully added network - tenant: {} env: {} parent network: {} subnet {} ",
+                tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
@@ -489,7 +535,6 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         try {
             updatedSubnet = os.networking().subnet().update(s.toBuilder()
-                    //.addPool(subnet.getSubnetStart().getHostAddress(), subnet.getSubnetEnd().getHostAddress())
                     .cidr(subnet.getCidr())
                     .name(subnet.getName())
                     .gateway(subnet.getGateway().getCloudID())
@@ -504,24 +549,26 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //TODO: Need to get detailed error codes for the call above. Research the StatusCode class
         if (updatedSubnet == null) {
-            Logger.error("Failed to update subnet, Cloud provider failure. Tenant: {} Environment: {} Subnet: {}",
-                    tenant.getName(), env.getName(),
-                    ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
+            Logger.error("Failed to update subnet, Cloud provider failure. Tenant: {} Environment: {} Parent Network: {} Subnet: {} ",
+                    tenant.getName(), env.getName(), subnet.getParent().getName(), subnet.getName());
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //add the list of subnets (this will be an update the subnet just created)
         List<GeminiSubnetAllocationPool> pools = subnet.getAllocationPools();
         pools.stream().forEach(p -> {
-            os.networking().subnet()
+            if (os.networking().subnet()
                     .update(updatedSubnet.toBuilder()
                             .addPool(p.getStart().getHostAddress(), p.getEnd().getHostAddress())
-                            .build());
+                            .build()) == null) {
+                Logger.error("Failed to create subnet allocation pool, Tenant: {} Environment: {} Parent Network: {} Subnet: {} Allocation Pool {} {}",
+                        tenant.getName(), env.getName(), subnet.getParent().getName(), subnet.getName(), p.getStart().getHostAddress(), p.getEnd().getHostAddress());
+
+            }
         });
 
-        Logger.debug("Successfully updated the subnet. Tenant: {} Environment: {} Subnet: {}",
-                tenant.getName(), env.getName(),
-                ToStringBuilder.reflectionToString(subnet, ToStringStyle.MULTI_LINE_STYLE));
+        Logger.debug("Successfully updated the subnet. Tenant: {} Environment: {} Parent Network: {} Subnet: {}",
+                tenant.getName(), env.getName(), subnet.getParent().getName(), subnet.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
