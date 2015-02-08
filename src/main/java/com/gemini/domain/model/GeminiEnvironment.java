@@ -36,6 +36,15 @@ public class GeminiEnvironment extends EntityMongoDB {
 //    private List<GeminiServer> servers = new ArrayList();
 
     @Reference
+    private List<GeminiSecurityGroup> securityGroups = Collections.synchronizedList(new ArrayList());
+    
+    @Reference
+    private List<GeminiServerImage> serverImages = Collections.synchronizedList(new ArrayList());
+    
+    @Reference
+    private List<GeminiServerType> serverTypes = Collections.synchronizedList(new ArrayList());
+
+    @Reference
     private List<GeminiNetworkRouter> routers = Collections.synchronizedList(new ArrayList());
 
     public GeminiEnvironmentType getType() {
@@ -141,4 +150,65 @@ public class GeminiEnvironment extends EntityMongoDB {
     public boolean deleteRouter(GeminiNetworkRouter router) {
         return routers.removeIf(r -> r.getName().equals(router.getName()));
     }
+
+    public List<GeminiSecurityGroup> getSecurityGroups() {
+        return securityGroups;
+    }
+
+    public void setSecurityGroups(List<GeminiSecurityGroup> securityGroups) {
+        this.securityGroups = securityGroups;
+    }
+    
+    public boolean addSecurityGroup (GeminiSecurityGroup secGroup) {
+        if (securityGroups.stream().filter(r -> r.getName().equals(secGroup.getName())).count() == 0) {
+            return securityGroups.add(secGroup);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteSecurityGroup(GeminiSecurityGroup secGroup) {
+        return securityGroups.removeIf(r -> r.getName().equals(secGroup.getName()));
+    }
+
+    public List<GeminiServerImage> getServerImages() {
+        return serverImages;
+    }
+
+    public void setServerImages(List<GeminiServerImage> serverImages) {
+        this.serverImages = serverImages;
+    }
+    
+    public boolean addServerImage(GeminiServerImage serverImage) {
+        if (serverImages.stream().filter(s -> s.getName().equals(serverImage.getName())).count() == 0) {
+            return serverImages.add(serverImage);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteServerImage(GeminiServerImage serverImage) {
+        return serverImages.removeIf(s -> s.getName().equals(serverImage.getName()));
+    }
+
+    public List<GeminiServerType> getServerTypes() {
+        return serverTypes;
+    }
+
+    public void setServerTypes(List<GeminiServerType> serverTypes) {
+        this.serverTypes = serverTypes;
+    }
+
+    public boolean addServerType(GeminiServerType serverType) {
+        if (serverTypes.stream().filter(s -> s.getName().equals(serverType.getName())).count() == 0) {
+            return serverTypes.add(serverType);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteServerType(GeminiServerType serverType) {
+        return serverTypes.removeIf(s -> s.getName().equals(serverType.getName()));
+    }
+
 }

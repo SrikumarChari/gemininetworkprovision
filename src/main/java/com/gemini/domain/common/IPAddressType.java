@@ -9,6 +9,6 @@ package com.gemini.domain.common;
  *
  * @author schari
  */
-public enum GeminiSecurityGroupRuleEthertype {
+public enum IPAddressType {
     IPv4, IPv6
 }

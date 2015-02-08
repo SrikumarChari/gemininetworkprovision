@@ -15,7 +15,7 @@ public class NetworkProvisioningService {
     private NetworkProvider networkProvisioningService;
     
     @Inject
-    public void setProvider(NetworkProvider svc) {
+    private void setProvider(NetworkProvider svc) {
         networkProvisioningService = svc;
     }
     

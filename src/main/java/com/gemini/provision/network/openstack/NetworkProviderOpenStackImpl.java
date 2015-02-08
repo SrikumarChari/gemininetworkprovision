@@ -5,6 +5,7 @@
  */
 package com.gemini.provision.network.openstack;
 
+import com.gemini.domain.common.IPAddressType;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
@@ -29,6 +30,7 @@ import org.openstack4j.model.network.AttachInterfaceType;
 import org.openstack4j.model.network.HostRoute;
 import org.openstack4j.model.network.IPVersionType;
 import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.Subnet;
 import org.pmw.tinylog.Logger;
@@ -185,6 +187,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Network network;
         try {
             network = os.networking().network().create(Builders.network()
+                    .tenantId(tenant.getTenantID())
                     .name(newNetwork.getName())
                     .tenantId(tenant.getTenantID())
                     .build());
@@ -339,6 +342,9 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             gn.setCidr(s.getCidr());
             gn.setGateway(env.getApplications().stream().map(GeminiApplication::getNetworks).flatMap(List::stream).filter(g -> g.getName().equals(s.getGateway())).findAny().get());
             gn.setParent(env.getApplications().stream().map(GeminiApplication::getNetworks).flatMap(List::stream).filter(g -> g.getCloudID().equals(s.getNetworkId())).findAny().get());
+            gn.setEnableDHCP(s.isDHCPEnabled());
+            gn.setNetworkType(s.getIpVersion() == IPVersionType.V4 ? IPAddressType.IPv4 : IPAddressType.IPv6);
+            //s.getHostRoutes();
             s.getAllocationPools().stream().forEach(ap -> {
                 GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()), InetAddresses.forString(ap.getEnd()));
                 gn.addAllocationPool(gsap);
@@ -374,6 +380,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             gn.setCidr(s.getCidr());
             gn.setGateway(env.getApplications().stream().map(GeminiApplication::getNetworks).flatMap(List::stream).filter(g -> g.getName().equals(s.getGateway())).findAny().get());
             gn.setParent(parent);
+            gn.setEnableDHCP(s.isDHCPEnabled());
+            gn.setNetworkType(s.getIpVersion() == IPVersionType.V4 ? IPAddressType.IPv4 : IPAddressType.IPv6);
             s.getAllocationPools().stream().forEach(ap -> {
                 GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()), InetAddresses.forString(ap.getEnd()));
                 gn.addAllocationPool(gsap);
@@ -409,10 +417,12 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         Subnet subnet;
         try {
             subnet = os.networking().subnet().create(Builders.subnet()
+                    .tenantId(tenant.getTenantID())
+                    .gateway(newSubnet.getGateway().getCloudID())
+                    .enableDHCP(newSubnet.isEnableDHCP())
+                    .ipVersion(newSubnet.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
                     .name(newSubnet.getName())
                     .networkId(parent.getCloudID())
-                    .tenantId(tenant.getTenantID())
-                    .ipVersion(IPVersionType.V4)
                     .cidr(newSubnet.getCidr())
                     .build());
         } catch (ClientResponseException ex) {
@@ -484,6 +494,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .name(subnet.getName())
                     .gateway(subnet.getGateway().getCloudID())
                     .networkId(subnet.getParent().getCloudID())
+                    .enableDHCP(subnet.isEnableDHCP())
+                    .ipVersion(subnet.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
                     .build());
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
@@ -652,6 +664,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //create the router
         Router createdRouter = os.networking().router().create(Builders.router()
+                .tenantId(tenant.getTenantID())
                 .name(newRouter.getName())
                 .adminStateUp(true)
                 .externalGateway(newRouter.getGateway().getCloudID())
@@ -707,6 +720,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         //first update the non-array/list items
         os.networking().router().update(existingRouter
                 .toBuilder()
+                .name(routerToBeUpdated.getName())
+                //.adminStateUp(routerToBeUpdated.)
                 .externalGateway(routerToBeUpdated.getGateway().getCloudID())
                 .name(routerToBeUpdated.getName())
                 .build());

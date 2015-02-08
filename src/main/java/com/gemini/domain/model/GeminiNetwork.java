@@ -20,6 +20,7 @@ import org.mongodb.morphia.annotations.Reference;
 public class GeminiNetwork extends EntityMongoDB {
     //general 
     private String name;
+    private String description;
     private String networkType;
 
     //is the provisioning complete
@@ -37,6 +38,14 @@ public class GeminiNetwork extends EntityMongoDB {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getNetworkType() {

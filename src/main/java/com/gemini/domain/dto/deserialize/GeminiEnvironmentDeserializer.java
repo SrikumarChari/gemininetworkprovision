@@ -9,6 +9,7 @@ import com.gemini.domain.dto.GeminiApplicationDTO;
 import com.gemini.domain.dto.GeminiEnvironmentDTO;
 import com.gemini.domain.dto.GeminiNetworkDTO;
 import com.gemini.domain.dto.GeminiNetworkRouterDTO;
+import com.gemini.domain.dto.GeminiSecurityGroupDTO;
 import com.gemini.domain.dto.GeminiSubnetDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,6 +37,7 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
                 .registerTypeAdapter(GeminiNetworkDTO.class, new GeminiNetworkDeserializer())
                 .registerTypeAdapter(GeminiApplicationDTO.class, new GeminiApplicationDeserializer())
                 .registerTypeAdapter(GeminiNetworkRouterDTO.class, new GeminiNetworkRouterDeserializer())
+                .registerTypeAdapter(GeminiSecurityGroupDTO.class, new GeminiSecurityGroupDeserializer())
                 .create();
 
         //using multiple try/catch blocks to enable error specific messaging
@@ -52,6 +54,18 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             //TODO: SHOULD WE JUST RETURN AN ERROR AT THIS POINT?
             Logger.error("Malformed JSON - no type for environment {}", newEnv.getName());
+        }
+
+        //the security groups
+        try {
+            JsonArray secGrpArray = json.getAsJsonObject().get("securityGroups").getAsJsonArray();
+            for (JsonElement e : secGrpArray) {
+                GeminiSecurityGroupDTO newSecGrp = gson.fromJson(e, GeminiSecurityGroupDTO.class);
+                newEnv.addSecurityGroup(newSecGrp);
+            }
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
+            //no routers, ignore error and move on
+            Logger.debug("No security groups for environment {}", newEnv.getName());
         }
 
         //now the gatweay
@@ -82,7 +96,8 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
                 newEnv.addRouter(newRouter);
 
                 //the subnet need to be added by reference (i.e., do not create
-                //new subnet objects). Hence we deserialize it at the GeminiEnvironment level
+                //new subnet objects). The deserialization of the application objects - networks -subnet
+                //would have created if it exists in the definition.
                 JsonArray subnetArray = json.getAsJsonObject().get("interfaces").getAsJsonArray();
                 for (JsonElement s : subnetArray) {
                     //get the name of the subnet and find it in the Gemini data model
@@ -105,6 +120,7 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
             //no routers, ignore error and move on
             Logger.debug("No routers for environment {}", newEnv.getName());
         }
+        
         return newEnv;
     }
 }

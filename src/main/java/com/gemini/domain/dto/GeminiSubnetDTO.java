@@ -22,6 +22,9 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
     //network gateway
     private GeminiNetworkDTO gateway;
     
+    private boolean enableDHCP;
+    private String networkType;
+
     //parent network that contains this subnet
     private GeminiNetworkDTO parent;
 
@@ -34,6 +37,22 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
 
     public void setParent(GeminiNetworkDTO parent) {
         this.parent = parent;
+    }
+
+    public boolean isEnableDHCP() {
+        return enableDHCP;
+    }
+
+    public void setEnableDHCP(boolean enableDHCP) {
+        this.enableDHCP = enableDHCP;
+    }
+
+    public String getNetworkType() {
+        return networkType;
+    }
+
+    public void setNetworkType(String networkType) {
+        this.networkType = networkType;
     }
 
     public List<GeminiSubnetAllocationPoolDTO> getAllocationPool() {

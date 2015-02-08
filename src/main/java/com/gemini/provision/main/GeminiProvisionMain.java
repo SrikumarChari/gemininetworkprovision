@@ -15,9 +15,13 @@ import com.google.inject.Injector;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.ConsumerCancelledException;
 import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.ShutdownSignalException;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -39,31 +43,24 @@ public class GeminiProvisionMain {
     private static String LOCAL_IN_QUEUE = "netprov_local_in_queue";
     private static String LOCAL_OUT_QUEUE = "netprov_local_out_queue";
 
+    private static String EXCHANGE_NAME = "Gemini_Systems";
+    private static boolean MESSAGE_DURABILITY = true;
+    private static Integer PREFETCH_COUNT = 1;
+    private static String NETWORK_TOPIC = "network*";
+    private static String SECURITY_TOPIC = "security*";
+    private static String LB_TOPIC = "load*";
+
     public static void main(String[] args) throws IOException, InterruptedException {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
-
-//        //create the provisioning service 
-//        Injector provisioningInjector = Guice.createInjector(
-//                new NetworkProviderModule(env.getType()));
-//        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
-//        List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, env);
-//        //we should only one have one gateway
-//        gateways.stream().forEach(System.out::println);
-//        OSClient os = OSFactory.builder()
-//                .endpoint("http://198.11.209.34:5000/v2.0")
-//                .credentials("sri", "srikumar12")
-//                .tenantName("Gemini-network-prj")
-//                .authenticate();
-//        List<? extends Network> networks = os.networking().network().list();
-//        networks.stream().forEach(s -> System.out.println(s.getName()));
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("127.0.0.1");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        channel.exchangeDeclare(QUEUE_NAME, NETWORK_TOPIC);
+        channel.basicQos(PREFETCH_COUNT);
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
         QueueingConsumer consumer = new QueueingConsumer(channel);
@@ -72,8 +69,17 @@ public class GeminiProvisionMain {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
         Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
-        while (true) {
-            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+
+        //start the topic 
+        //the networking message recevier
+        Thread networkingThread = new Thread(() -> {
+            QueueingConsumer.Delivery delivery = null;
+            try {
+                delivery = consumer.nextDelivery();
+            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+                Logger.getLogger(GeminiProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
             String message = new String(delivery.getBody());
             GeminiTenantDTO tenantDTO = gson.fromJson(message, GeminiTenantDTO.class);
             GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
@@ -87,6 +93,22 @@ public class GeminiProvisionMain {
             //we should only one have one gateway
             gateways.stream().forEach(System.out::println);
 
-        }
+            try {
+                channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+            } catch (IOException ex) {
+                Logger.getLogger(GeminiProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        networkingThread.start();
+
+        //the load balancer 
+        Thread lbThread = new Thread(() -> {
+        });
+        lbThread.start();
+
+        //the security thread
+        Thread securityThread = new Thread (() -> {
+        });
+        securityThread.start();
     }
 }

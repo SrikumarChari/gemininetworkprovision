@@ -3,25 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.gemini.domain.model;
-
-import com.gemini.common.repository.EntityMongoDB;
-import com.gemini.domain.common.GeminiSecurityGroupRuleDirection;
-import com.gemini.domain.common.IPAddressType;
-import com.gemini.domain.common.Protocol;
+package com.gemini.domain.dto;
 
 /**
  *
- * @author schari
+ * @author Srikumar
  */
-public class GeminiSecurityGroupRule extends EntityMongoDB {
+public class GeminiSecurityGroupRuleDTO {
     private String name;
-    private GeminiSecurityGroup parent;
-    private GeminiSecurityGroupRuleDirection direction;
-    private String cloudID;
+    private GeminiSecurityGroupDTO parent;
+    private String direction;
     private String cidr;
-    private IPAddressType ipAddressType;
-    private Protocol protocol;
+    private String ipAddressType;
+    private Integer protocol;
     private Integer portRangeMin;
     private Integer portRangeMax;
     private String remoteGroupId;
@@ -35,37 +29,20 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
         this.name = name;
     }
 
-    public IPAddressType getIpAddressType() {
-        return ipAddressType;
-    }
-
-    public void setIpAddressType(IPAddressType ipAddressType) {
-        this.ipAddressType = ipAddressType;
-    }
-
-    
-    public GeminiSecurityGroup getParent() {
+    public GeminiSecurityGroupDTO getParent() {
         return parent;
     }
 
-    public void setParent(GeminiSecurityGroup parent) {
+    public void setParent(GeminiSecurityGroupDTO parent) {
         this.parent = parent;
     }
 
-    public GeminiSecurityGroupRuleDirection getDirection() {
+    public String getDirection() {
         return direction;
     }
 
-    public void setDirection(GeminiSecurityGroupRuleDirection direction) {
+    public void setDirection(String direction) {
         this.direction = direction;
-    }
-
-    public String getCloudID() {
-        return cloudID;
-    }
-
-    public void setCloudID(String cloudID) {
-        this.cloudID = cloudID;
     }
 
     public String getCidr() {
@@ -76,11 +53,19 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
         this.cidr = cidr;
     }
 
-    public Protocol getProtocol() {
+    public String getIpAddressType() {
+        return ipAddressType;
+    }
+
+    public void setIpAddressType(String ipAddressType) {
+        this.ipAddressType = ipAddressType;
+    }
+
+    public Integer getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(Protocol protocol) {
+    public void setProtocol(Integer protocol) {
         this.protocol = protocol;
     }
 
@@ -115,4 +100,5 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
     public void setRemoteIpPrefix(String remoteIpPrefix) {
         this.remoteIpPrefix = remoteIpPrefix;
     }
+
 }

@@ -16,6 +16,7 @@ import java.util.List;
 public class GeminiNetworkDTO {
     //general 
     private String name;
+    private String description;
     private String networkType;
 
     //is the provisioning complete
@@ -30,6 +31,14 @@ public class GeminiNetworkDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getNetworkType() {
