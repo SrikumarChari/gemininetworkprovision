@@ -28,7 +28,6 @@ import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.model.compute.ActionResponse;
-import org.openstack4j.model.compute.IPProtocol;
 import org.openstack4j.model.compute.SecGroupExtension;
 import org.openstack4j.model.compute.SecGroupExtension.Rule;
 import org.openstack4j.model.network.SecurityGroup;
@@ -120,6 +119,7 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
             listSecGrps.add(gemSecGrp);
         });
 
+        Logger.debug("Successfully retrieved all security groups Tenant: {} Env: {}", tenant.getName(), env.getName());
         return listSecGrps;
     }
 
@@ -183,6 +183,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
             listSecGrps.add(gemSecGrp);
         });
 
+        Logger.debug("Successfully retrieved security groups Tenant: {} Env: {} server {}{",
+                tenant.getName(), env.getName(), server.getName());
         return listSecGrps;
     }
 
@@ -235,6 +237,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
             listSecGrpRules.add(gemSecGrpRule);
         });
 
+        Logger.debug("Successfully retrieved security groups rules Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
         return listSecGrpRules;
     }
 
@@ -291,6 +295,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
             gemSecGrpRule.setParent(securityGroup);
             securityGroup.addSecurityRule(gemSecGrpRule);
         });
+        Logger.debug("Successfully retrieved security group information Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
@@ -333,9 +339,10 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
 
         //create the security group
         osSecGrp = os.networking().securitygroup()
-                .create(Builders.securityGroup().
-                        name(securityGroup.getName()).
-                        description(securityGroup.getDescription()).build());
+                .create(Builders.securityGroup()
+                        .tenantId(tenant.getTenantID())
+                        .name(securityGroup.getName())
+                        .description(securityGroup.getDescription()).build());
         if (osSecGrp == null) {
             Logger.error("Security Group creation failure tenant: {} env: {} security group: {}", tenant.getName(), env.getName(), securityGroup.getName());
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
@@ -346,6 +353,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
         securityGroup.getSecurityRules().stream().forEach(s -> {
             SecurityGroupRule r = os.networking().securityrule()
                     .create(Builders.securityGroupRule()
+                            .tenantId(tenant.getTenantID())
+                            .securityGroupId(securityGroup.getCloudID())
                             .direction(s.getDirection().toString())
                             .ethertype(s.getIpAddressType().toString())
                             .portRangeMin(s.getPortRangeMin())
@@ -360,6 +369,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
             }
         });
 
+        Logger.debug("Successfully created security group Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
@@ -389,7 +400,7 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
                     tenant.getName(), env.getName(), securityGroup.getName());
             return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
-        
+
         //looks like there no way to update a security group, we have to delete and re-create
         ActionResponse a = os.networking().securitygroup().delete(osSecGrp.getId());
         if (!a.isSuccess()) {
@@ -397,23 +408,26 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
                     tenant.getName(), env.getName(), securityGroup.getName(), a.getFault());
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
-        
+
         //now re-create the group with the updated info
         //create the security group
         osSecGrp = os.networking().securitygroup()
-                .create(Builders.securityGroup().
-                        name(securityGroup.getName()).
-                        description(securityGroup.getDescription()).build());
+                .create(Builders.securityGroup()
+                        .tenantId(tenant.getTenantID())
+                        .name(securityGroup.getName())
+                        .description(securityGroup.getDescription()).build());
         if (osSecGrp == null) {
             Logger.error("Security Group update creation failure. tenant: {} env: {} security group: {}", tenant.getName(), env.getName(), securityGroup.getName());
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
-        //map the object and then create the security group rules in the cloud
+        //update the cloud ID since it has most likely changed and then create the security group rules in the cloud
         securityGroup.setCloudID(osSecGrp.getId());
         securityGroup.getSecurityRules().stream().forEach(s -> {
             SecurityGroupRule r = os.networking().securityrule()
                     .create(Builders.securityGroupRule()
+                            .tenantId(tenant.getTenantID())
+                            .securityGroupId(securityGroup.getCloudID())
                             .direction(s.getDirection().toString())
                             .ethertype(s.getIpAddressType().toString())
                             .portRangeMin(s.getPortRangeMin())
@@ -428,6 +442,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
             }
         });
 
+        Logger.debug("Successfully updated security group Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
@@ -448,7 +464,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
         try {
             osSecGrp = os.networking().securitygroup().get(securityGroup.getCloudID());
         } catch (NullPointerException | ClientResponseException ex) {
-            Logger.error("Could not retrieve security group information in OpenStack. tenant: {} env: {} security group: {}", tenant.getName(), env.getName(), securityGroup.getName());
+            Logger.error("Could not retrieve security group information in OpenStack. tenant: {} env: {} security group: {}",
+                    tenant.getName(), env.getName(), securityGroup.getName());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
         }
 
@@ -457,7 +474,7 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
                     tenant.getName(), env.getName(), securityGroup.getName());
             return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
-        
+
         //looks like there no way to update a security group, we have to delete and re-create
         ActionResponse a = os.networking().securitygroup().delete(osSecGrp.getId());
         if (!a.isSuccess()) {
@@ -468,8 +485,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
 
         //remove this security group from the environment
         env.deleteSecurityGroup(securityGroup);
-        
-        //now remove the deleted security group's name from all the servers
+
+        //now remove the deleted security group's name from the servers that use the deleted security group
         env.getApplications()
                 .stream()
                 .map(GeminiApplication::getNetworks)
@@ -480,48 +497,244 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
                 .flatMap(List::stream)
                 .map(GeminiSubnetAllocationPool::getServers)
                 .flatMap(List::stream)
-                .forEach(s ->  s.deleteSecGroupName(securityGroup.getName()));
+                .forEach(s -> s.deleteSecGroupName(securityGroup.getName()));
 
+        Logger.debug("Successfully deleted security group Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
+        return ProvisioningProviderResponseType.SUCCESS;
+    }
+
+    /**
+     * Get the security group rule details based on the cloud id provided in the
+     * securityRule object.
+     *
+     * @param tenant
+     * @param env
+     * @param securityGroup - the parent security group
+     * @param securityRule - the rule whose information needs to be retrieved,
+     * the cloud ID must be provided.
+     * @return SUCCESS - if all goes well AUTH_FAILURE - if the authentication
+     * failed with the information in the tenant object EXCEPTION - if the cloud
+     * raised an exception OBJECT_NOT_FOUND - if the rule with ID provided is
+     * not found
+     */
+    @Override
+    public ProvisioningProviderResponseType getSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+        }
+
+        SecurityGroupRule osSecGrpRule;
+        try {
+            osSecGrpRule = os.networking().securityrule().get(securityRule.getCloudID());
+        } catch (NullPointerException | ClientResponseException ex) {
+            Logger.error("Cloud Exception: Could not retrieve security group rule information in OpenStack. tenant: {} env: {} security group: {} security rule ID: {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getCloudID());
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
+        }
+
+        if (osSecGrpRule == null) {
+            Logger.error("Security rule not found: Could not find security group rule information in OpenStack. tenant: {} env: {} security group: {} security rule ID: {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getCloudID());
+            return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
+        }
+
+        //now copy the information into the gemini security rule object
+        securityRule.setDirection(GeminiSecurityGroupRuleDirection.valueOf(osSecGrpRule.getDirection()));
+        securityRule.setIpAddressType(IPAddressType.valueOf(osSecGrpRule.getEtherType()));
+        securityRule.setParent(securityGroup);
+        securityRule.setPortRangeMin(osSecGrpRule.getPortRangeMin());
+        securityRule.setPortRangeMax(osSecGrpRule.getPortRangeMax());
+        securityRule.setProtocol(Protocol.valueOf(osSecGrpRule.getProtocol()));
+        securityRule.setRemoteGroupId(osSecGrpRule.getRemoteGroupId());
+        securityRule.setRemoteIpPrefix(osSecGrpRule.getRemoteIpPrefix());
+
+        Logger.debug("Successfully retrieved security groups rule Tenant: {} Env: {} security group {} security rule {}",
+                tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+        return ProvisioningProviderResponseType.SUCCESS;
+    }
+
+    /**
+     * createSecurityGroupRule. Creates the security rule in the cloud. It is
+     * expected that the security rule object has all the relevant required for
+     * the creation.
+     *
+     * @param tenant - contains the auth information
+     * @param env - contains the security group
+     * @param securityGroup - the parent security group
+     * @param securityRule - represents the rule to be created in the cloud. All
+     * values must be available in the object. The cloud provider may not create
+     * it with partial information
+     * @return SUCCESS - if all goes well, AUTH_FAILURE - if the authentication
+     * failed with the information in the tenant object, EXCEPTION - if the
+     * cloud raised an exception CLOUD_FAILURE - if the creation did not succeed
+     */
+    @Override
+    public ProvisioningProviderResponseType createSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+        }
+
+        SecurityGroupRule r;
+        try {
+            r = os.networking().securityrule()
+                    .create(Builders.securityGroupRule()
+                            .tenantId(tenant.getTenantID())
+                            .securityGroupId(securityGroup.getCloudID())
+                            .direction(securityRule.getDirection().toString())
+                            .ethertype(securityRule.getIpAddressType().toString())
+                            .portRangeMin(securityRule.getPortRangeMin())
+                            .portRangeMin(securityRule.getPortRangeMin())
+                            .protocol(securityRule.getProtocol().toString())
+                            .remoteGroupId(securityRule.getRemoteGroupId())
+                            .remoteIpPrefix(securityRule.getRemoteIpPrefix())
+                            .build());
+        } catch (NullPointerException | ClientResponseException ex) {
+            Logger.error("Cloud Exception: Could not creation the security group rule in OpenStack. tenant: {} env: {} security group: {} security rule ID: {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getCloudID());
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
+        }
+        if (r == null) {
+            Logger.error("Security Group rule creation failure. tenant: {} env: {} security group: {} rule {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
+        }
+
+        Logger.debug("Successfully created security group rule Tenant: {} Env: {} security group {} security rule {}",
+                tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+        return ProvisioningProviderResponseType.SUCCESS;
+    }
+
+    /**
+     * updateSecurityGroupRule - updates security rule information in the cloud.
+     *
+     * Currently OpenStack DOES NOT allow update of a security rule. This
+     * function deletes the rule and recreates it with the updated information.
+     *
+     * @param tenant
+     * @param env
+     * @param securityGroup
+     * @param securityRule
+     * @return
+     */
+    @Override
+    public ProvisioningProviderResponseType updateSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+        }
+
+        //since openstack doesn't allow update, we need to delete and re-create
+        try {
+            os.networking().securityrule().delete(securityRule.getCloudID());
+        } catch (NullPointerException | ClientResponseException ex) {
+            Logger.error("Failed to delete security group rule Tenant: {} Env: {}, Security Group: {} security rule {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
+        }
+        SecurityGroupRule r;
+        try {
+            r = os.networking().securityrule()
+                    .create(Builders.securityGroupRule()
+                            .tenantId(tenant.getTenantID())
+                            .securityGroupId(securityGroup.getCloudID())
+                            .direction(securityRule.getDirection().toString())
+                            .ethertype(securityRule.getIpAddressType().toString())
+                            .portRangeMin(securityRule.getPortRangeMin())
+                            .portRangeMin(securityRule.getPortRangeMin())
+                            .protocol(securityRule.getProtocol().toString())
+                            .remoteGroupId(securityRule.getRemoteGroupId())
+                            .remoteIpPrefix(securityRule.getRemoteIpPrefix())
+                            .build());
+        } catch (NullPointerException | ClientResponseException ex) {
+            Logger.error("Cloud Exception: Could not creation the security group rule in OpenStack. tenant: {} env: {} security group: {} security rule ID: {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getCloudID());
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
+        }
+        if (r == null) {
+            Logger.error("Security Group rule creation failure. tenant: {} env: {} security group: {} rule {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+            return ProvisioningProviderResponseType.CLOUD_FAILURE;
+        }
+
+        Logger.debug("Successfully updated security group rule Tenant: {} Env: {} security group {} security rule {}",
+                tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
         return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
-    public ProvisioningProviderResponseType getSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ProvisioningProviderResponseType createSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ProvisioningProviderResponseType updateSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public ProvisioningProviderResponseType deleteSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //authenticate the session with the OpenStack installation
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        if (os == null) {
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+        }
+
+        //since openstack doesn't allow update, we need to delete and re-create
+        try {
+            os.networking().securityrule().delete(securityRule.getCloudID());
+        } catch (NullPointerException | ClientResponseException ex) {
+            Logger.error("Failed to delete security group rule Tenant: {} Env: {}, Security Group: {} security rule {}",
+                    tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+            return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
+        }
+        Logger.debug("Successfully deleted security group rule Tenant: {} Env: {} security group {} security rule {}",
+                tenant.getName(), env.getName(), securityGroup.getName(), securityRule.getName());
+        return ProvisioningProviderResponseType.SUCCESS;
     }
 
     @Override
     public ProvisioningProviderResponseType attachInterface(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Logger.error("attachInterface feature not supported in OpenStack. Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
+        throw new UnsupportedOperationException("attachInterface feature not supported in OpenStack."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public ProvisioningProviderResponseType detachInterface(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Logger.error("detachInterface feature not supported in OpenStack. Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
+        throw new UnsupportedOperationException("detachInterface feature not supported in OpenStack."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public ProvisioningProviderResponseType attachIpRange(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Logger.error("attachIpRange feature not supported in OpenStack. Use the createSecurityGroupRule function instead"
+                + "Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
+        throw new UnsupportedOperationException("attachIpRange feature not supported in OpenStack. Create a new GeminiSecurityRule and add it to the security group"); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public ProvisioningProviderResponseType detachIpRange(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
+        Logger.error("detachIpRange feature not supported in OpenStack. Use deleteSecurityGroupRule instead. "
+                + "Tenant: {} Env: {} security group {}",
+                tenant.getName(), env.getName(), securityGroup.getName());
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

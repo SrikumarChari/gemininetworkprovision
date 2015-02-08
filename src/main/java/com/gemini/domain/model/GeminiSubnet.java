@@ -6,6 +6,7 @@
 package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
+import com.gemini.domain.common.IPAddressType;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,13 +28,16 @@ public class GeminiSubnet extends EntityMongoDB {
     //network gateway
     private GeminiNetwork gateway;
 
+    private IPAddressType networkType;
+    private boolean enableDHCP;
+    
     //parent network that contains this subnet
     @Reference
     private GeminiNetwork parent;
 
     //address pool
     @Embedded
-    private List<GeminiSubnetAllocationPool> allocationPool = Collections.synchronizedList(new ArrayList());
+    private List<GeminiSubnetAllocationPool> allocationPools = Collections.synchronizedList(new ArrayList());
 
     private String cloudID;
     boolean provisioned = false;
@@ -62,30 +66,46 @@ public class GeminiSubnet extends EntityMongoDB {
         return gateway;
     }
 
+    public boolean isEnableDHCP() {
+        return enableDHCP;
+    }
+
+    public void setEnableDHCP(boolean enableDHCP) {
+        this.enableDHCP = enableDHCP;
+    }
+
+    public IPAddressType getNetworkType() {
+        return networkType;
+    }
+
+    public void setNetworkType(IPAddressType networkType) {
+        this.networkType = networkType;
+    }
+
     public void addAllocationPool(InetAddress start, InetAddress end) {
-        allocationPool.add(new GeminiSubnetAllocationPool(start, end));
+        allocationPools.add(new GeminiSubnetAllocationPool(start, end));
     }
 
     public boolean addAllocationPool(GeminiSubnetAllocationPool pool) {
-        if (allocationPool.stream().filter(p -> p.getStart().getHostAddress().equals(pool.getStart().getHostAddress())
+        if (allocationPools.stream().filter(p -> p.getStart().getHostAddress().equals(pool.getStart().getHostAddress())
                 && p.getEnd().getHostAddress().equals(pool.getEnd().getHostAddress())).count() == 0) {
-            return allocationPool.add(pool);
+            return allocationPools.add(pool);
         } else {
             return false;
         }
     }
 
     public void deleteAllocationPool(InetAddress start, InetAddress end) {
-        allocationPool.removeIf(s -> s.getStart().getHostAddress().equals(start.getHostAddress())
+        allocationPools.removeIf(s -> s.getStart().getHostAddress().equals(start.getHostAddress())
                 && s.getEnd().getHostAddress().equals(end.getHostAddress()));
     }
 
     public List<GeminiSubnetAllocationPool> getAllocationPools() {
-        return allocationPool;
+        return allocationPools;
     }
 
     public void setAllocationPools(List<GeminiSubnetAllocationPool> allocationPool) {
-        this.allocationPool = allocationPool;
+        this.allocationPools = allocationPool;
     }
 
     public String getName() {
