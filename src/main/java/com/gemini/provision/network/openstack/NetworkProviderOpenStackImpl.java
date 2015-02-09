@@ -22,6 +22,7 @@ import java.util.Collections;
 import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.api.OSClient;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.openstack4j.api.Builders;
@@ -30,7 +31,6 @@ import org.openstack4j.model.network.AttachInterfaceType;
 import org.openstack4j.model.network.HostRoute;
 import org.openstack4j.model.network.IPVersionType;
 import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.Subnet;
 import org.pmw.tinylog.Logger;
@@ -65,10 +65,16 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //map the list of network gateways and their subnets to gemini equivalents
         networks.stream().filter(osn -> osn.isRouterExternal()).forEach(osn -> {
-            GeminiNetwork gn = env.getApplications().stream()
-                    .map(GeminiApplication::getNetworks).flatMap(List::stream) //invoke the getNetworks on each application and convert the result into one large stream
-                    .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
-                    .findFirst().get();
+            GeminiNetwork gn = null;
+            try {
+                gn = env.getOrphanNetworks().stream()
+                        .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
+                        .findFirst().get();
+            } catch (NoSuchElementException ex) {
+                //not an error, just log the event. the network object will be created below
+                Logger.debug("Gateway {} not mapped in Gemini models, creating one...", osn.getName());
+            }
+
             if (gn == null) {
                 //the network has not created in gemini data model - create and it's subnets, etc
                 GeminiNetwork newGn = new GeminiNetwork();
@@ -96,6 +102,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                             newGn.addSubnet(gs);
                         });
                 gn = newGn;
+                env.addGateway(newGn);
             }
             //TODO: When gn != null, do we need to check if subnet objects are correctly captured
             //      in the Gemini data model
@@ -122,40 +129,73 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         List<GeminiNetwork> gemNetworks = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
-        networks.stream().filter(osn -> osn != null).forEach(osn -> {
-            GeminiNetwork gn = env.getApplications().stream()
-                    .map(GeminiApplication::getNetworks)
-                    .flatMap(List::stream)
-                    .filter(x -> x.getCloudID().equals(osn.getId()))
-                    .findFirst().get();
+        networks.stream().forEach(osn -> {
+            GeminiNetwork gn = null;
+            try {
+                //first see if this network belongs to an application
+                gn = env.getApplications().stream()
+                        .map(GeminiApplication::getNetworks).flatMap(List::stream) //invoke the getNetworks on each application and convert the result into one large stream
+                        .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
+                        .findFirst().get();
+                gn.setCloudID(osn.getId()); //in the event the ID has not been updated
+            } catch (NoSuchElementException e) {
+                //not part of an application, see if it is in the orphan list
+                try {
+                    gn = env.getOrphanNetworks().stream()
+                            .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
+                            .findFirst().get();
+                } catch (NoSuchElementException ex) {
+                    //not an error, just log the event. the network object will be created below
+                    Logger.debug("Network {} not mapped in Gemini models, creating one...", osn.getName());
+                }
+            }
+
+            GeminiNetwork newGn = null;
             if (gn == null) {
-                GeminiNetwork newGn = new GeminiNetwork();
+                newGn = new GeminiNetwork();
                 newGn.setName(osn.getName());
                 newGn.setCloudID(osn.getId());
                 if (osn.getNetworkType() != null) {
                     newGn.setNetworkType(osn.getNetworkType().name());
                 }
-
-                //add the subnets to the new network. For some reason Network::getNeutronSubnets
-                //always returned null. List all subnets and filter by the parent network id
-                List<? extends Subnet> osSubnets = os.networking().subnet().list();
-                osSubnets.stream().filter(osSubnet -> osSubnet != null)
-                        .filter(osSubnet -> osSubnet.getNetworkId().equals(osn.getId()))
-                        .forEach(osSubnet -> {
-                            GeminiSubnet geminiSubnet = new GeminiSubnet();
-                            geminiSubnet.setCloudID(osSubnet.getId());
-                            geminiSubnet.setParent(newGn);
-                            geminiSubnet.setCidr(osSubnet.getCidr());
-                            osSubnet.getAllocationPools().stream().forEach(ap -> {
-                                GeminiSubnetAllocationPool geminiAp = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()),
-                                        InetAddresses.forString(ap.getEnd()));
-                                geminiAp.setParent(geminiSubnet);
-                                geminiSubnet.addAllocationPool(geminiAp);
-                            });
-                            geminiSubnet.setParent(newGn);
-                            newGn.addSubnet(geminiSubnet);
-                        });
+                //we don't which application this network belongs to... so add it to orphan networks list
+                env.addOrphanNetwork(newGn);
                 gn = newGn;
+            }
+
+            //add the subnets to the new network. For some reason Network::getNeutronSubnets
+            //always returned null. List all subnets and filter by the parent network id
+            List<? extends Subnet> osSubnets = os.networking().subnet().list();
+            if (osSubnets != null && !osSubnets.isEmpty() && osSubnets.stream().anyMatch(osSubnet -> osSubnet.getNetworkId().equals(osn.getId()))) {
+                GeminiNetwork tmpParent = newGn == null ? gn : newGn;
+                osSubnets.stream().filter(osSubnet -> osSubnet.getNetworkId().equals(osn.getId()))
+                        .forEach(osSubnet -> {
+                            if (tmpParent.getSubnets().stream().noneMatch(s -> s.getName().equals(osSubnet.getName()))) {
+                                //this subnet is not mapped on the Gemini side
+                                GeminiSubnet geminiSubnet = new GeminiSubnet();
+                                geminiSubnet.setCloudID(osSubnet.getId());
+                                geminiSubnet.setParent(tmpParent);
+                                geminiSubnet.setCidr(osSubnet.getCidr());
+                                geminiSubnet.setName(osSubnet.getName());
+                                geminiSubnet.setEnableDHCP(osSubnet.isDHCPEnabled());
+                                geminiSubnet.setParent(tmpParent);
+                                geminiSubnet.setNetworkType(osSubnet.getIpVersion() == IPVersionType.V4 ? IPAddressType.IPv4 : IPAddressType.IPv6);
+//                                try {
+//                                    geminiSubnet.setGateway(env.getGateways().stream().filter(g -> g.getName().equals(osSubnet.getGateway())).findAny().get());
+//                                } catch (NoSuchElementException | NullPointerException ex) {
+//                                    Logger.error("Subnet {} has a gateway that isn't mappeed to a an object in Gemini. Gateway {}",
+//                                            geminiSubnet.getName(), osSubnet.getGateway());
+//                                    geminiSubnet.setGateway(null);
+//                                }
+                                osSubnet.getAllocationPools().stream().forEach(ap -> {
+                                    GeminiSubnetAllocationPool geminiAp = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()),
+                                            InetAddresses.forString(ap.getEnd()));
+                                    geminiAp.setParent(geminiSubnet);
+                                    geminiSubnet.addAllocationPool(geminiAp);
+                                });
+                                tmpParent.addSubnet(geminiSubnet);
+                            }
+                        });
             }
             gemNetworks.add(gn);
         });
@@ -164,7 +204,6 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
     @Override
     public ProvisioningProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork newNetwork) {
-        //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
@@ -179,7 +218,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //check to see if this network exists
         List<? extends Network> networks = os.networking().network().list();
-        if (networks.stream().filter(n -> n.getName().equals(newNetwork.getName())).count() != 0) {
+        if (networks.stream().anyMatch(n -> n.getName().equals(newNetwork.getName()))) {
             Logger.error("Failed to create network - already exists. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(newNetwork, ToStringStyle.MULTI_LINE_STYLE));
@@ -217,13 +256,14 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             try {
                 subnet = os.networking().subnet().create(Builders.subnet()
                         .tenantId(tenant.getTenantID())
-                        .gateway(gs.getGateway().getCloudID())
+                        .gateway(InetAddresses.toAddrString(gs.getGateway()))
                         .enableDHCP(gs.isEnableDHCP())
                         .ipVersion(gs.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
                         .name(gs.getName())
                         .networkId(gs.getCloudID())
                         .cidr(gs.getCidr())
                         .build());
+                gs.setGateway(InetAddresses.forString(subnet.getGateway()));
             } catch (ClientResponseException ex) {
                 Logger.error("Cloud exception, failed to create subnet. status code {} tenant: {} env: {} network: {} subnet: {}",
                         ex.getStatusCode(), tenant.getName(), env.getName(), newNetwork.getName(), gs.getName());
@@ -308,7 +348,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         try {
             network = os.networking().network().get(n.getCloudID());
         } catch (NullPointerException ex) {
-            Logger.error("Failed to delete network - does not exist. Tenant: {} Environment: {} Network: {}",
+            Logger.error("Failed to update network - does not exist. Tenant: {} Environment: {} Network: {}",
                     tenant.getName(), env.getName(), n.getName());
             return ProvisioningProviderResponseType.OBJECT_NOT_FOUND;
         }
@@ -359,17 +399,43 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //get all the subnets
         List<? extends Subnet> subnets = os.networking().subnet().list();
+        if (subnets.isEmpty()) {
+            return null;
+        }
         List<GeminiSubnet> gemSubnets = new ArrayList();
 
         //map the list of network gateways and their subnets to gemini equivalents
-        subnets.stream().filter(s -> s != null).forEach(s -> {
+        subnets.stream().forEach(s -> {
             GeminiSubnet gn = new GeminiSubnet();
             //the basic elements
             gn.setName(s.getName());
             gn.setCloudID(s.getId());
             gn.setCidr(s.getCidr());
-            gn.setGateway(env.getApplications().stream().map(GeminiApplication::getNetworks).flatMap(List::stream).filter(g -> g.getName().equals(s.getGateway())).findAny().get());
-            gn.setParent(env.getApplications().stream().map(GeminiApplication::getNetworks).flatMap(List::stream).filter(g -> g.getCloudID().equals(s.getNetworkId())).findAny().get());
+//            try {
+//                gn.setGateway(env.getGateways().stream().filter(g -> g.getName().equals(s.getGateway())).findAny().get());
+//            } catch (NoSuchElementException ex) {
+//                Logger.error("Subnet {} has a gateway that isn't mappeed to a an object in Gemini. Gateway {}",
+//                        gn.getName(), s.getGateway());
+//            }
+            try {
+                //match the parent network to one in the application
+                gn.setParent(env.getApplications().stream()
+                        .map(GeminiApplication::getNetworks)
+                        .flatMap(List::stream)
+                        .filter(g -> g.getCloudID().equals(s.getNetworkId()))
+                        .findAny().get());
+            } catch (NoSuchElementException ex) {
+                try {
+                    //could not find a parent network in the applications, now look in the orphaned networks
+                    gn.setParent(env.getOrphanNetworks().stream()
+                            .filter(g -> g.getCloudID().equals(s.getNetworkId()))
+                            .findAny().get());
+                } catch (NoSuchElementException e) {
+                    gn.setParent(null); //VERY BAD SITUATION - GEMINI MODEL IS COMPLETELY OUT OF SYNC
+                    Logger.error("Subnet {} has a network that isn't in Applications or orphaned networks. subnet {} parent network {}",
+                            gn.getName(), s.getNetworkId());
+                }
+            }
             gn.setEnableDHCP(s.isDHCPEnabled());
             gn.setNetworkType(s.getIpVersion() == IPVersionType.V4 ? IPAddressType.IPv4 : IPAddressType.IPv6);
             //s.getHostRoutes();
@@ -409,7 +475,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         //get all the subnets
         List<? extends Subnet> subnets = os.networking().subnet().list();
-        if (subnets == null) {
+        if (subnets == null || subnets.isEmpty()) {
             Logger.info("No subnets for tenant: {} env: {} network {}", tenant.getName(), env.getName(), parent.getName());
             return null;
         }
@@ -421,7 +487,12 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             gn.setName(s.getName());
             gn.setCloudID(s.getId());
             gn.setCidr(s.getCidr());
-            gn.setGateway(env.getApplications().stream().map(GeminiApplication::getNetworks).flatMap(List::stream).filter(g -> g.getName().equals(s.getGateway())).findAny().get());
+//            try {
+//                gn.setGateway(env.getGateways().stream().filter(g -> g.getName().equals(s.getGateway())).findAny().get());
+//            } catch (NoSuchElementException ex) {
+//                Logger.error("Subnet {} has a gateway that isn't mappeed to a an object in Gemini. Gateway {}",
+//                        gn.getName(), s.getGateway());
+//            }
             gn.setParent(parent);
             gn.setEnableDHCP(s.isDHCPEnabled());
             gn.setNetworkType(s.getIpVersion() == IPVersionType.V4 ? IPAddressType.IPv4 : IPAddressType.IPv6);
@@ -439,19 +510,29 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public ProvisioningProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet newSubnet) {
         //authenticate the session with the OpenStack installation
-        OSClient os = OSFactory.builderV3()
+        OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
-                .domainName(tenant.getDomainName())
+                .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
-            Logger.error("Failed to authenticate Tenant: {}",
-                    ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
+        }
+
+        //check to see if the parenet network exists
+        Network osParent;
+        try {
+            osParent = os.networking().network().list().stream().filter(osn -> osn.getName().equals(parent.getName())).findFirst().get();
+            parent.setCloudID(osParent.getId()); //just in case...
+        } catch (NoSuchElementException ex) {
+            Logger.error("Failed to create subnet - parent network does not exist. Tenant: {} Environment: {} network: {} subnet: {}",
+                    tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
+            return ProvisioningProviderResponseType.CLOUD_NO_PARENT;
         }
 
         //check to see if this subnet exists
-        if (os.networking().subnet().list().stream().filter(n -> n.getName().equals(newSubnet.getName())).count() != 0) {
+        if (os.networking().subnet().list().stream().anyMatch(n -> n.getName().equals(newSubnet.getName()))) {
             Logger.error("Failed to create subnet - already exists. Tenant: {} Environment: {} network: {} subnet: {}",
                     tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
             return ProvisioningProviderResponseType.OBJECT_EXISTS;
@@ -462,13 +543,14 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         try {
             subnet = os.networking().subnet().create(Builders.subnet()
                     .tenantId(tenant.getTenantID())
-                    .gateway(newSubnet.getGateway().getCloudID())
+                    .gateway(InetAddresses.toAddrString(newSubnet.getGateway()))
                     .enableDHCP(newSubnet.isEnableDHCP())
                     .ipVersion(newSubnet.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
                     .name(newSubnet.getName())
                     .networkId(parent.getCloudID())
                     .cidr(newSubnet.getCidr())
                     .build());
+            newSubnet.setGateway(InetAddresses.forString(subnet.getGateway()));
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: failed to create subnet. status code {} tenant: {} env: {} parent network: {} subnet {} ",
                     ex.getStatusCode(), tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
@@ -516,9 +598,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
-            Logger.error("Failed to authenticate Tenant: {}",
-                    ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
         }
 
         // Get a subnet by ID
@@ -535,13 +616,15 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
 
         try {
             updatedSubnet = os.networking().subnet().update(s.toBuilder()
+                    .tenantId(tenant.getTenantID())
                     .cidr(subnet.getCidr())
                     .name(subnet.getName())
-                    .gateway(subnet.getGateway().getCloudID())
+                    .gateway(InetAddresses.toAddrString(subnet.getGateway()))
                     .networkId(subnet.getParent().getCloudID())
                     .enableDHCP(subnet.isEnableDHCP())
                     .ipVersion(subnet.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
                     .build());
+            subnet.setGateway(InetAddresses.forString(updatedSubnet.getGateway()));
         } catch (ClientResponseException ex) {
             Logger.error("Cloud exception: status code {}", ex.getStatusCode());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
@@ -581,9 +664,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
-            Logger.error("Failed to authenticate Tenant: {}",
-                    ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
-            return ProvisioningProviderResponseType.CLOUD_AUTH_FAILURE;
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            return null;
         }
 
         // Get a subnet by ID
@@ -621,15 +703,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     @Override
     public List<GeminiNetworkRouter> getAllRouters(GeminiTenant tenant) {
         //authenticate the session with the OpenStack installation
-        //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
                 .endpoint(tenant.getEndPoint())
                 .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
-            Logger.error("Failed to authenticate Tenant: {}",
-                    ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
+            Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
             return null;
         }
 

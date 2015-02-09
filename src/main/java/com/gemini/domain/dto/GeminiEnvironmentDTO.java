@@ -5,7 +5,6 @@
  */
 package com.gemini.domain.dto;
 
-import com.gemini.domain.model.GeminiSecurityGroup;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +17,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 
     private String name;
     private String type;
-    private GeminiNetworkDTO gateway;
+    private List<GeminiNetworkDTO> gateways = Collections.synchronizedList(new ArrayList());
 
     private List<GeminiApplicationDTO> applications = Collections.synchronizedList(new ArrayList());
 //    private List<GeminiNetworkDTO> networks = Collections.synchronizedList(new ArrayList());
@@ -62,21 +61,26 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
         return applications.removeIf(a -> a.getName().equals(app.getName()));
     }
 
-//    public List<GeminiNetworkDTO> getNetworks() {
-//        return networks;
-//    }
-//
-//    public void setNetworks(List<GeminiNetworkDTO> networks) {
-//        this.networks = networks;
-//    }
-//
-//    public boolean addNetwork(GeminiNetworkDTO net) {
-//        if (networks.stream().filter(n -> n.getName().equals(net)).count() == 0) {
-//            return networks.add(net);
-//        } else {
-//            return false;
-//        }
-//    }
+    public List<GeminiNetworkDTO> getGateways() {
+        return gateways;
+    }
+
+    public void setGateways(List<GeminiNetworkDTO> gateways) {
+        this.gateways = gateways;
+    }
+
+    public boolean addGateway(GeminiNetworkDTO gateway) {
+        if (gateways.stream().noneMatch(g -> g.getName().equals(gateway.getName()))) {
+            return gateways.add(gateway);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteGateway(GeminiNetworkDTO gateway) {
+        return gateways.removeIf(g -> g.getName().equals(gateway.getName()));
+    }
+
 //
 //    public boolean deleteNetwork(GeminiNetworkDTO net) {
 //        return networks.removeIf(n -> n.getName().equals(net.getName()));
@@ -101,14 +105,6 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 //    public boolean deleteServer(GeminiServerDTO srv) {
 //        return servers.removeIf(s -> s.getName().equals(srv.getName()));
 //    }
-    public GeminiNetworkDTO getGateway() {
-        return gateway;
-    }
-
-    public void setGateway(GeminiNetworkDTO gateway) {
-        this.gateway = gateway;
-    }
-
     public List<GeminiNetworkRouterDTO> getRoutes() {
         return routers;
     }
@@ -147,7 +143,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
         }
     }
 
-    public boolean deleteSecurityGroup(GeminiSecurityGroup secGroup) {
+    public boolean deleteSecurityGroup(GeminiSecurityGroupDTO secGroup) {
         return securityGroups.removeIf(r -> r.getName().equals(secGroup.getName()));
     }
 }

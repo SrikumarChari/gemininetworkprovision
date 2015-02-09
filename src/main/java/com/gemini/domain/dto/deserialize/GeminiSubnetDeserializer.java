@@ -48,7 +48,7 @@ public class GeminiSubnetDeserializer implements JsonDeserializer<GeminiSubnetDT
         }
 
         try {
-            newSubnet.setGateway(gson.fromJson(json.getAsJsonObject().get("gateway"), GeminiNetworkDTO.class));
+            newSubnet.setGateway(json.getAsJsonObject().get("gateway").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             //not an error, it could be that there is no gateway required for this subnet
             Logger.debug("Malformed JSON - no gateway for subnet {}", newSubnet.getName());

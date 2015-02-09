@@ -24,13 +24,14 @@ public class GeminiEnvironment extends EntityMongoDB {
     //rackspace, openstack, etc.
     private String name;
     private GeminiEnvironmentType type;
-    private GeminiNetwork gateway;
+    private List<GeminiNetwork> gateways;
 
     @Embedded
     private List<GeminiApplication> applications = Collections.synchronizedList(new ArrayList());
 
-//    @Reference
-//    private List<GeminiNetwork> networks = new ArrayList();
+    @Reference
+    private List<GeminiNetwork> orphanNetworks = new ArrayList();
+
 //
 //    @Reference
 //    private List<GeminiServer> servers = new ArrayList();
@@ -63,12 +64,24 @@ public class GeminiEnvironment extends EntityMongoDB {
         this.name = name;
     }
 
-    public GeminiNetwork getGateway() {
-        return gateway;
+    public List<GeminiNetwork> getGateways() {
+        return gateways;
     }
 
-    public void setGateway(GeminiNetwork gateway) {
-        this.gateway = gateway;
+    public void setGateways(List<GeminiNetwork> gateways) {
+        this.gateways = gateways;
+    }
+
+    public boolean addGateway(GeminiNetwork gateway) {
+        if (gateways.stream().noneMatch(g -> g.getName().equals(gateway.getName()))) {
+            return gateways.add(gateway);
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean deleteGateway(GeminiNetwork gateway) {
+        return gateways.removeIf(g -> g.getName().equals(gateway.getName()));
     }
 
     public List<GeminiApplication> getApplications() {
@@ -80,7 +93,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     }
 
     public boolean addApplication(GeminiApplication app) {
-        if (applications.stream().filter(a -> a.getName().equals(app.getName())).count() == 0) {
+        if (applications.stream().noneMatch(a -> a.getName().equals(app.getName()))) {
             return applications.add(app);
         } else {
             return false;
@@ -91,25 +104,25 @@ public class GeminiEnvironment extends EntityMongoDB {
         return applications.removeIf(a -> a.getName().equals(app.getName()));
     }
 
-//    public List<GeminiNetwork> getNetworks() {
-//        return networks;
-//    }
-//
-//    public void setNetworks(List<GeminiNetwork> networks) {
-//        this.networks = networks;
-//    }
-//
-//    public boolean addNetwork(GeminiNetwork net) {
-//        if (networks.stream().filter(n -> n.getName().equals(net.getName())).count() == 0) {
-//            return networks.add(net);
-//        } else {
-//            return false;
-//        }
-//    }
-//
-//    public boolean deleteNetwork(GeminiNetwork net) {
-//        return networks.removeIf(n -> n.getName().equals(net.getName()));
-//    }
+    public List<GeminiNetwork> getOrphanNetworks() {
+        return orphanNetworks;
+    }
+
+    public void setOrphanNetworks(List<GeminiNetwork> orphanNetworks) {
+        this.orphanNetworks = orphanNetworks;
+    }
+
+    public boolean addOrphanNetwork(GeminiNetwork net) {
+        if (orphanNetworks.stream().noneMatch(n -> n.getName().equals(net.getName()))) {
+            return orphanNetworks.add(net);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteOrphanNetwork(GeminiNetwork net) {
+        return orphanNetworks.removeIf(n -> n.getName().equals(net.getName()));
+    }
 //
 //    public List<GeminiServer> getServers() {
 //        return servers;

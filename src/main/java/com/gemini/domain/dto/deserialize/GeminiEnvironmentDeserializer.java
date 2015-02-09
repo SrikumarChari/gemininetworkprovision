@@ -68,11 +68,15 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
             Logger.debug("No security groups for environment {}", newEnv.getName());
         }
 
-        //now the gatweay
+        //now the gatweays
         try {
-            newEnv.setGateway(gson.fromJson(json.getAsJsonObject().get("gateway"), GeminiNetworkDTO.class));
+            JsonArray appArray = json.getAsJsonObject().get("gateways").getAsJsonArray();
+            for (JsonElement e : appArray) {
+                GeminiNetworkDTO newGateway = gson.fromJson(e, GeminiNetworkDTO.class);
+                newEnv.addGateway(newGateway);
+            }
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
-            Logger.debug("No gateway set for environment: {}", newEnv.getName());
+            Logger.debug("No gateways set for environment: {}", newEnv.getName());
         }
 
         //now the applications

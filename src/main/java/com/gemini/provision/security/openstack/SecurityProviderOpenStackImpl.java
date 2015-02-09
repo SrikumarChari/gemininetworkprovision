@@ -19,6 +19,7 @@ import com.gemini.domain.model.GeminiSubnetAllocationPool;
 import com.gemini.domain.tenant.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.security.base.SecurityProvider;
+import com.google.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.pmw.tinylog.Logger;
  *
  * @author schari
  */
+@Singleton
 public class SecurityProviderOpenStackImpl implements SecurityProvider {
 
     /**

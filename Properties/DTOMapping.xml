@@ -41,6 +41,14 @@
             <a>address</a>
             <b>address</b>
         </field>
+    </mapping>
+    <mapping>
+        <class-a>com.gemini.domain.model.GeminiSubnet</class-a>
+        <class-b>com.gemini.domain.dto.GeminiSubnetDTO</class-b>
+        <field>
+            <a>gateway</a>
+            <b>gateway</b>
+        </field>
     </mapping>                    
     <mapping>
         <class-a>com.gemini.domain.model.GeminiSubnetAllocationPool</class-a>

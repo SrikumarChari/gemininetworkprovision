@@ -19,9 +19,9 @@ import org.mongodb.morphia.annotations.Reference;
 @Entity
 public class GeminiNetwork extends EntityMongoDB {
     //general 
-    private String name;
-    private String description;
-    private String networkType;
+    private String name = "";
+    private String description = "";
+    private String networkType = "";
 
     //is the provisioning complete
     private boolean provisioned = false;
@@ -30,7 +30,7 @@ public class GeminiNetwork extends EntityMongoDB {
     List<GeminiSubnet> subnets = Collections.synchronizedList(new ArrayList());
 
     //will be used to set the ID returned for this network from the cloud provider
-    private String cloudID;
+    private String cloudID = "";
 
     public String getName() {
         return name;

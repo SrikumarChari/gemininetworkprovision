@@ -44,5 +44,10 @@ public enum ProvisioningProviderResponseType {
     /**
      * Most likely the Cloud object represented by the Gemini object are mismatched
      */
-    CLOUD_MISMATCH
+    CLOUD_MISMATCH,
+    
+    /**
+     * Trying to create a child object when the parent has not yet been created
+     */
+    CLOUD_NO_PARENT
 }

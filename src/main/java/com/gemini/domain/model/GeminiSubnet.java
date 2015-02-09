@@ -22,11 +22,11 @@ import org.mongodb.morphia.annotations.Reference;
 @Entity
 public class GeminiSubnet extends EntityMongoDB {
 
-    private String name;
+    private String name = "";
     //network string with mask
-    private String cidr;
+    private String cidr = "";
     //network gateway
-    private GeminiNetwork gateway;
+    private InetAddress gateway;
 
     private IPAddressType networkType;
     private boolean enableDHCP;
@@ -39,7 +39,7 @@ public class GeminiSubnet extends EntityMongoDB {
     @Embedded
     private List<GeminiSubnetAllocationPool> allocationPools = Collections.synchronizedList(new ArrayList());
 
-    private String cloudID;
+    private String cloudID = "";
     boolean provisioned = false;
 
     public GeminiNetwork getParent() {
@@ -58,11 +58,11 @@ public class GeminiSubnet extends EntityMongoDB {
         this.cidr = cidr;
     }
 
-    public void setGateway(GeminiNetwork gateway) {
+    public void setGateway(InetAddress gateway) {
         this.gateway = gateway;
     }
 
-    public GeminiNetwork getGateway() {
+    public InetAddress getGateway() {
         return gateway;
     }
 

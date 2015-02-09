@@ -20,7 +20,7 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
     //network string with mask
     private String cidr;
     //network gateway
-    private GeminiNetworkDTO gateway;
+    private String gateway;
     
     private boolean enableDHCP;
     private String networkType;
@@ -85,11 +85,11 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
         this.cidr = cidr;
     }
 
-    public GeminiNetworkDTO getGateway() {
+    public String getGateway() {
         return gateway;
     }
 
-    public void setGateway(GeminiNetworkDTO gateway) {
+    public void setGateway(String gateway) {
         this.gateway = gateway;
     }
 
