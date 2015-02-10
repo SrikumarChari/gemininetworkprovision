@@ -24,7 +24,9 @@ public class GeminiEnvironment extends EntityMongoDB {
     //rackspace, openstack, etc.
     private String name;
     private GeminiEnvironmentType type;
-    private List<GeminiNetwork> gateways;
+    
+    @Reference
+    private List<GeminiNetwork> gateways = Collections.synchronizedList(new ArrayList());;
 
     @Embedded
     private List<GeminiApplication> applications = Collections.synchronizedList(new ArrayList());
@@ -173,7 +175,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     }
     
     public boolean addSecurityGroup (GeminiSecurityGroup secGroup) {
-        if (securityGroups.stream().filter(r -> r.getName().equals(secGroup.getName())).count() == 0) {
+        if (securityGroups.stream().noneMatch(r -> r.getName().equals(secGroup.getName()))) {
             return securityGroups.add(secGroup);
         } else {
             return false;
@@ -193,7 +195,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     }
     
     public boolean addServerImage(GeminiServerImage serverImage) {
-        if (serverImages.stream().filter(s -> s.getName().equals(serverImage.getName())).count() == 0) {
+        if (serverImages.stream().noneMatch(s -> s.getName().equals(serverImage.getName()))) {
             return serverImages.add(serverImage);
         } else {
             return false;
@@ -213,7 +215,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     }
 
     public boolean addServerType(GeminiServerType serverType) {
-        if (serverTypes.stream().filter(s -> s.getName().equals(serverType.getName())).count() == 0) {
+        if (serverTypes.stream().noneMatch(s -> s.getName().equals(serverType.getName()))) {
             return serverTypes.add(serverType);
         } else {
             return false;

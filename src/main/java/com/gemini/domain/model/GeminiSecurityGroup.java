@@ -9,16 +9,21 @@ import com.gemini.common.repository.EntityMongoDB;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 
 /**
  *
  * @author schari
  */
+@Entity
 public class GeminiSecurityGroup extends EntityMongoDB {
-    private String name;
-    private String description;
-    private String cloudID;
+    private String name = "";
+    private String description = "";
+    private String cloudID = "";
+    @Embedded
     private List<GeminiSecurityGroupRule> securityRules = Collections.synchronizedList(new ArrayList());
+    private boolean provisioned = false;
 
     public String getName() {
         return name;
@@ -44,6 +49,14 @@ public class GeminiSecurityGroup extends EntityMongoDB {
         this.cloudID = cloudID;
     }
 
+    public boolean isProvisioned() {
+        return provisioned;
+    }
+
+    public void setProvisioned(boolean provisioned) {
+        this.provisioned = provisioned;
+    }
+
     public List<GeminiSecurityGroupRule> getSecurityRules() {
         return securityRules;
     }
@@ -63,5 +76,10 @@ public class GeminiSecurityGroup extends EntityMongoDB {
     
     public boolean deleteSecurityRule(GeminiSecurityGroupRule rule) {
         return securityRules.removeIf(r -> r.equals(rule));
+    }
+
+    @Override
+    public String toString() {
+        return "GeminiSecurityGroup{" + "name=" + name + ", description=" + description + ", cloudID=" + cloudID + ", securityRules=" + securityRules + '}';
     }
 }

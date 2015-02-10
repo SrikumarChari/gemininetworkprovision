@@ -138,13 +138,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                         .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
                         .findFirst().get();
                 gn.setCloudID(osn.getId()); //in the event the ID has not been updated
-            } catch (NoSuchElementException e) {
+            } catch (NoSuchElementException | NullPointerException e) {
                 //not part of an application, see if it is in the orphan list
                 try {
                     gn = env.getOrphanNetworks().stream()
                             .filter(n -> n.getCloudID().equals(osn.getId())) //filter on the OpenStack network object cloud id
                             .findFirst().get();
-                } catch (NoSuchElementException ex) {
+                } catch (NoSuchElementException | NullPointerException ex) {
                     //not an error, just log the event. the network object will be created below
                     Logger.debug("Network {} not mapped in Gemini models, creating one...", osn.getName());
                 }
@@ -424,13 +424,13 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                         .flatMap(List::stream)
                         .filter(g -> g.getCloudID().equals(s.getNetworkId()))
                         .findAny().get());
-            } catch (NoSuchElementException ex) {
+            } catch (NoSuchElementException | NullPointerException  ex) {
                 try {
                     //could not find a parent network in the applications, now look in the orphaned networks
                     gn.setParent(env.getOrphanNetworks().stream()
                             .filter(g -> g.getCloudID().equals(s.getNetworkId()))
                             .findAny().get());
-                } catch (NoSuchElementException e) {
+                } catch (NoSuchElementException | NullPointerException  e) {
                     gn.setParent(null); //VERY BAD SITUATION - GEMINI MODEL IS COMPLETELY OUT OF SYNC
                     Logger.error("Subnet {} has a network that isn't in Applications or orphaned networks. subnet {} parent network {}",
                             gn.getName(), s.getNetworkId());

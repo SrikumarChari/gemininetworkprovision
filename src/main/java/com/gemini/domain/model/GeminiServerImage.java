@@ -12,14 +12,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 
 /**
  *
  * @author Srikumar
  */
+@Entity
 public class GeminiServerImage extends EntityMongoDB {
     private String name;
     private String cloudID;
+    @Embedded
     private List<GeminiLink> links = Collections.synchronizedList(new ArrayList());
     private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
     private Integer minDisk;

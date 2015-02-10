@@ -7,11 +7,13 @@ package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
 import java.net.URL;
+import org.mongodb.morphia.annotations.Embedded;
 
 /**
  *
  * @author Srikumar
  */
+@Embedded
 public class GeminiLink extends EntityMongoDB {
     private URL link;
     private String rel;

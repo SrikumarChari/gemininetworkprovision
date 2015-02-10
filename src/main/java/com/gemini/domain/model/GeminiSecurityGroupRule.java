@@ -9,23 +9,28 @@ import com.gemini.common.repository.EntityMongoDB;
 import com.gemini.domain.common.GeminiSecurityGroupRuleDirection;
 import com.gemini.domain.common.IPAddressType;
 import com.gemini.domain.common.Protocol;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Reference;
 
 /**
  *
  * @author schari
  */
+@Embedded
 public class GeminiSecurityGroupRule extends EntityMongoDB {
-    private String name;
+    private String name = "";
+    @Reference
     private GeminiSecurityGroup parent;
     private GeminiSecurityGroupRuleDirection direction;
-    private String cloudID;
-    private String cidr;
+    private String cloudID = "";
+    private String cidr = "";
     private IPAddressType ipAddressType;
     private Protocol protocol;
-    private Integer portRangeMin;
-    private Integer portRangeMax;
-    private String remoteGroupId;
-    private String remoteIpPrefix;
+    private Integer portRangeMin = 0;
+    private Integer portRangeMax = 0;
+    private String remoteGroupId = "";
+    private String remoteIpPrefix = "";
+    private boolean provisioned = false;
 
     public String getName() {
         return name;
@@ -115,4 +120,17 @@ public class GeminiSecurityGroupRule extends EntityMongoDB {
     public void setRemoteIpPrefix(String remoteIpPrefix) {
         this.remoteIpPrefix = remoteIpPrefix;
     }
+
+    public boolean isProvisioned() {
+        return provisioned;
+    }
+
+    public void setProvisioned(boolean provisioned) {
+        this.provisioned = provisioned;
+    }
+
+    @Override
+    public String toString() {
+        return "GeminiSecurityGroupRule{" + "name=" + name + ", direction=" + direction + ", cloudID=" + cloudID + ", cidr=" + cidr + ", ipAddressType=" + ipAddressType + ", protocol=" + protocol + ", portRangeMin=" + portRangeMin + ", portRangeMax=" + portRangeMax + ", remoteGroupId=" + remoteGroupId + ", remoteIpPrefix=" + remoteIpPrefix + '}';
+    }    
 }

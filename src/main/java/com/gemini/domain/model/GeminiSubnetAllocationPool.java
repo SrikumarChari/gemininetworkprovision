@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 
@@ -17,6 +18,7 @@ import org.mongodb.morphia.annotations.Reference;
  * @author schari
  */
 @Entity
+@Embedded
 public class GeminiSubnetAllocationPool {
 
     private InetAddress start;

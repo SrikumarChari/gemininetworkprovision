@@ -9,6 +9,8 @@ import com.gemini.common.repository.EntityMongoDB;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 
 /**
  *
@@ -17,10 +19,12 @@ import java.util.List;
  * This class encapsulates the type of server flavors (Openstack, rackspace) or
  * instance types (AWS).
  */
+@Entity
 public class GeminiServerType extends EntityMongoDB {
     private String name;
     private String cloudID;
     private Integer disk;
+    @Embedded
     private List<GeminiLink> links = Collections.synchronizedList(new ArrayList());
     private Integer ram;
     private Integer vcpu;

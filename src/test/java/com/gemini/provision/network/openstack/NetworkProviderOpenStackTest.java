@@ -116,140 +116,140 @@ public class NetworkProviderOpenStackTest {
     @After
     public void tearDown() {
     }
-
-    @Test
-    public void listGateways() {
-        System.out.println("List Gateways Test");
-        List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, env);
-        //we should only one have one gateway
-        assert (gateways.size() == 1);
-
-        //keep a record of the first one, required for further tests
-        env.setGateways(gateways);
-
-        System.out.print("Gateways in the cloud: ");
-        env.getGateways().stream().forEach(n -> System.out.print(n.getName() + ", "));
-        System.out.println();
-        System.out.println();
-    }
-
-    @Test
-    public void listNetworks() {
-        System.out.println("List Networks Test");
-        List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
-        assert (networks.size() == 3);
-
-        //add the networks to the application
-        //networks.stream().forEach(n -> newApp.addNetwork(n));
-        System.out.print("Networks in the cloud: ");
-        networks.stream().forEach(n -> System.out.print(n.getName() + ", "));
-        System.out.println();
-        System.out.println();
-    }
-
-    @Test
-    public void createNetwork() {
-        System.out.println("Create Network Test");
-        //first get the number of networks in the cloud
-        int numNets = provisioningService.getProvider().getNetworks(tenant, env).size();
-        System.out.printf("Number of networks: %d\n", numNets);
-
-        //create the network
-        ProvisioningProviderResponseType result = provisioningService.getProvider().createNetwork(tenant, env, postgresNet);
-
-        //check the return value
-        assert (result == ProvisioningProviderResponseType.SUCCESS);
-        if (result == ProvisioningProviderResponseType.SUCCESS) {
-            List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
-            System.out.printf("Successfully created network: %s\n", postgresNet.getName());
-            System.out.printf("Number of networks after creation: %d\n", networks.size());
-
-            //now check to see if the network was actually created
-            assert (numNets == networks.size() - 1);
-
-            //now check to see if the new network was actually created
-            assert (networks.stream().filter(s -> s.getName().equals(postgresNet.getName())).count() == 1);
-            System.out.print("Networks in the cloud: ");
-            networks.stream().forEach(n -> System.out.print(n.getName() + ", "));
-            System.out.println();
-        }
-        System.out.println();
-    }
-
+//
 //    @Test
-//    public void deleteNetwork() {
-//        System.out.println("Delete Network Test");
+//    public void listGateways() {
+//        System.out.println("List Gateways Test");
+//        List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, env);
+//        //we should only one have one gateway
+//        assert (gateways.size() == 1);
+//
+//        //keep a record of the first one, required for further tests
+//        env.setGateways(gateways);
+//
+//        System.out.print("Gateways in the cloud: ");
+//        env.getGateways().stream().forEach(n -> System.out.print(n.getName() + ", "));
+//        System.out.println();
+//        System.out.println();
+//    }
+//
+//    @Test
+//    public void listNetworks() {
+//        System.out.println("List Networks Test");
+//        List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
+//        assert (networks.size() == 3);
+//
+//        //add the networks to the application
+//        //networks.stream().forEach(n -> newApp.addNetwork(n));
+//        System.out.print("Networks in the cloud: ");
+//        networks.stream().forEach(n -> System.out.print(n.getName() + ", "));
+//        System.out.println();
+//        System.out.println();
+//    }
+//
+//    @Test
+//    public void createNetwork() {
+//        System.out.println("Create Network Test");
 //        //first get the number of networks in the cloud
 //        int numNets = provisioningService.getProvider().getNetworks(tenant, env).size();
-//        System.out.printf("Number of networks before delete: %d\n", numNets);
+//        System.out.printf("Number of networks: %d\n", numNets);
 //
-//        //now delete the network
-//        ProvisioningProviderResponseType result = provisioningService.getProvider().deleteNetwork(tenant, env, postgresNet);
+//        //create the network
+//        ProvisioningProviderResponseType result = provisioningService.getProvider().createNetwork(tenant, env, postgresNet);
 //
 //        //check the return value
 //        assert (result == ProvisioningProviderResponseType.SUCCESS);
 //        if (result == ProvisioningProviderResponseType.SUCCESS) {
 //            List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
-//            System.out.printf("Successfully deleted network: %s\n", postgresNet.getName());
-//            System.out.printf("Number of networks after delete: %d\n", networks.size());
+//            System.out.printf("Successfully created network: %s\n", postgresNet.getName());
+//            System.out.printf("Number of networks after creation: %d\n", networks.size());
+//
 //            //now check to see if the network was actually created
-//            assert (numNets == networks.size() + 1);
-//            assert (networks.stream().filter(s -> s.getName().equals(postgresNet.getName())).count() == 0);
+//            assert (numNets == networks.size() - 1);
+//
+//            //now check to see if the new network was actually created
+//            assert (networks.stream().filter(s -> s.getName().equals(postgresNet.getName())).count() == 1);
 //            System.out.print("Networks in the cloud: ");
 //            networks.stream().forEach(n -> System.out.print(n.getName() + ", "));
 //            System.out.println();
 //        }
 //        System.out.println();
 //    }
-
-    @Test
-    public void updateNetwork() {
-        System.out.println("Update Network Test");
-        //change the name of the network
-        String oldName = postgresNet.getName();
-        postgresNet.setName("Temporary Change");
-        ProvisioningProviderResponseType result = provisioningService.getProvider().updateNetwork(tenant, env, postgresNet);
-        //check the return value
-        assert (result == ProvisioningProviderResponseType.SUCCESS);
-        if (result == ProvisioningProviderResponseType.SUCCESS) {
-            //change the name back to the old name
-            postgresNet.setName(oldName);
-            result = provisioningService.getProvider().updateNetwork(tenant, env, postgresNet);
-            //check the return value
-            assert (result == ProvisioningProviderResponseType.SUCCESS);
-        }
-        System.out.println();
-    }
-
-    @Test
-    public void listAllSubnets() {
-        System.out.println("List All Subnets Test");
-        List<GeminiSubnet> networks = provisioningService.getProvider().getAllSubnets(tenant, env);
-
-        System.out.print("Subnets in the cloud: ");
-        networks.stream().forEach(n -> System.out.print(n.getName() + " ,"));
-        System.out.println();
-    }
-
-    @Test
-    public void listNetworkSubnets() {
-        System.out.println("List Subnets for all networks Test");
-        //gets all the networks and lists their subnets
-        List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
-        networks.stream().forEach(n -> {
-            List<GeminiSubnet> subnets = provisioningService.getProvider().getSubnets(tenant, env, n);
-            System.out.printf("Subnets for %s: ", n.getName());
-            subnets.stream().forEach(s -> System.out.print(s.getName() + " ,"));
-            System.out.println();
-        });
-        System.out.println();
-    }
-
-    @Test
-    public void createSubnet() {
-        System.out.println("Create subnet Test");
-        ProvisioningProviderResponseType result = provisioningService.getProvider().createSubnet(tenant, env, postgresNet, subnet1);
-        assert (result == ProvisioningProviderResponseType.SUCCESS);
-
-    }
+//
+////    @Test
+////    public void deleteNetwork() {
+////        System.out.println("Delete Network Test");
+////        //first get the number of networks in the cloud
+////        int numNets = provisioningService.getProvider().getNetworks(tenant, env).size();
+////        System.out.printf("Number of networks before delete: %d\n", numNets);
+////
+////        //now delete the network
+////        ProvisioningProviderResponseType result = provisioningService.getProvider().deleteNetwork(tenant, env, postgresNet);
+////
+////        //check the return value
+////        assert (result == ProvisioningProviderResponseType.SUCCESS);
+////        if (result == ProvisioningProviderResponseType.SUCCESS) {
+////            List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
+////            System.out.printf("Successfully deleted network: %s\n", postgresNet.getName());
+////            System.out.printf("Number of networks after delete: %d\n", networks.size());
+////            //now check to see if the network was actually created
+////            assert (numNets == networks.size() + 1);
+////            assert (networks.stream().filter(s -> s.getName().equals(postgresNet.getName())).count() == 0);
+////            System.out.print("Networks in the cloud: ");
+////            networks.stream().forEach(n -> System.out.print(n.getName() + ", "));
+////            System.out.println();
+////        }
+////        System.out.println();
+////    }
+//
+//    @Test
+//    public void updateNetwork() {
+//        System.out.println("Update Network Test");
+//        //change the name of the network
+//        String oldName = postgresNet.getName();
+//        postgresNet.setName("Temporary Change");
+//        ProvisioningProviderResponseType result = provisioningService.getProvider().updateNetwork(tenant, env, postgresNet);
+//        //check the return value
+//        assert (result == ProvisioningProviderResponseType.SUCCESS);
+//        if (result == ProvisioningProviderResponseType.SUCCESS) {
+//            //change the name back to the old name
+//            postgresNet.setName(oldName);
+//            result = provisioningService.getProvider().updateNetwork(tenant, env, postgresNet);
+//            //check the return value
+//            assert (result == ProvisioningProviderResponseType.SUCCESS);
+//        }
+//        System.out.println();
+//    }
+//
+//    @Test
+//    public void listAllSubnets() {
+//        System.out.println("List All Subnets Test");
+//        List<GeminiSubnet> networks = provisioningService.getProvider().getAllSubnets(tenant, env);
+//
+//        System.out.print("Subnets in the cloud: ");
+//        networks.stream().forEach(n -> System.out.print(n.getName() + " ,"));
+//        System.out.println();
+//    }
+//
+//    @Test
+//    public void listNetworkSubnets() {
+//        System.out.println("List Subnets for all networks Test");
+//        //gets all the networks and lists their subnets
+//        List<GeminiNetwork> networks = provisioningService.getProvider().getNetworks(tenant, env);
+//        networks.stream().forEach(n -> {
+//            List<GeminiSubnet> subnets = provisioningService.getProvider().getSubnets(tenant, env, n);
+//            System.out.printf("Subnets for %s: ", n.getName());
+//            subnets.stream().forEach(s -> System.out.print(s.getName() + " ,"));
+//            System.out.println();
+//        });
+//        System.out.println();
+//    }
+//
+//    @Test
+//    public void createSubnet() {
+//        System.out.println("Create subnet Test");
+//        ProvisioningProviderResponseType result = provisioningService.getProvider().createSubnet(tenant, env, postgresNet, subnet1);
+//        assert (result == ProvisioningProviderResponseType.SUCCESS);
+//
+//    }
 }
