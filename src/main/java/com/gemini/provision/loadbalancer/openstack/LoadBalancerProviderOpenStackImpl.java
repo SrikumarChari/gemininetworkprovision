@@ -121,27 +121,44 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public List<GeminiLoadBalancerHealthMonitor> listAllHealthMonitors(GeminiTenant tenant, GeminiEnvironment env) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<GeminiLoadBalancerHealthMonitor> gHealthMonitors = new ArrayList<>();
+        OSClient os = getOSClient(tenant);
+        List<? extends HealthMonitor> healthMonitors = os.networking().loadbalancers().healthMonitor().list();
+        healthMonitors.stream().filter(healthMonitor -> healthMonitor != null).forEach(
+                healthMonitor -> {
+                    GeminiLoadBalancerHealthMonitor gHealthMonitor = GeminiLBUtils.getAsGeminiHealthMonitor(healthMonitor);
+                    gHealthMonitors.add(gHealthMonitor);
+                }
+        );
+        return gHealthMonitors;
     }
 
     @Override
     public GeminiLoadBalancerHealthMonitor getHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, String lb) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        OSClient os = getOSClient(tenant);
+        HealthMonitor healthMonitor = os.networking().loadbalancers().healthMonitor().get(lb);
+        return GeminiLBUtils.getAsGeminiHealthMonitor(healthMonitor);
     }
 
     @Override
     public ProvisioningProviderResponseType createHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerHealthMonitor hm) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        OSClient os = getOSClient(tenant);
+        HealthMonitor healthMonitor = os.networking().loadbalancers().healthMonitor().create(GeminiLBUtils.createHealthMonitor(hm,tenant));
+        return getResponseType(healthMonitor,tenant,env,"created");
     }
 
     @Override
     public ProvisioningProviderResponseType updateHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerHealthMonitor hm) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        OSClient os = getOSClient(tenant);
+        HealthMonitor healthMonitor = os.networking().loadbalancers().healthMonitor().update(hm.getCloudID(),GeminiLBUtils.healthMonitorUpdate(hm));
+        return getResponseType(healthMonitor,tenant,env,"updated");
     }
 
     @Override
     public ProvisioningProviderResponseType deleteHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerHealthMonitor hm) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        OSClient os = getOSClient(tenant);
+        ActionResponse actionResponse = os.networking().loadbalancers().healthMonitor().delete(hm.getCloudID());
+        return getResponseType(actionResponse,hm,tenant,env,"Deleted");
     }
 
     @Override
