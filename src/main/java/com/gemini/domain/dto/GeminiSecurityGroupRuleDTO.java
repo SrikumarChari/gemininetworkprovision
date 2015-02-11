@@ -15,7 +15,7 @@ public class GeminiSecurityGroupRuleDTO {
     private String direction;
     private String cidr;
     private String ipAddressType;
-    private Integer protocol;
+    private String protocol;
     private Integer portRangeMin;
     private Integer portRangeMax;
     private String remoteGroupId;
@@ -61,11 +61,11 @@ public class GeminiSecurityGroupRuleDTO {
         this.ipAddressType = ipAddressType;
     }
 
-    public Integer getProtocol() {
+    public String getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(Integer protocol) {
+    public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
 

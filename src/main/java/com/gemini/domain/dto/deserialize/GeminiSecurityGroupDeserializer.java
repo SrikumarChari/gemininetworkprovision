@@ -42,7 +42,7 @@ public class GeminiSecurityGroupDeserializer implements JsonDeserializer<GeminiS
                     .registerTypeAdapter(GeminiSecurityGroupRuleDTO.class, new GeminiSecurityGroupRuleDeserializer())
                     .create();
 
-            JsonArray rules = json.getAsJsonObject().get("securityRules").getAsJsonArray();
+            JsonArray rules = json.getAsJsonObject().get("rules").getAsJsonArray();
             //parse all the security group objects
             for (JsonElement e : rules) {
                 GeminiSecurityGroupRuleDTO n = gson.fromJson(e, GeminiSecurityGroupRuleDTO.class);

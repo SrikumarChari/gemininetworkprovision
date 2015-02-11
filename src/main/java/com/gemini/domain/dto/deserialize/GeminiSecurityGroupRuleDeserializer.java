@@ -34,12 +34,11 @@ class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecu
         //ignore the parent object, it will be set when the parent security group is being deserialized
         try {
             newRule.setDirection(json.getAsJsonObject().get("direction").getAsString());
-            newRule.setCidr(json.getAsJsonObject().get("cidr").getAsString());
             newRule.setIpAddressType(json.getAsJsonObject().get("ipAddressType").getAsString());
             newRule.setPortRangeMax(json.getAsJsonObject().get("portRangeMax").getAsInt());
             newRule.setPortRangeMin(json.getAsJsonObject().get("portRangeMin").getAsInt());
-            newRule.setProtocol(json.getAsJsonObject().get("protocol").getAsInt());
-            newRule.setRemoteGroupId(json.getAsJsonObject().get("remoteGroupId").getAsString());
+            newRule.setProtocol(json.getAsJsonObject().get("protocol").getAsString());
+            //newRule.setRemoteGroupId(json.getAsJsonObject().get("remoteGroupId").getAsString());
             newRule.setRemoteIpPrefix(json.getAsJsonObject().get("remoteIpPrefix").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - invalid security group rule object {}", newRule.getName());

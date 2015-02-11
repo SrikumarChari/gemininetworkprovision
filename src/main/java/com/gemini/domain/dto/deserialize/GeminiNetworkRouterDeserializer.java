@@ -38,14 +38,14 @@ public class GeminiNetworkRouterDeserializer implements JsonDeserializer<GeminiN
         try {
             newRouter.setName(json.getAsJsonObject().get("name").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - no name specified");
+            Logger.error("Malformed JSON: no name specified for Network router");
         }
 
         //now the gateway
         try {
             newRouter.setGateway(gson.fromJson(json.getAsJsonObject().get("gateway"), GeminiNetworkDTO.class));
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("No gateway specified for Network Router {}", newRouter.getName());
+            Logger.error("Malformed JSON: No gateway specified for Network Router {}", newRouter.getName());
         }
 
         //now the routes, no straight forward way to convert to the HashMap
@@ -56,7 +56,7 @@ public class GeminiNetworkRouterDeserializer implements JsonDeserializer<GeminiN
                 String strRoute = e.getAsString();
                 List<String> splitRoutes = Splitter.on(',').splitToList(strRoute);
                 if (splitRoutes.size() != 2) {
-                    Logger.error("Invalid route, does not have two map entries");
+                    Logger.error("Malformed JSON: Invalid route, does not have two map entries. Router {}", newRouter.getName());
                 } else {
                     newRouter.addRouter(splitRoutes.get(0), splitRoutes.get(1));
                 }

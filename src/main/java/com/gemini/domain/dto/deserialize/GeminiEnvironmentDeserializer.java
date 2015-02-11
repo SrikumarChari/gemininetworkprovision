@@ -21,6 +21,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.pmw.tinylog.Logger;
 
 /**
@@ -91,6 +92,18 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
             Logger.debug("No applications for environment: {}", newEnv.getName());
         }
 
+        //now the orphaned networks
+        try {
+            JsonArray oNets = json.getAsJsonObject().get("orphanNetworks").getAsJsonArray();
+            for (JsonElement e : oNets) {
+                GeminiNetworkDTO newOrphanNetwork = gson.fromJson(e, GeminiNetworkDTO.class);
+                newEnv.addOrphanNetwork(newOrphanNetwork);
+            }
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
+            //no applications, strange!!
+            Logger.debug("No applications for environment: {}", newEnv.getName());
+        }
+
         //now the routers
         try {
             JsonArray routerArray = json.getAsJsonObject().get("routers").getAsJsonArray();
@@ -106,15 +119,32 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
                 for (JsonElement s : subnetArray) {
                     //get the name of the subnet and find it in the Gemini data model
                     String subnetName = json.getAsJsonObject().get("name").getAsString();
-                    GeminiSubnetDTO foundSubnet = newEnv.getApplications()
-                            .stream()
-                            .map(GeminiApplicationDTO::getNetworks)
-                            .flatMap(List::stream)
-                            .map(GeminiNetworkDTO::getSubnets)
-                            .flatMap(List::stream)
-                            .filter(su -> su.getName().equals(subnetName))
-                            .findAny()
-                            .get();
+                    GeminiSubnetDTO foundSubnet = null;
+                    try {
+                        foundSubnet = newEnv.getApplications()
+                                .stream()
+                                .map(GeminiApplicationDTO::getNetworks)
+                                .flatMap(List::stream)
+                                .map(GeminiNetworkDTO::getSubnets)
+                                .flatMap(List::stream)
+                                .filter(su -> su.getName().equals(subnetName))
+                                .findAny()
+                                .get();
+                    } catch (NoSuchElementException ex) {
+                        try {
+                            foundSubnet = newEnv.getOrphanNetworks()
+                                    .stream()
+                                    .map(GeminiNetworkDTO::getSubnets)
+                                    .flatMap(List::stream)
+                                    .filter(su -> su.getName().equals(subnetName))
+                                    .findAny()
+                                    .get();
+                        } catch (NoSuchElementException exx) {
+                            //can't do much ... just log and move on.
+                            Logger.debug("Malformed JSON - router {} refers to subnet not defined for environment {}", 
+                                    newRouter.getName(), newEnv.getName());
+                        }
+                    }
                     if (foundSubnet != null) {
                         newRouter.addInterface(foundSubnet);
                     }
@@ -124,7 +154,7 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
             //no routers, ignore error and move on
             Logger.debug("No routers for environment {}", newEnv.getName());
         }
-        
+
         return newEnv;
     }
 }

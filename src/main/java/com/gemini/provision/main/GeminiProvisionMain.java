@@ -59,12 +59,15 @@ public class GeminiProvisionMain {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.exchangeDeclare(QUEUE_NAME, NETWORK_TOPIC);
+        channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+        String queueName = channel.queueDeclare().getQueue();
+        channel.queueBind(queueName, EXCHANGE_NAME, "");
+
         channel.basicQos(PREFETCH_COUNT);
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
         QueueingConsumer consumer = new QueueingConsumer(channel);
-        channel.basicConsume(QUEUE_NAME, true, consumer);
+        channel.basicConsume(queueName, true, consumer);
 
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
@@ -89,8 +92,9 @@ public class GeminiProvisionMain {
                     new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
             provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
-            List<GeminiNetwork> gateways = provisioningService.getProvider().getExternalGateways(tenant, tenant.getEnvironments().get(0));
-            //we should only one have one gateway
+            List<GeminiNetwork> gateways = provisioningService
+                    .getProvider()
+                    .getExternalGateways(tenant, tenant.getEnvironments().get(0));
             gateways.stream().forEach(System.out::println);
 
             try {
@@ -107,7 +111,7 @@ public class GeminiProvisionMain {
         lbThread.start();
 
         //the security thread
-        Thread securityThread = new Thread (() -> {
+        Thread securityThread = new Thread(() -> {
         });
         securityThread.start();
     }

@@ -24,6 +24,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 //    private List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());
     private List<GeminiNetworkRouterDTO> routers = Collections.synchronizedList(new ArrayList());
     private List<GeminiSecurityGroupDTO> securityGroups = Collections.synchronizedList(new ArrayList());
+    private List<GeminiNetworkDTO> orphanNetworks = Collections.synchronizedList(new ArrayList());
 
     public String getType() {
         return type;
@@ -50,7 +51,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
     }
 
     public boolean addApplication(GeminiApplicationDTO app) {
-        if (applications.stream().filter(a -> a.getName().equals(app.getName())).count() == 0) {
+        if (applications.stream().noneMatch(a -> a.getName().equals(app.getName()))) {
             return applications.add(app);
         } else {
             return false;
@@ -105,17 +106,17 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 //    public boolean deleteServer(GeminiServerDTO srv) {
 //        return servers.removeIf(s -> s.getName().equals(srv.getName()));
 //    }
-    public List<GeminiNetworkRouterDTO> getRoutes() {
+    public List<GeminiNetworkRouterDTO> getRouters() {
         return routers;
     }
 
-    public void setRoutes(List<GeminiNetworkRouterDTO> routes) {
-        this.routers = routes;
+    public void setRouters(List<GeminiNetworkRouterDTO> routers) {
+        this.routers = routers;
     }
 
     public boolean addRouter(GeminiNetworkRouterDTO router) {
         //this function provided only for a java client - it is not used by the mapper
-        if (routers.stream().filter(r -> r.getName().equals(router.getName())).count() == 0) {
+        if (routers.stream().noneMatch(r -> r.getName().equals(router.getName()))) {
             return routers.add(router);
         } else {
             return false;
@@ -136,7 +137,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
     }
 
     public boolean addSecurityGroup(GeminiSecurityGroupDTO secGroup) {
-        if (securityGroups.stream().filter(r -> r.getName().equals(secGroup.getName())).count() == 0) {
+        if (securityGroups.stream().noneMatch(r -> r.getName().equals(secGroup.getName()))) {
             return securityGroups.add(secGroup);
         } else {
             return false;
@@ -146,4 +147,25 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
     public boolean deleteSecurityGroup(GeminiSecurityGroupDTO secGroup) {
         return securityGroups.removeIf(r -> r.getName().equals(secGroup.getName()));
     }
+
+    public List<GeminiNetworkDTO> getOrphanNetworks() {
+        return orphanNetworks;
+    }
+
+    public void setOrphanNetworks(List<GeminiNetworkDTO> orphanNetworks) {
+        this.orphanNetworks = orphanNetworks;
+    }
+    
+    public boolean addOrphanNetwork(GeminiNetworkDTO orphanNetwork) {
+        if (orphanNetworks.stream().noneMatch(r -> r.getName().equals(orphanNetwork.getName()))) {
+            return orphanNetworks.add(orphanNetwork);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean deleteOrphanNetwork(GeminiNetworkDTO orphanNetwork) {
+        return orphanNetworks.removeIf(r -> r.getName().equals(orphanNetwork.getName()));
+    }
+
 }
