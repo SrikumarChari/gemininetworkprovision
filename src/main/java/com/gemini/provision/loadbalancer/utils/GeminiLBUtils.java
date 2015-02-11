@@ -1,12 +1,15 @@
 package com.gemini.provision.loadbalancer.utils;
 
 import com.gemini.domain.common.AdminState;
+import com.gemini.domain.common.HTTPMethod;
 import com.gemini.domain.common.LoadBalancerAlgorithm;
 import com.gemini.domain.common.Protocol;
 import com.gemini.domain.common.ProvisionState;
 import com.gemini.domain.model.*;
 import com.gemini.domain.tenant.GeminiTenant;
 import org.openstack4j.api.Builders;
+import org.openstack4j.model.network.ext.HealthMonitor;
+import org.openstack4j.model.network.ext.HealthMonitorUpdate;
 import org.openstack4j.model.network.ext.LbPool;
 import org.openstack4j.model.network.ext.LbPoolUpdate;
 import org.openstack4j.model.network.ext.Member;
@@ -89,6 +92,48 @@ public class GeminiLBUtils {
                 .tenantId(tenant.getTenantID())
                 .build();
         return lbPool;
+    }
+
+    public static HealthMonitorUpdate healthMonitorUpdate(GeminiLoadBalancerHealthMonitor healthMonitor){
+
+        HealthMonitorUpdate update = Builders.healthMonitorUpdate()
+                .delay(healthMonitor.getDelay())
+                .maxRetries(healthMonitor.getMaxTries())
+                .adminStateUp(healthMonitor.getAdminState() == AdminState.ADMIN_UP)
+                .expectedCodes(healthMonitor.getExpectedCodes())
+                .timeout(healthMonitor.getTimeout())
+                .httpMethod(healthMonitor.getHttpMethod().name())
+                .urlPath(healthMonitor.getUriPath())
+                .build();
+        return update;
+    }
+
+    public static HealthMonitor createHealthMonitor(GeminiLoadBalancerHealthMonitor healthMonitor,GeminiTenant tenant){
+        HealthMonitor monitor = Builders.healthMonitor()
+                .delay(healthMonitor.getDelay())
+                .maxRetries(healthMonitor.getMaxTries())
+                .adminStateUp(healthMonitor.getAdminState() == AdminState.ADMIN_UP)
+                .expectedCodes(healthMonitor.getExpectedCodes())
+                .httpMethod(healthMonitor.getHttpMethod().name())
+                .timeout(healthMonitor.getTimeout())
+                .urlPath(healthMonitor.getUriPath())
+                .tenantId(tenant.getTenantID())
+                .build();
+        return monitor;
+
+    }
+
+    public static GeminiLoadBalancerHealthMonitor getAsGeminiHealthMonitor(HealthMonitor healthMonitor){
+        GeminiLoadBalancerHealthMonitor gHealthMonitor = new GeminiLoadBalancerHealthMonitor();
+        gHealthMonitor.setCloudID(healthMonitor.getId());
+        gHealthMonitor.setAdminState(healthMonitor.isAdminStateUp() ? AdminState.ADMIN_UP : AdminState.ADMIN_DOWN);
+        gHealthMonitor.setDelay(healthMonitor.getDelay());
+        gHealthMonitor.setExpectedCodes(healthMonitor.getExpectedCodes());
+        gHealthMonitor.setHttpMethod(HTTPMethod.valueOf(healthMonitor.getHttpMethod().toUpperCase()));
+        gHealthMonitor.setMaxTries(healthMonitor.getMaxRetries());
+        gHealthMonitor.setUriPath(healthMonitor.getUrlPath());
+        gHealthMonitor.setTimeout(healthMonitor.getTimeout());
+        return gHealthMonitor;
     }
 
 }
