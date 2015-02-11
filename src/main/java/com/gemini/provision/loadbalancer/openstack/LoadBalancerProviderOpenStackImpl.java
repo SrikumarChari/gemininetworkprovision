@@ -17,7 +17,7 @@ import com.gemini.domain.model.GeminiLoadBalancerPool;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiPoolMember;
 import com.gemini.domain.model.GeminiSubnet;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.loadbalancer.base.LoadBalancerProvider;
 import java.util.ArrayList;

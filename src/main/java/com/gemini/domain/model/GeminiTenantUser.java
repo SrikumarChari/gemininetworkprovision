@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.gemini.domain.tenant;
+package com.gemini.domain.model;
 
 import org.mongodb.morphia.annotations.Embedded;
 

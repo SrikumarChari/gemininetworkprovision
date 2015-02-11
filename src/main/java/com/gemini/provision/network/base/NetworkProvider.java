@@ -10,7 +10,7 @@ import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiNetworkRouter;
 import com.gemini.domain.model.GeminiSubnet;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import java.util.List;
 
 /**

@@ -15,7 +15,7 @@ import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSecurityGroup;
 import com.gemini.domain.model.GeminiSecurityGroupRule;
 import com.gemini.domain.model.GeminiSubnet;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.security.base.SecurityProviderModule;
 import com.gemini.provision.security.base.SecurityProvisioningService;

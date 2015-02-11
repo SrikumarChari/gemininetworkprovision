@@ -16,7 +16,7 @@ import com.gemini.domain.model.GeminiSecurityGroupRule;
 import com.gemini.domain.model.GeminiServer;
 import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.model.GeminiSubnetAllocationPool;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.security.base.SecurityProvider;
 import com.google.inject.Singleton;

@@ -6,7 +6,7 @@
 package com.gemini.tenant.repository;
 
 import com.gemini.common.repository.BaseRepository;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 
 /**
  *

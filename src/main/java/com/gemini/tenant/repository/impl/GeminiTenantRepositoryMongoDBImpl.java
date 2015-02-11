@@ -7,8 +7,8 @@ package com.gemini.tenant.repository.impl;
 
 import com.gemini.common.repository.impl.BaseRepositoryMongoDBImpl;
 import com.gemini.domain.model.GeminiEnvironment;
-import com.gemini.domain.tenant.GeminiTenant;
-import com.gemini.domain.tenant.GeminiTenantUser;
+import com.gemini.domain.model.GeminiTenant;
+import com.gemini.domain.model.GeminiTenantUser;
 import com.gemini.tenant.repository.GeminiTenantRepository;
 import com.mongodb.MongoClient;
 import java.util.List;

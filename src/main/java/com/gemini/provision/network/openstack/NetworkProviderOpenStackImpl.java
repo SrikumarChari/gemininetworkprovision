@@ -12,7 +12,7 @@ import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiNetworkRouter;
 import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.model.GeminiSubnetAllocationPool;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.network.base.NetworkProvider;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.google.common.net.InetAddresses;

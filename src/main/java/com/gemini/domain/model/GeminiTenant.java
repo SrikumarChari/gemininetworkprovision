@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.gemini.domain.tenant;
+package com.gemini.domain.model;
 
 import com.gemini.common.repository.EntityMongoDB;
 import com.gemini.domain.model.GeminiEnvironment;
@@ -27,6 +27,7 @@ public class GeminiTenant extends EntityMongoDB {
     private String adminPassword;
     private String endPoint;
     private String domainName;
+    private boolean initialized = false;
     
     @Embedded
     private List<GeminiTenantUser> users = Collections.synchronizedList(new ArrayList());
@@ -125,6 +126,14 @@ public class GeminiTenant extends EntityMongoDB {
         return environments.removeIf(e -> e.getName().equals(env.getName()));
     }
 
+    public List<GeminiNetworkRouter> getRouters() {
+        return routers;
+    }
+
+    public void setRouters(List<GeminiNetworkRouter> routers) {
+        this.routers = routers;
+    }
+
     public boolean addRouter(GeminiNetworkRouter nRouter) {
         if (routers.stream().filter(r -> r.getName().equals(nRouter.getName())).count() == 0) {
             return routers.add(nRouter);            
@@ -135,4 +144,12 @@ public class GeminiTenant extends EntityMongoDB {
     public boolean deleteRouter(GeminiNetworkRouter nRouter) {
         return routers.removeIf(r -> r.equals(nRouter));
     }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }    
 }

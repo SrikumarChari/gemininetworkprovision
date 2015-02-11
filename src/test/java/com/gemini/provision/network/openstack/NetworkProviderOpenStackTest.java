@@ -11,7 +11,7 @@ import com.gemini.domain.common.IPAddressType;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSubnet;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.network.base.NetworkProviderModule;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.network.base.NetworkProvisioningService;

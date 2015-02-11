@@ -1,9 +1,9 @@
-package com.gemini.provision.main;
+package com.gemini.provision.network.main;
 
 import com.gemini.domain.dto.GeminiTenantDTO;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
 import com.gemini.domain.model.GeminiNetwork;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;
 import com.gemini.mapper.GeminiMapperModule;
 import com.gemini.provision.network.base.NetworkProviderModule;
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  *
  * @author schari
  */
-public class GeminiProvisionMain {
+public class GeminiNetworkProvisionMain {
 
     static NetworkProvisioningService provisioningService;
     static GeminiMapper mapper;
@@ -53,6 +53,9 @@ public class GeminiProvisionMain {
     public static void main(String[] args) throws IOException, InterruptedException {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
+        
+        //intialize this service... 
+        //TODO: EVENTUALLY THIS WILL MOVE TO A SEPARATE CUSTOMER ONBOARDING APPLICATION
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("127.0.0.1");
@@ -80,12 +83,17 @@ public class GeminiProvisionMain {
             try {
                 delivery = consumer.nextDelivery();
             } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
-                Logger.getLogger(GeminiProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(GeminiNetworkProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             String message = new String(delivery.getBody());
             GeminiTenantDTO tenantDTO = gson.fromJson(message, GeminiTenantDTO.class);
             GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+            if (!tenant.isInitialized()) {
+                //read all the information from cloud and update the database
+                initializeTenant(tenant);
+            }
+            
 
             //create the provisioning service 
             Injector provisioningInjector = Guice.createInjector(
@@ -100,7 +108,7 @@ public class GeminiProvisionMain {
             try {
                 channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             } catch (IOException ex) {
-                Logger.getLogger(GeminiProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(GeminiNetworkProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
         networkingThread.start();
@@ -114,5 +122,9 @@ public class GeminiProvisionMain {
         Thread securityThread = new Thread(() -> {
         });
         securityThread.start();
+    }
+
+    private static void initializeTenant(GeminiTenant tenant) {
+        //check to see if this tenant exists in the database
     }
 }

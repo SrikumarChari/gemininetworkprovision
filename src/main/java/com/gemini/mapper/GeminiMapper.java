@@ -29,8 +29,8 @@ import com.gemini.domain.model.GeminiSecurityGroupRule;
 import com.gemini.domain.model.GeminiServer;
 import com.gemini.domain.model.GeminiServerImage;
 import com.gemini.domain.model.GeminiServerType;
-import com.gemini.domain.tenant.GeminiTenant;
-import com.gemini.domain.tenant.GeminiTenantUser;
+import com.gemini.domain.model.GeminiTenant;
+import com.gemini.domain.model.GeminiTenantUser;
 import com.google.inject.Inject;
 import org.dozer.DozerBeanMapper;
 

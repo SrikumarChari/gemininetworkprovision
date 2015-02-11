@@ -6,7 +6,7 @@ import com.gemini.domain.common.LoadBalancerAlgorithm;
 import com.gemini.domain.common.Protocol;
 import com.gemini.domain.common.ProvisionState;
 import com.gemini.domain.model.*;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import org.openstack4j.api.Builders;
 import org.openstack4j.model.network.ext.HealthMonitor;
 import org.openstack4j.model.network.ext.HealthMonitorUpdate;

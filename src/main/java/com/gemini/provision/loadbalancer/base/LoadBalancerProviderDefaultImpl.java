@@ -10,7 +10,7 @@ import com.gemini.domain.model.GeminiLoadBalancer;
 import com.gemini.domain.model.GeminiLoadBalancerHealthMonitor;
 import com.gemini.domain.model.GeminiLoadBalancerPool;
 import com.gemini.domain.model.GeminiPoolMember;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import java.util.List;
 

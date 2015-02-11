@@ -9,7 +9,7 @@ import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiSecurityGroup;
 import com.gemini.domain.model.GeminiSecurityGroupRule;
 import com.gemini.domain.model.GeminiServer;
-import com.gemini.domain.tenant.GeminiTenant;
+import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import java.util.List;
 
