@@ -29,7 +29,7 @@ public class GeminiNetworkRepositoryMongoDBImpl extends BaseRepositoryMongoDBImp
 
     public GeminiNetworkRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, String dbName) {
         //create the database and collection
-        super(GeminiNetwork.class, mongoClient, morphia, dbName);
+        super(mongoClient, morphia, GeminiNetwork.class, dbName);
     }
 
     //find an applicaiton by name

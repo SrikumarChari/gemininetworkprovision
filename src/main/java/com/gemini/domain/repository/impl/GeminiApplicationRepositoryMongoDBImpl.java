@@ -26,7 +26,7 @@ public class GeminiApplicationRepositoryMongoDBImpl extends BaseRepositoryMongoD
     @Inject
     public GeminiApplicationRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, @Assisted String dbName) {
         //create the database and collection
-        super(GeminiApplication.class, mongoClient, morphia, dbName);
+        super(mongoClient, morphia, GeminiApplication.class, dbName);
     }
 
     @Override

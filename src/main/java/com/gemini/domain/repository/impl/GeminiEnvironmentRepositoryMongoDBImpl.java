@@ -24,7 +24,7 @@ public class GeminiEnvironmentRepositoryMongoDBImpl extends BaseRepositoryMongoD
         implements GeminiEnvironmentRepository {
 
     public GeminiEnvironmentRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, String dbName) {
-        super(GeminiEnvironment.class, mongoClient, morphia, dbName);
+        super(mongoClient, morphia, GeminiEnvironment.class, dbName);
     }
 
     public GeminiEnvironment getEnvByName(String envName) {

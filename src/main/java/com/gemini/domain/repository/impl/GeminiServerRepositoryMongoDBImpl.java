@@ -24,7 +24,7 @@ public class GeminiServerRepositoryMongoDBImpl extends BaseRepositoryMongoDBImpl
 
     public GeminiServerRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, String dbName) {
         //create the database and collection
-        super(GeminiServer.class, mongoClient, morphia, dbName);
+        super(mongoClient, morphia, GeminiServer.class, dbName);
     }
 
     //find an applicaiton by name

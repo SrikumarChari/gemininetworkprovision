@@ -23,7 +23,7 @@ public class GeminiTenantRepositoryMongoDBImpl extends BaseRepositoryMongoDBImpl
         implements GeminiTenantRepository {
 
     public GeminiTenantRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, String dbName) {
-        super(GeminiTenant.class, mongoClient, morphia, dbName);
+        super(mongoClient, morphia, GeminiTenant.class, dbName);
     }
 
     public GeminiTenant getTenantByName(String name) {
