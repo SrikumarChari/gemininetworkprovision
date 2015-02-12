@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.gemini.tenant.repository.impl;
+package com.gemini.domain.repository.impl;
 
 import com.gemini.common.repository.impl.BaseRepositoryMongoDBImpl;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiTenant;
 import com.gemini.domain.model.GeminiTenantUser;
-import com.gemini.tenant.repository.GeminiTenantRepository;
+import com.gemini.domain.repository.GeminiTenantRepository;
 import com.mongodb.MongoClient;
 import java.util.List;
 import org.mongodb.morphia.Morphia;

@@ -7,6 +7,9 @@ package com.gemini.domain.repository;
 
 import com.gemini.common.repository.BaseRepository;
 import com.gemini.domain.model.GeminiApplication;
+import com.gemini.domain.model.GeminiNetwork;
+import java.util.List;
+
 
 /**
  * 
@@ -17,5 +20,6 @@ import com.gemini.domain.model.GeminiApplication;
  * @author schari
  */
 public interface GeminiApplicationRepository extends BaseRepository<GeminiApplication, String>  {
-    
+    //find an applicaiton by name
+    public List<GeminiNetwork> getNetworks(String appName);
 }

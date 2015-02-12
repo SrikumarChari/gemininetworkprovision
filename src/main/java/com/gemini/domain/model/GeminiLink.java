@@ -5,7 +5,7 @@
  */
 package com.gemini.domain.model;
 
-import com.gemini.common.repository.EntityMongoDB;
+import com.gemini.common.repository.impl.EntityMongoDB;
 import java.net.URL;
 import org.mongodb.morphia.annotations.Embedded;
 

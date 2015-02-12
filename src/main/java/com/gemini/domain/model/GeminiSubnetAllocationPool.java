@@ -5,6 +5,7 @@
  */
 package com.gemini.domain.model;
 
+import com.gemini.common.repository.impl.EntityMongoDB;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +20,7 @@ import org.mongodb.morphia.annotations.Reference;
  */
 @Entity
 @Embedded
-public class GeminiSubnetAllocationPool {
+public class GeminiSubnetAllocationPool extends EntityMongoDB {
 
     private InetAddress start;
     private InetAddress end;

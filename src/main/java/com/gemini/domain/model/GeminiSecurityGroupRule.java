@@ -5,7 +5,7 @@
  */
 package com.gemini.domain.model;
 
-import com.gemini.common.repository.EntityMongoDB;
+import com.gemini.common.repository.impl.EntityMongoDB;
 import com.gemini.domain.common.GeminiSecurityGroupRuleDirection;
 import com.gemini.domain.common.IPAddressType;
 import com.gemini.domain.common.Protocol;

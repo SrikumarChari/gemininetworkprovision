@@ -5,7 +5,7 @@
  */
 package com.gemini.domain.model;
 
-import com.gemini.common.repository.EntityMongoDB;
+import com.gemini.common.repository.impl.EntityMongoDB;
 import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetworkRouter;
 import java.util.ArrayList;

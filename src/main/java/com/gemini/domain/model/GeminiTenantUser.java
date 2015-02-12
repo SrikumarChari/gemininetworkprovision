@@ -5,6 +5,7 @@
  */
 package com.gemini.domain.model;
 
+import com.gemini.common.repository.impl.EntityMongoDB;
 import org.mongodb.morphia.annotations.Embedded;
 
 /**
@@ -12,7 +13,7 @@ import org.mongodb.morphia.annotations.Embedded;
  * @author schari
  */
 @Embedded
-public class GeminiTenantUser {
+public class GeminiTenantUser extends EntityMongoDB {
     private String userID;
     private String name;
     private String preferences; //will eventually become another with granular preference values

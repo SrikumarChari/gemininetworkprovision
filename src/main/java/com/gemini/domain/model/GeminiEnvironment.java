@@ -6,7 +6,7 @@
 package com.gemini.domain.model;
 
 import com.gemini.domain.common.GeminiEnvironmentType;
-import com.gemini.common.repository.EntityMongoDB;
+import com.gemini.common.repository.impl.EntityMongoDB;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

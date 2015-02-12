@@ -8,13 +8,11 @@ package com.gemini.domain.repository.impl;
 import com.gemini.common.repository.impl.BaseRepositoryMongoDBImpl;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiNetwork;
-import com.gemini.domain.model.GeminiServer;
 import com.gemini.domain.repository.GeminiApplicationRepository;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.mongodb.MongoClient;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.mongodb.morphia.Morphia;
 import org.pmw.tinylog.Logger;
 
@@ -25,28 +23,14 @@ import org.pmw.tinylog.Logger;
 public class GeminiApplicationRepositoryMongoDBImpl extends BaseRepositoryMongoDBImpl<GeminiApplication, String>
         implements GeminiApplicationRepository {
 
-    public GeminiApplicationRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, String dbName) {
+    @Inject
+    public GeminiApplicationRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia, @Assisted String dbName) {
         //create the database and collection
         super(GeminiApplication.class, mongoClient, morphia, dbName);
     }
 
-    //find an applicaiton by name
-    public GeminiApplication getAppByName(String appName) {
-        Logger.debug("get app by name :{}", ToStringBuilder.reflectionToString(appName, ToStringStyle.MULTI_LINE_STYLE));
-        return findOne(getDatastore().createQuery(GeminiApplication.class).filter("name", appName));
-    }
-
-    public List<GeminiNetwork> getAppNetworks(String appName) {
-        GeminiApplication a = getAppByName(appName);
-        return a.getNetworks();
-    }
-
-    public List<GeminiServer> getAppServers(String appName) {
-        GeminiApplication a = getAppByName(appName);
-        return null; //a.getServers();
-    }
-    
-    public List<GeminiServer> getNetworkServers (String appName, String netName) {
-        return null;
+    @Override
+    public List<GeminiNetwork> getNetworks(String appName) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
