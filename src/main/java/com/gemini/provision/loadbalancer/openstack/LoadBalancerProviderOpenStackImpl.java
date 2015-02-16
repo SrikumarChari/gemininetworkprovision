@@ -18,6 +18,7 @@ import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiPoolMember;
 import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.model.GeminiTenant;
+import com.gemini.domain.model.GeminiVip;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.loadbalancer.base.LoadBalancerProvider;
 import java.util.ArrayList;
@@ -25,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.gemini.provision.loadbalancer.utils.GeminiLBUtils;
+import com.gemini.provision.network.base.NetworkProvider;
+import com.google.inject.Inject;
 import jersey.repackaged.com.google.common.net.InetAddresses;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -41,6 +44,9 @@ import org.pmw.tinylog.Logger;
  * @author schari
  */
 public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
+
+    @Inject
+    private NetworkProvider networkProvider;
 
     @Override
     public List<GeminiLoadBalancer> listAllVIPs(GeminiTenant tenant, GeminiEnvironment env) {
@@ -100,23 +106,46 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     }
 
     @Override
-    public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
+        OSClient os = getOSClient(tenant);
+        Vip vip = GeminiLBUtils.getOpenStackVip(lb,tenant);
+        Vip resultVip = os.networking().loadbalancers().vip().create(vip);
+        return getResponseType(resultVip,tenant,env,"Virtual IP create");
     }
 
     @Override
-    public GeminiLoadBalancer getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public GeminiVip getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID) {
+        OSClient os = getOSClient(tenant);
+        Vip vip = os.networking().loadbalancers().vip().get(vipID);
+        //check if the subnet id is already in application
+        GeminiSubnet geminiSubnet = env.getSubnets().stream().filter(subnet -> subnet.getCloudID().equals(vip.getSubnetId())).findFirst().get();
+        GeminiVip geminiVip = GeminiLBUtils.getAsGeminiVip(vip, tenant);
+        if(geminiSubnet == null){
+            //fetch from controller
+            geminiSubnet = networkProvider.getSubnet(tenant,env,vip.getSubnetId());
+        }
+        GeminiLoadBalancerPool geminiLoadBalancerPool = env.getLoadBalancerPools().stream().filter(pool -> pool.getCloudID().equals(vip.getPoolId())).findFirst().get();
+        if(geminiLoadBalancerPool == null){
+            //fetch from controller
+            geminiLoadBalancerPool = getPool(tenant,env,vip.getPoolId());
+        }
+        geminiVip.setGeminiLoadBalancerPool(geminiLoadBalancerPool);
+        geminiVip.setGeminiSubnet(geminiSubnet);
+        return geminiVip;
     }
 
     @Override
-    public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip geminiVip) {
+        OSClient os = getOSClient(tenant);
+        Vip vipUpdate = os.networking().loadbalancers().vip().update(geminiVip.getCloudID(),GeminiLBUtils.getVipUpdate(geminiVip));
+        return getResponseType(vipUpdate,tenant,env,"Virtual IP update");
     }
 
     @Override
-    public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
+        OSClient os = getOSClient(tenant);
+        ActionResponse actionResponse = os.networking().loadbalancers().vip().delete(lb.getCloudID());
+        return getResponseType(actionResponse,lb,tenant,env,"Deleted");
     }
 
     @Override
@@ -221,7 +250,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     public ProvisioningProviderResponseType createLBPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool geminiLoadBalancerPool) {
         OSClient os = getOSClient(tenant);
         LbPool lbPool = os.networking().loadbalancers().lbPool().create(GeminiLBUtils.createLBPool(geminiLoadBalancerPool,tenant));
-        return getResponseType(lbPool,tenant,env,"created");
+        return getResponseType(lbPool,tenant,env,"LB Pool created");
     }
 
     @Override
@@ -328,7 +357,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     public ProvisioningProviderResponseType getResponseType(Object object,GeminiTenant tenant, GeminiEnvironment env
                                             ,String operation){
         if (object == null) {
-            Logger.error("Failed to {} {}, failure in Cloud provider. Tenant: {} Environment: {} Network: {}",operation,object.getClass().getName(),
+            Logger.error("Failed to {}, failure in Cloud provider. Tenant: {} Environment: {} Network: {}",operation,
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(object, ToStringStyle.MULTI_LINE_STYLE));
             return ProvisioningProviderResponseType.CLOUD_FAILURE;

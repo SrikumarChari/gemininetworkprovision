@@ -11,6 +11,7 @@ import com.gemini.domain.model.GeminiLoadBalancerHealthMonitor;
 import com.gemini.domain.model.GeminiLoadBalancerPool;
 import com.gemini.domain.model.GeminiPoolMember;
 import com.gemini.domain.model.GeminiTenant;
+import com.gemini.domain.model.GeminiVip;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import java.util.List;
 
@@ -23,10 +24,10 @@ public interface LoadBalancerProvider {
     //vip related functions
 
     public List<GeminiLoadBalancer> listAllVIPs(GeminiTenant tenant, GeminiEnvironment env);
-    public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb);
-    public GeminiLoadBalancer getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID);
-    public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb);
-    public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb);
+    public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb);
+    public GeminiVip getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID);
+    public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb);
+    public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb);
 
     //health monnitor related functions - not all providers may support this
     public List<GeminiLoadBalancerHealthMonitor> listAllHealthMonitors(GeminiTenant tenant, GeminiEnvironment env);

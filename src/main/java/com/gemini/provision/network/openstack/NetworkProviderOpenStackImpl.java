@@ -899,4 +899,24 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             return ProvisioningProviderResponseType.SUCCESS;
         }
     }
+
+    public GeminiSubnet getSubnet(GeminiTenant tenant, GeminiEnvironment env,String subnetId){
+        OSClient os = getOSClient(tenant);
+        Subnet subnet = os.networking().subnet().get(subnetId);
+        GeminiSubnet gn = new GeminiSubnet();
+        gn.setName(subnet.getName());
+        gn.setCloudID(subnet.getId());
+        gn.setCidr(subnet.getCidr());
+        gn.setEnableDHCP(subnet.isDHCPEnabled());
+        return gn;
+    }
+
+    public OSClient getOSClient(GeminiTenant tenant){
+        OSClient os = OSFactory.builder()
+                .endpoint(tenant.getEndPoint())
+                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .tenantName(tenant.getName())
+                .authenticate();
+        return os;
+    }
 }

@@ -49,6 +49,24 @@ public class GeminiEnvironment extends EntityMongoDB {
 
     @Reference
     private List<GeminiNetworkRouter> routers = Collections.synchronizedList(new ArrayList());
+    private List<GeminiLoadBalancerPool> loadBalancerPools = Collections.synchronizedList(new ArrayList());
+    private List<GeminiSubnet> subnets = Collections.synchronizedList(new ArrayList());
+
+    public List<GeminiLoadBalancerPool> getLoadBalancerPools() {
+        return loadBalancerPools;
+    }
+
+    public void setLoadBalancerPools(List<GeminiLoadBalancerPool> loadBalancerPools) {
+        this.loadBalancerPools = loadBalancerPools;
+    }
+
+    public List<GeminiSubnet> getSubnets() {
+        return subnets;
+    }
+
+    public void setSubnets(List<GeminiSubnet> subnets) {
+        this.subnets = subnets;
+    }
 
     public GeminiEnvironmentType getType() {
         return type;

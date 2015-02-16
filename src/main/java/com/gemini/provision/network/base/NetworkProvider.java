@@ -53,4 +53,5 @@ public interface NetworkProvider {
     public List<ProvisioningProviderResponseType> bulkCreateRouter(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetworkRouter> routes);
     public ProvisioningProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route);
     public ProvisioningProviderResponseType deleteRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route);
+    public GeminiSubnet getSubnet(GeminiTenant tenant, GeminiEnvironment env,String subnetId);
 }
