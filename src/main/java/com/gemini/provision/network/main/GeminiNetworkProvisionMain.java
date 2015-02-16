@@ -1,5 +1,8 @@
 package com.gemini.provision.network.main;
 
+import com.gemini.common.repository.BaseRepository;
+import com.gemini.common.repository.BaseRepositoryFactory;
+import com.gemini.common.repository.GeminiDatabaseModule;
 import com.gemini.domain.dto.GeminiTenantDTO;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
 import com.gemini.domain.model.GeminiNetwork;
@@ -11,6 +14,7 @@ import com.gemini.provision.network.base.NetworkProvisioningService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -20,8 +24,8 @@ import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.pmw.tinylog.Logger;
+
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -53,10 +57,9 @@ public class GeminiNetworkProvisionMain {
     public static void main(String[] args) throws IOException, InterruptedException {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
-        
+
         //intialize this service... 
         //TODO: EVENTUALLY THIS WILL MOVE TO A SEPARATE CUSTOMER ONBOARDING APPLICATION
-
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("127.0.0.1");
         Connection connection = factory.newConnection();
@@ -83,7 +86,7 @@ public class GeminiNetworkProvisionMain {
             try {
                 delivery = consumer.nextDelivery();
             } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
-                Logger.getLogger(GeminiNetworkProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.error("Could not get message from queue. Exception: {}", ex);
             }
 
             String message = new String(delivery.getBody());
@@ -93,7 +96,6 @@ public class GeminiNetworkProvisionMain {
                 //read all the information from cloud and update the database
                 initializeTenant(tenant);
             }
-            
 
             //create the provisioning service 
             Injector provisioningInjector = Guice.createInjector(
@@ -108,7 +110,7 @@ public class GeminiNetworkProvisionMain {
             try {
                 channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             } catch (IOException ex) {
-                Logger.getLogger(GeminiNetworkProvisionMain.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.error("Could not basic ack message. Exception: {}", ex);
             }
         });
         networkingThread.start();
@@ -125,6 +127,12 @@ public class GeminiNetworkProvisionMain {
     }
 
     private static void initializeTenant(GeminiTenant tenant) {
-        //check to see if this tenant exists in the database
+        BaseRepositoryFactory baseRepoFactory;
+
+        Injector dbInjector = Guice.createInjector(new GeminiDatabaseModule());
+        baseRepoFactory = dbInjector.getInstance(BaseRepositoryFactory.class);
+        BaseRepository baseRepo = baseRepoFactory.create(GeminiNetwork.class);
+        List<GeminiNetwork> listNetworks = baseRepo.list();
+
     }
 }

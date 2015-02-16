@@ -7,27 +7,31 @@ package com.gemini.common.repository.impl;
 
 import com.gemini.common.repository.BaseRepository;
 import com.gemini.common.repository.BaseRepositoryFactory;
+import com.gemini.properties.GeminiProperties;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.mongodb.MongoClient;
-import org.mongodb.morphia.Morphia;
 
 /**
  *
  * @author schari
  */
 public class BaseRepositoryFactoryImpl implements BaseRepositoryFactory {
-    private final Provider<MongoClient> mongoClientProvider;
-    private final Provider<Morphia> morphiaProvider;
+
+    private final GeminiMongoClientProvider mongoClientProvider;
+    private final GeminiMorphiaProvider morphiaProvider;
 
     @Inject
-    public BaseRepositoryFactoryImpl(Provider<MongoClient> mongoClientProvider, Provider<Morphia> morphiaProvider) {
+    public BaseRepositoryFactoryImpl(GeminiMongoClientProvider mongoClientProvider,
+            GeminiMorphiaProvider morphiaProvider) {
         this.mongoClientProvider = mongoClientProvider;
         this.morphiaProvider = morphiaProvider;
     }
 
     @Override
-    public BaseRepository create(String dbName, Class<?> tableClass) {
-        return new BaseRepositoryMongoDBImpl (mongoClientProvider.get(), morphiaProvider.get(), tableClass, dbName);
+    public BaseRepository create(Class<?> tableClass) {
+        GeminiProperties properties = new GeminiProperties();
+        return new BaseRepositoryMongoDBImpl(mongoClientProvider.get(),
+                morphiaProvider.get(),
+                properties.getProperties().getProperty("DATABASE_HOST"),
+                tableClass);
     }
 }

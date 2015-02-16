@@ -5,9 +5,9 @@
  */
 package com.gemini.common.repository;
 
-import com.gemini.common.repository.impl.BaseRepositoryFactoryImpl;
 import com.gemini.common.repository.impl.BaseRepositoryMongoDBImpl;
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
@@ -20,7 +20,6 @@ public class GeminiDatabaseModule extends AbstractModule {
     protected void configure() {
         install(new FactoryModuleBuilder()
                 .implement(BaseRepository.class, BaseRepositoryMongoDBImpl.class)
-                .build(BaseRepositoryFactoryImpl.class));
+                .build(BaseRepositoryFactory.class));
     }
-
 }

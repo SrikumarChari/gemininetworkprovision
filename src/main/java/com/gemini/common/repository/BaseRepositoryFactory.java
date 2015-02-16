@@ -10,5 +10,5 @@ package com.gemini.common.repository;
  * @author schari
  */
 public interface BaseRepositoryFactory {
-    public BaseRepository create(String dbName, Class<?> tableName);
+    public BaseRepository create(Class<?> tableName);
 }

@@ -1,0 +1,37 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.gemini.properties;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import org.pmw.tinylog.Logger;
+
+/**
+ *
+ * @author schari
+ */
+public class GeminiPropertiesModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+        Properties properties = new Properties();
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("Gemini.properties");
+        if (in == null) {
+            Logger.error("Could not read properties file");
+        }
+        try {
+            properties.load(in);
+        } catch (IOException ex) {
+            Logger.error("Could not read properties file. Exception: ", ex);
+        }
+                
+        bind(Properties.class).toInstance(properties);
+        bind(GeminiProperties.class).in(Singleton.class);
+    }
+}
