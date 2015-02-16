@@ -27,11 +27,10 @@ public class BaseRepositoryFactoryImpl implements BaseRepositoryFactory {
     }
 
     @Override
-    public BaseRepository create(Class<?> tableClass) {
-        GeminiProperties properties = new GeminiProperties();
+    public BaseRepository create(String dbName, Class<?> tableType) {
         return new BaseRepositoryMongoDBImpl(mongoClientProvider.get(),
                 morphiaProvider.get(),
-                properties.getProperties().getProperty("DATABASE_HOST"),
-                tableClass);
+                dbName,
+                tableType);
     }
 }

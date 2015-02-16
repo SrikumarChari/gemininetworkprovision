@@ -30,7 +30,7 @@ public class BaseRepositoryMongoDBImpl<T extends Entity, String>
 
     @Inject
     public BaseRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia,
-            String dbName, @Assisted Class<T> type) {
+            @Assisted("dbName") String dbName, @Assisted("classType") Class<T> type) {
         super(type, mongoClient, morphia, (java.lang.String) dbName);
         this.type = type;
 

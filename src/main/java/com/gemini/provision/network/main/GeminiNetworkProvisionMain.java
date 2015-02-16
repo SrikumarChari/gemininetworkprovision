@@ -22,8 +22,11 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ConsumerCancelledException;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import org.pmw.tinylog.Configurator;
+import org.pmw.tinylog.Level;
 import org.pmw.tinylog.Logger;
 
 
@@ -55,9 +58,14 @@ public class GeminiNetworkProvisionMain {
     private static String LB_TOPIC = "load*";
 
     public static void main(String[] args) throws IOException, InterruptedException {
+        
+        Configurator.defaultConfig().level(Level.DEBUG).activate();
+        
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
 
+        initializeTenant(null);
+        
         //intialize this service... 
         //TODO: EVENTUALLY THIS WILL MOVE TO A SEPARATE CUSTOMER ONBOARDING APPLICATION
         ConnectionFactory factory = new ConnectionFactory();
@@ -131,8 +139,7 @@ public class GeminiNetworkProvisionMain {
 
         Injector dbInjector = Guice.createInjector(new GeminiDatabaseModule());
         baseRepoFactory = dbInjector.getInstance(BaseRepositoryFactory.class);
-        BaseRepository baseRepo = baseRepoFactory.create(GeminiNetwork.class);
+        BaseRepository baseRepo = baseRepoFactory.create("Gemini", GeminiNetwork.class);
         List<GeminiNetwork> listNetworks = baseRepo.list();
-
     }
 }

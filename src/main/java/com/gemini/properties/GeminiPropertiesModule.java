@@ -21,13 +21,13 @@ public class GeminiPropertiesModule extends AbstractModule {
     @Override
     protected void configure() {
         Properties properties = new Properties();
-        InputStream in = this.getClass().getClassLoader().getResourceAsStream("Gemini.properties");
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("C:\\Users\\Srikumar\\Documents\\NetBeansProjects\\gemininetworkprovision\\Properties\\Gemini.properties");
         if (in == null) {
             Logger.error("Could not read properties file");
         }
         try {
             properties.load(in);
-        } catch (IOException ex) {
+        } catch (IOException | NullPointerException ex) {
             Logger.error("Could not read properties file. Exception: ", ex);
         }
                 

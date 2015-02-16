@@ -24,8 +24,8 @@ public class GeminiMongoClientProvider implements Provider<MongoClient> {
     public MongoClient get() {
         Injector propInjector = Guice.createInjector(new GeminiPropertiesModule());
         GeminiProperties properties = propInjector.getInstance(GeminiProperties.class);
-
         MongoClient mongoClient = null;
+
         try {
             mongoClient = new MongoClient(properties.getProperties().getProperty("DATABASE_NAME"));
         } catch (UnknownHostException ex) {
