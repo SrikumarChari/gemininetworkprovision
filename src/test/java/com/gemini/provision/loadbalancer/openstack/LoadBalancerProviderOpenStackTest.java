@@ -93,15 +93,15 @@ public class LoadBalancerProviderOpenStackTest {
 //        System.out.println("Subnet create response type:" + provisioningProviderResponseType);
 //    }
 
-//    @Test
-//    public void getLBSubnet() {
-//        System.out.println("List All Subnets Test");
-//        List<GeminiSubnet> networks = networkProvisioningService.getProvider().getAllSubnets(tenant, env);
-//
-//        subnet1 = networks.stream().filter(subnet -> subnet.getName().endsWith("LB")).findFirst().get();
-//        System.out.println("Subnet found:" + subnet1.getName());
-//        System.out.println("Clud id:" + subnet1.getCloudID());
-//    }
+    @Test
+    public void getLBSubnet() {
+        System.out.println("List All Subnets Test");
+        List<GeminiSubnet> networks = networkProvisioningService.getProvider().getAllSubnets(tenant, env);
+
+        subnet1 = networks.stream().filter(subnet -> subnet.getName().endsWith("LB")).findFirst().get();
+        System.out.println("Subnet found:" + subnet1.getName());
+        System.out.println("Clud id:" + subnet1.getCloudID());
+    }
 
 
     /*@Test
@@ -110,16 +110,16 @@ public class LoadBalancerProviderOpenStackTest {
         System.out.println("List of pool Members:" + poolMembers.size());
     }*/
 
-//    @Test
-//    public void createLBPool(){
-//        GeminiLoadBalancerPool loadBalancerPool = new GeminiLoadBalancerPool();
-//        loadBalancerPool.setLoadBalancerAlgorithm(LoadBalancerAlgorithm.ROUND_ROBIN);
-//        loadBalancerPool.setAdminState(AdminState.ADMIN_UP);
-//        loadBalancerPool.setDescription("Test Load Balancer Pool created by JUnit");
-//        loadBalancerPool.setName("Dev Application LB Pool");
-//        loadBalancerPool.setProtocol(Protocol.HTTP);
-//        loadBalancerPool.setGeminiSubnet(subnet1);
-//        ProvisioningProviderResponseType provisioningProviderResponseType = provisioningService.getLoadBalancerProvisioningService().createLBPool(tenant,env,loadBalancerPool);
-//        System.out.println(provisioningProviderResponseType);
-//    }
+    @Test
+    public void createLBPool(){
+        GeminiLoadBalancerPool loadBalancerPool = new GeminiLoadBalancerPool();
+        loadBalancerPool.setLoadBalancerAlgorithm(LoadBalancerAlgorithm.ROUND_ROBIN);
+        loadBalancerPool.setAdminState(AdminState.ADMIN_UP);
+        loadBalancerPool.setDescription("Test Load Balancer Pool created by JUnit");
+        loadBalancerPool.setName("Dev Application LB Pool");
+        loadBalancerPool.setProtocol(Protocol.HTTP);
+        loadBalancerPool.setGeminiSubnet(subnet1);
+        ProvisioningProviderResponseType provisioningProviderResponseType = provisioningService.getLoadBalancerProvisioningService().createLBPool(tenant,env,loadBalancerPool);
+        System.out.println(provisioningProviderResponseType);
+    }
 }

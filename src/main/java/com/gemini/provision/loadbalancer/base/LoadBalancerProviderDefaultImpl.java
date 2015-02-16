@@ -11,6 +11,7 @@ import com.gemini.domain.model.GeminiLoadBalancerHealthMonitor;
 import com.gemini.domain.model.GeminiLoadBalancerPool;
 import com.gemini.domain.model.GeminiPoolMember;
 import com.gemini.domain.model.GeminiTenant;
+import com.gemini.domain.model.GeminiVip;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import java.util.List;
 
@@ -26,22 +27,22 @@ public class LoadBalancerProviderDefaultImpl implements LoadBalancerProvider {
     }
 
     @Override
-    public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb) {
+    public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public GeminiLoadBalancer getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID) {
+    public GeminiVip getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb) {
+    public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancer lb) {
+    public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

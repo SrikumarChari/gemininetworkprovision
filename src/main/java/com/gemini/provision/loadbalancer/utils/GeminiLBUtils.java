@@ -14,6 +14,9 @@ import org.openstack4j.model.network.ext.LbPool;
 import org.openstack4j.model.network.ext.LbPoolUpdate;
 import org.openstack4j.model.network.ext.Member;
 import org.openstack4j.model.network.ext.MemberUpdate;
+import org.openstack4j.model.network.ext.Vip;
+import org.openstack4j.model.network.ext.VipUpdate;
+import org.openstack4j.openstack.networking.domain.ext.SessionPersistenceType;
 import org.pmw.tinylog.Logger;
 
 import java.util.List;
@@ -134,6 +137,52 @@ public class GeminiLBUtils {
         gHealthMonitor.setUriPath(healthMonitor.getUrlPath());
         gHealthMonitor.setTimeout(healthMonitor.getTimeout());
         return gHealthMonitor;
+    }
+
+    public static Vip getOpenStackVip(GeminiVip geminiVip,GeminiTenant geminiTenant){
+        Vip openStackVip = null;
+        openStackVip = Builders.vip()
+                .address(geminiVip.getIpAddress())
+                .adminStateUp(geminiVip.getAdminState() == AdminState.ADMIN_UP)
+                .description(geminiVip.getCloudID())
+                .name(geminiVip.getName())
+                .poolId(geminiVip.getGeminiLoadBalancerPool().getCloudID())
+                .protocol(geminiVip.getProtocol().name().toLowerCase())
+                .protocolPort(geminiVip.getProtocolPort())
+                .subnetId(geminiVip.getGeminiSubnet().getCloudID())
+                .connectionLimit(geminiVip.getConnectionLimit())
+                .sessionPersistence(Builders
+                        .sessionPersistence()
+                        .cookieName("cookie")
+                        .type(SessionPersistenceType.APP_COOKIE.toString())
+                        .build())
+                .tenantId(geminiTenant.getTenantID())
+                .build();
+        return openStackVip;
+    }
+
+    public static GeminiVip getAsGeminiVip(Vip vip,GeminiTenant geminiTenant){
+        GeminiVip geminiVip = new GeminiVip();
+        geminiVip.setCloudID(vip.getId());
+        geminiVip.setName(vip.getName());
+        geminiVip.setProtocol(Protocol.fromString(vip.getProtocol()));
+        geminiVip.setProtocolPort(vip.getProtocolPort());
+        geminiVip.setSessionPersistence(vip.getSessionPersistence());
+        geminiVip.setTenantId(vip.getTenantId());
+        geminiVip.setAdminState(vip.isAdminStateUp()?AdminState.ADMIN_UP : AdminState.ADMIN_DOWN);
+        return geminiVip;
+    }
+
+    public static VipUpdate getVipUpdate(GeminiVip geminiVip){
+        VipUpdate update = Builders.vipUpdate()
+                .adminStateUp(geminiVip.getAdminState() == AdminState.ADMIN_UP)
+                .connectionLimit(geminiVip.getConnectionLimit())
+                .description(geminiVip.getDescription())
+                .name(geminiVip.getName())
+                .poolId(geminiVip.getGeminiLoadBalancerPool().getCloudID())
+                .sessionPersistence(geminiVip.getSessionPersistence())
+                .build();
+        return update;
     }
 
 }
