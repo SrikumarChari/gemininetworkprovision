@@ -221,7 +221,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     public ProvisioningProviderResponseType createLBPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool geminiLoadBalancerPool) {
         OSClient os = getOSClient(tenant);
         LbPool lbPool = os.networking().loadbalancers().lbPool().create(GeminiLBUtils.createLBPool(geminiLoadBalancerPool,tenant));
-        return getResponseType(lbPool,tenant,env,"created");
+        return getResponseType(lbPool,tenant,env,"LB Pool created");
     }
 
     @Override
@@ -328,7 +328,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     public ProvisioningProviderResponseType getResponseType(Object object,GeminiTenant tenant, GeminiEnvironment env
                                             ,String operation){
         if (object == null) {
-            Logger.error("Failed to {} {}, failure in Cloud provider. Tenant: {} Environment: {} Network: {}",operation,object.getClass().getName(),
+            Logger.error("Failed to {}, failure in Cloud provider. Tenant: {} Environment: {} Network: {}",operation,
                     tenant.getName(), env.getName(),
                     ToStringBuilder.reflectionToString(object, ToStringStyle.MULTI_LINE_STYLE));
             return ProvisioningProviderResponseType.CLOUD_FAILURE;
