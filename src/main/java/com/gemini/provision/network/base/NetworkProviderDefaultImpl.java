@@ -99,12 +99,6 @@ public class NetworkProviderDefaultImpl implements NetworkProvider {
     }
 
     @Override
-    public List<GeminiNetworkRouter> getAllRouters(GeminiTenant tenant) {
-        Logger.error("Incorrect usage: Network Provisioning provider has not been");
-        throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public List<GeminiNetworkRouter> getEnvRouters(GeminiTenant tenant, GeminiEnvironment env) {
         Logger.error("Incorrect usage: Network Provisioning provider has not been");
         throw new UnsupportedOperationException("Incorrect usage: Network Provisioning provider has not been"); //To change body of generated methods, choose Tools | Templates.

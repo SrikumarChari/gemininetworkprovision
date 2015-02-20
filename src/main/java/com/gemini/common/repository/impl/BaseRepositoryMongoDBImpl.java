@@ -7,6 +7,7 @@ package com.gemini.common.repository.impl;
 
 import com.gemini.common.repository.BaseRepository;
 import com.gemini.common.repository.Entity;
+import com.gemini.properties.GeminiProperties;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.mongodb.MongoClient;
@@ -30,8 +31,8 @@ public class BaseRepositoryMongoDBImpl<T extends Entity, String>
 
     @Inject
     public BaseRepositoryMongoDBImpl(MongoClient mongoClient, Morphia morphia,
-            @Assisted("dbName") String dbName, @Assisted("classType") Class<T> type) {
-        super(type, mongoClient, morphia, (java.lang.String) dbName);
+            GeminiProperties properties, @Assisted Class<T> type) {
+        super(type, mongoClient, morphia, properties.getProperties().getProperty("DATABASE_NAME"));
         this.type = type;
 
         //map the class to the database

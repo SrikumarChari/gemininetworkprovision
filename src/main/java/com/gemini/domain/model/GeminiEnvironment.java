@@ -24,9 +24,12 @@ public class GeminiEnvironment extends EntityMongoDB {
     //rackspace, openstack, etc.
     private String name;
     private GeminiEnvironmentType type;
-    
+    private String adminUserName;
+    private String adminPassword;
+    private String endPoint;
+
     @Reference
-    private List<GeminiNetwork> gateways = Collections.synchronizedList(new ArrayList());;
+    private List<GeminiNetwork> gateways = Collections.synchronizedList(new ArrayList());
 
     @Embedded
     private List<GeminiApplication> applications = Collections.synchronizedList(new ArrayList());
@@ -34,16 +37,12 @@ public class GeminiEnvironment extends EntityMongoDB {
     @Reference
     private List<GeminiNetwork> orphanNetworks = new ArrayList();
 
-//
-//    @Reference
-//    private List<GeminiServer> servers = new ArrayList();
-
     @Reference
     private List<GeminiSecurityGroup> securityGroups = Collections.synchronizedList(new ArrayList());
-    
+
     @Reference
     private List<GeminiServerImage> serverImages = Collections.synchronizedList(new ArrayList());
-    
+
     @Reference
     private List<GeminiServerType> serverTypes = Collections.synchronizedList(new ArrayList());
 
@@ -84,6 +83,30 @@ public class GeminiEnvironment extends EntityMongoDB {
         this.name = name;
     }
 
+    public String getAdminUserName() {
+        return adminUserName;
+    }
+
+    public void setAdminUserName(String adminUserName) {
+        this.adminUserName = adminUserName;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
+    }
+
+    public String getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(String endPoint) {
+        this.endPoint = endPoint;
+    }
+
     public List<GeminiNetwork> getGateways() {
         return gateways;
     }
@@ -99,7 +122,7 @@ public class GeminiEnvironment extends EntityMongoDB {
             return false;
         }
     }
-    
+
     public boolean deleteGateway(GeminiNetwork gateway) {
         return gateways.removeIf(g -> g.getName().equals(gateway.getName()));
     }
@@ -171,15 +194,15 @@ public class GeminiEnvironment extends EntityMongoDB {
     public void setRouters(List<GeminiNetworkRouter> routers) {
         this.routers = routers;
     }
-    
-    public boolean addRouter (GeminiNetworkRouter router) {
+
+    public boolean addRouter(GeminiNetworkRouter router) {
         if (routers.stream().filter(r -> r.getName().equals(router.getName())).count() == 0) {
             return routers.add(router);
         } else {
             return false;
         }
     }
-    
+
     public boolean deleteRouter(GeminiNetworkRouter router) {
         return routers.removeIf(r -> r.getName().equals(router.getName()));
     }
@@ -191,15 +214,15 @@ public class GeminiEnvironment extends EntityMongoDB {
     public void setSecurityGroups(List<GeminiSecurityGroup> securityGroups) {
         this.securityGroups = securityGroups;
     }
-    
-    public boolean addSecurityGroup (GeminiSecurityGroup secGroup) {
+
+    public boolean addSecurityGroup(GeminiSecurityGroup secGroup) {
         if (securityGroups.stream().noneMatch(r -> r.getName().equals(secGroup.getName()))) {
             return securityGroups.add(secGroup);
         } else {
             return false;
         }
     }
-    
+
     public boolean deleteSecurityGroup(GeminiSecurityGroup secGroup) {
         return securityGroups.removeIf(r -> r.getName().equals(secGroup.getName()));
     }
@@ -211,7 +234,7 @@ public class GeminiEnvironment extends EntityMongoDB {
     public void setServerImages(List<GeminiServerImage> serverImages) {
         this.serverImages = serverImages;
     }
-    
+
     public boolean addServerImage(GeminiServerImage serverImage) {
         if (serverImages.stream().noneMatch(s -> s.getName().equals(serverImage.getName()))) {
             return serverImages.add(serverImage);
@@ -219,7 +242,7 @@ public class GeminiEnvironment extends EntityMongoDB {
             return false;
         }
     }
-    
+
     public boolean deleteServerImage(GeminiServerImage serverImage) {
         return serverImages.removeIf(s -> s.getName().equals(serverImage.getName()));
     }
@@ -239,7 +262,7 @@ public class GeminiEnvironment extends EntityMongoDB {
             return false;
         }
     }
-    
+
     public boolean deleteServerType(GeminiServerType serverType) {
         return serverTypes.removeIf(s -> s.getName().equals(serverType.getName()));
     }

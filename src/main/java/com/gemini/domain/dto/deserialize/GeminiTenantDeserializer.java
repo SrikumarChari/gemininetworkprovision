@@ -30,46 +30,39 @@ public class GeminiTenantDeserializer implements JsonDeserializer<GeminiTenantDT
             JsonDeserializationContext context) throws JsonParseException {
         GeminiTenantDTO newTenant = new GeminiTenantDTO();
 
-        //assumes there may 1-n tenants - this works even if there is ony one tenant
-        JsonArray tenantArray = json.getAsJsonObject().get("tenant").getAsJsonArray();
-        for (JsonElement t : tenantArray) {
-            try {
-                newTenant.setName(t.getAsJsonObject().get("name").getAsString());
-            } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-                Logger.error("Malformed JSON - no tenant name specified");
-            }
+        try {
+            newTenant.setName(json.getAsJsonObject().get("name").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - no tenant name specified");
+        }
 
-            try {
-                newTenant.setAdminUserName(t.getAsJsonObject().get("adminUserName").getAsString());
-                newTenant.setAdminPassword(t.getAsJsonObject().get("adminPassword").getAsString());
-                newTenant.setEndPoint(t.getAsJsonObject().get("endPoint").getAsString());
-                newTenant.setDomainName(t.getAsJsonObject().get("domainName").getAsString());
-            } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-                Logger.error("Malformed JSON - no adminUserName, adminPassword, endpoint for tenant {}", newTenant.getName());
-            }
+        try {
+            newTenant.setDomainName(json.getAsJsonObject().get("domainName").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - no domain name for tenant {}", newTenant.getName());
+        }
 
-            //now the users
-            try {
-                JsonArray userArray = t.getAsJsonObject().get("users").getAsJsonArray();
-                for (JsonElement u : userArray) {
-                    newTenant.addUser(new Gson().fromJson(u, GeminiTenantUserDTO.class));
-                }
-            } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
-                Logger.debug("No users for tenant {}", newTenant.getName());
+        //now the users
+        try {
+            JsonArray userArray = json.getAsJsonObject().get("users").getAsJsonArray();
+            for (JsonElement u : userArray) {
+                newTenant.addUser(new Gson().fromJson(u, GeminiTenantUserDTO.class));
             }
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
+            Logger.debug("No users for tenant {}", newTenant.getName());
+        }
 
-            //now the environments
-            try {
-                JsonArray envArray = t.getAsJsonObject().get("environments").getAsJsonArray();
-                Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(GeminiEnvironmentDTO.class, new GeminiEnvironmentDeserializer())
-                        .create();
-                for (JsonElement e : envArray) {
-                    newTenant.addEnvironment(gson.fromJson(e, GeminiEnvironmentDTO.class));
-                }
-            } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
-                Logger.debug("No environments for tenant: {}", newTenant.getName());
+        //now the environments
+        try {
+            JsonArray envArray = json.getAsJsonObject().get("environments").getAsJsonArray();
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(GeminiEnvironmentDTO.class, new GeminiEnvironmentDeserializer())
+                    .create();
+            for (JsonElement e : envArray) {
+                newTenant.addEnvironment(gson.fromJson(e, GeminiEnvironmentDTO.class));
             }
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException npe) {
+            Logger.debug("No environments for tenant: {}", newTenant.getName());
         }
         return newTenant;
     }

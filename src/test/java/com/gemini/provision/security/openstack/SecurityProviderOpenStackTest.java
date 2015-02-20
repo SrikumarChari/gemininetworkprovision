@@ -74,16 +74,16 @@ public class SecurityProviderOpenStackTest {
         //for now all the sample values are hard-coded
         //TODO: Convert it such that it reads from YAML
         //setup the tenant
-        tenant.setAdminUserName("sri");
         tenant.setName("Gemini-network-prj");
-        tenant.setAdminPassword("srikumar12");
-        tenant.setEndPoint("http://198.11.209.34:5000/v2.0");
         tenant.setDomainName("");
         tenant.setTenantID("6be32222eddb483e8d45d2c56d4bf2df");
 
         //setup the environment
         env.setName("Test Project");
         env.setType(GeminiEnvironmentType.OPENSTACK);
+        env.setAdminUserName("sri");
+        env.setAdminPassword("srikumar12");
+        env.setEndPoint("http://198.11.209.34:5000/v2.0");
         tenant.addEnvironment(env);
 
         //setup the application

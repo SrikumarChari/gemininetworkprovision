@@ -9,6 +9,7 @@ import com.gemini.common.repository.BaseRepository;
 import com.gemini.common.repository.BaseRepositoryFactory;
 import com.gemini.properties.GeminiProperties;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  *
@@ -18,19 +19,21 @@ public class BaseRepositoryFactoryImpl implements BaseRepositoryFactory {
 
     private final GeminiMongoClientProvider mongoClientProvider;
     private final GeminiMorphiaProvider morphiaProvider;
+    private final Provider<GeminiProperties> propertiesProvider;
 
     @Inject
     public BaseRepositoryFactoryImpl(GeminiMongoClientProvider mongoClientProvider,
-            GeminiMorphiaProvider morphiaProvider) {
+            GeminiMorphiaProvider morphiaProvider, Provider<GeminiProperties> propertiesProvider) {
         this.mongoClientProvider = mongoClientProvider;
         this.morphiaProvider = morphiaProvider;
+        this.propertiesProvider = propertiesProvider;
     }
 
     @Override
-    public BaseRepository create(String dbName, Class<?> tableType) {
+    public BaseRepository create(Class<?> tableType) {
         return new BaseRepositoryMongoDBImpl(mongoClientProvider.get(),
                 morphiaProvider.get(),
-                dbName,
+                propertiesProvider.get(),
                 tableType);
     }
 }

@@ -17,11 +17,13 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 
     private String name;
     private String type;
+    private String adminUserName;
+    private String adminPassword;
+    private String endPoint;
+
     private List<GeminiNetworkDTO> gateways = Collections.synchronizedList(new ArrayList());
 
     private List<GeminiApplicationDTO> applications = Collections.synchronizedList(new ArrayList());
-//    private List<GeminiNetworkDTO> networks = Collections.synchronizedList(new ArrayList());
-//    private List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());
     private List<GeminiNetworkRouterDTO> routers = Collections.synchronizedList(new ArrayList());
     private List<GeminiSecurityGroupDTO> securityGroups = Collections.synchronizedList(new ArrayList());
     private List<GeminiNetworkDTO> orphanNetworks = Collections.synchronizedList(new ArrayList());
@@ -40,6 +42,30 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAdminUserName() {
+        return adminUserName;
+    }
+
+    public void setAdminUserName(String adminUserName) {
+        this.adminUserName = adminUserName;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
+    }
+
+    public String getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(String endPoint) {
+        this.endPoint = endPoint;
     }
 
     public List<GeminiApplicationDTO> getApplications() {
@@ -77,7 +103,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
             return false;
         }
     }
-    
+
     public boolean deleteGateway(GeminiNetworkDTO gateway) {
         return gateways.removeIf(g -> g.getName().equals(gateway.getName()));
     }
@@ -155,7 +181,7 @@ public class GeminiEnvironmentDTO extends GeminiBaseDTO {
     public void setOrphanNetworks(List<GeminiNetworkDTO> orphanNetworks) {
         this.orphanNetworks = orphanNetworks;
     }
-    
+
     public boolean addOrphanNetwork(GeminiNetworkDTO orphanNetwork) {
         if (orphanNetworks.stream().noneMatch(r -> r.getName().equals(orphanNetwork.getName()))) {
             return orphanNetworks.add(orphanNetwork);

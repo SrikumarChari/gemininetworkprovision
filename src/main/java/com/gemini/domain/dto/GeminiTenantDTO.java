@@ -16,9 +16,6 @@ import java.util.List;
 public class GeminiTenantDTO extends GeminiBaseDTO {
 
     private String name;
-    private String adminUserName;
-    private String adminPassword;
-    private String endPoint;
     private String domainName;
 
     private List<GeminiTenantUserDTO> users = Collections.synchronizedList(new ArrayList());
@@ -31,30 +28,6 @@ public class GeminiTenantDTO extends GeminiBaseDTO {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getAdminUserName() {
-        return adminUserName;
-    }
-
-    public void setAdminUserName(String adminUserName) {
-        this.adminUserName = adminUserName;
-    }
-
-    public String getAdminPassword() {
-        return adminPassword;
-    }
-
-    public void setAdminPassword(String adminPassword) {
-        this.adminPassword = adminPassword;
-    }
-
-    public String getEndPoint() {
-        return endPoint;
-    }
-
-    public void setEndPoint(String endPoint) {
-        this.endPoint = endPoint;
     }
 
     public String getDomainName() {

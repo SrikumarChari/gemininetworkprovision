@@ -54,8 +54,8 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -107,7 +107,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public ProvisioningProviderResponseType createVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Vip vip = GeminiLBUtils.getOpenStackVip(lb,tenant);
         Vip resultVip = os.networking().loadbalancers().vip().create(vip);
         return getResponseType(resultVip,tenant,env,"Virtual IP create");
@@ -115,7 +115,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public GeminiVip getVIP(GeminiTenant tenant, GeminiEnvironment env, String vipID) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Vip vip = os.networking().loadbalancers().vip().get(vipID);
         //check if the subnet id is already in application
         GeminiSubnet geminiSubnet = env.getSubnets().stream().filter(subnet -> subnet.getCloudID().equals(vip.getSubnetId())).findFirst().get();
@@ -136,14 +136,14 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public ProvisioningProviderResponseType updateVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip geminiVip) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Vip vipUpdate = os.networking().loadbalancers().vip().update(geminiVip.getCloudID(),GeminiLBUtils.getVipUpdate(geminiVip));
         return getResponseType(vipUpdate,tenant,env,"Virtual IP update");
     }
 
     @Override
     public ProvisioningProviderResponseType deleteVIP(GeminiTenant tenant, GeminiEnvironment env, GeminiVip lb) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         ActionResponse actionResponse = os.networking().loadbalancers().vip().delete(lb.getCloudID());
         return getResponseType(actionResponse,lb,tenant,env,"Deleted");
     }
@@ -151,7 +151,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
     @Override
     public List<GeminiLoadBalancerHealthMonitor> listAllHealthMonitors(GeminiTenant tenant, GeminiEnvironment env) {
         List<GeminiLoadBalancerHealthMonitor> gHealthMonitors = new ArrayList<>();
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         List<? extends HealthMonitor> healthMonitors = os.networking().loadbalancers().healthMonitor().list();
         healthMonitors.stream().filter(healthMonitor -> healthMonitor != null).forEach(
                 healthMonitor -> {
@@ -164,28 +164,28 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public GeminiLoadBalancerHealthMonitor getHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, String lb) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         HealthMonitor healthMonitor = os.networking().loadbalancers().healthMonitor().get(lb);
         return GeminiLBUtils.getAsGeminiHealthMonitor(healthMonitor);
     }
 
     @Override
     public ProvisioningProviderResponseType createHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerHealthMonitor hm) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         HealthMonitor healthMonitor = os.networking().loadbalancers().healthMonitor().create(GeminiLBUtils.createHealthMonitor(hm,tenant));
         return getResponseType(healthMonitor,tenant,env,"created");
     }
 
     @Override
     public ProvisioningProviderResponseType updateHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerHealthMonitor hm) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         HealthMonitor healthMonitor = os.networking().loadbalancers().healthMonitor().update(hm.getCloudID(),GeminiLBUtils.healthMonitorUpdate(hm));
         return getResponseType(healthMonitor,tenant,env,"updated");
     }
 
     @Override
     public ProvisioningProviderResponseType deleteHealthMonitor(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerHealthMonitor hm) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         ActionResponse actionResponse = os.networking().loadbalancers().healthMonitor().delete(hm.getCloudID());
         return getResponseType(actionResponse,hm,tenant,env,"Deleted");
     }
@@ -196,8 +196,8 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -241,35 +241,35 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public GeminiLoadBalancerPool getPool(GeminiTenant tenant, GeminiEnvironment env, String poolID) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         LbPool lbPool = os.networking().loadbalancers().lbPool().get(poolID);
         return GeminiLBUtils.getAsGeminiLoadBalancerPool(lbPool,env);
     }
 
     @Override
     public ProvisioningProviderResponseType createLBPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool geminiLoadBalancerPool) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         LbPool lbPool = os.networking().loadbalancers().lbPool().create(GeminiLBUtils.createLBPool(geminiLoadBalancerPool,tenant));
         return getResponseType(lbPool,tenant,env,"LB Pool created");
     }
 
     @Override
     public ProvisioningProviderResponseType updateLBPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool geminiLbPool) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         LbPool lbPool = os.networking().loadbalancers().lbPool().update(geminiLbPool.getCloudID(),GeminiLBUtils.updateLBPool(geminiLbPool));
         return getResponseType(lbPool,tenant,env,"updated");
     }
 
     @Override
     public ProvisioningProviderResponseType deleteLBPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool lbPool) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         ActionResponse actionResponse = os.networking().loadbalancers().lbPool().delete(lbPool.getCloudID());
         return getResponseType(actionResponse,lbPool,tenant,env,"deleted");
     }
 
     @Override
     public ProvisioningProviderResponseType associateHealthMonitorToPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool lbPool, GeminiLoadBalancerHealthMonitor hm) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         HealthMonitorAssociate associate = Builders.lbPoolAssociateHealthMonitor().id(hm.getCloudID()).build();
         HealthMonitor result = os.networking().loadbalancers().lbPool().associateHealthMonitor(lbPool.getCloudID(), associate);
         return getResponseType(result,tenant,env,"Health monitor associated ");
@@ -277,7 +277,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public ProvisioningProviderResponseType disassociateHealthMonitorFromPool(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool lbPool, GeminiLoadBalancerHealthMonitor hm) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         ActionResponse actionResponse = os.networking().loadbalancers().lbPool()
                 .disAssociateHealthMonitor(lbPool.getCloudID(), hm.getCloudID());
         return getResponseType(actionResponse,lbPool,tenant,env,"Health monitor dissociated");
@@ -289,7 +289,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
         List<GeminiPoolMember> lbPools = Collections.synchronizedList(new ArrayList());
 
         //authenticate the session with the OpenStack installation
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}", ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
             return null;
@@ -311,7 +311,7 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public ProvisioningProviderResponseType addPoolMember(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool pool, GeminiPoolMember poolMember) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Member member = Builders.member().address(poolMember.getIpAddress())
                 .adminStateUp(poolMember.getAdminState() == AdminState.ADMIN_DOWN? false :true)
                 .poolId(poolMember.getPoolId())
@@ -325,14 +325,14 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public GeminiPoolMember getPoolMember(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool pool, String poolMemberID) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Member member = os.networking().loadbalancers().member().get(poolMemberID);
         return GeminiLBUtils.getAsGeminiPoolMember(member);
     }
 
     @Override
     public ProvisioningProviderResponseType updatePoolMember(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool pool, GeminiPoolMember poolMember) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Member updatedMember = os.networking().loadbalancers().member().update(poolMember.getCloudID(),GeminiLBUtils.updatePoolMember(poolMember));
         return getResponseType(updatedMember,tenant,env,"updated");
 
@@ -340,15 +340,16 @@ public class LoadBalancerProviderOpenStackImpl implements LoadBalancerProvider {
 
     @Override
     public ProvisioningProviderResponseType deletePoolMember(GeminiTenant tenant, GeminiEnvironment env, GeminiLoadBalancerPool pool, GeminiPoolMember poolMember) {
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         ActionResponse actionResponse = os.networking().loadbalancers().member().delete(poolMember.getCloudID());
         return getResponseType(actionResponse,poolMember,tenant,env,"deleted");
     }
 
-    public OSClient getOSClient(GeminiTenant tenant){
+    public OSClient getOSClient(GeminiTenant tenant, GeminiEnvironment env){
+        //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         return os;

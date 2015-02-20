@@ -51,8 +51,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public List<GeminiNetwork> getExternalGateways(GeminiTenant tenant, GeminiEnvironment env) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -115,8 +115,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public List<GeminiNetwork> getNetworks(GeminiTenant tenant, GeminiEnvironment env) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -206,8 +206,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public ProvisioningProviderResponseType createNetwork(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork newNetwork) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -294,11 +294,10 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
-
         if (os == null) {
             Logger.error("Failed to authenticate Tenant: {}",
                     ToStringBuilder.reflectionToString(tenant, ToStringStyle.MULTI_LINE_STYLE));
@@ -333,8 +332,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -388,8 +387,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public List<GeminiSubnet> getAllSubnets(GeminiTenant tenant, GeminiEnvironment env) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -464,8 +463,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public List<GeminiSubnet> getSubnets(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -511,8 +510,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public ProvisioningProviderResponseType createSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiNetwork parent, GeminiSubnet newSubnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -593,8 +592,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public ProvisioningProviderResponseType updateSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -659,8 +658,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public ProvisioningProviderResponseType deleteSubnet(GeminiTenant tenant, GeminiEnvironment env, GeminiSubnet subnet) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -701,11 +700,11 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
      * return all the route setup for the tenant
      */
     @Override
-    public List<GeminiNetworkRouter> getAllRouters(GeminiTenant tenant) {
+    public List<GeminiNetworkRouter> getEnvRouters(GeminiTenant tenant, GeminiEnvironment env) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -759,20 +758,12 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         return routers;
     }
 
-    /*
-     * returns the routes for a given environment. 
-     */
-    @Override
-    public List<GeminiNetworkRouter> getEnvRouters(GeminiTenant tenant, GeminiEnvironment env) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     @Override
     public ProvisioningProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter newRouter) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -826,8 +817,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public ProvisioningProviderResponseType updateRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter routerToBeUpdated) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -870,8 +861,8 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         //authenticate the session with the OpenStack installation
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -901,7 +892,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     }
 
     public GeminiSubnet getSubnet(GeminiTenant tenant, GeminiEnvironment env,String subnetId){
-        OSClient os = getOSClient(tenant);
+        OSClient os = getOSClient(tenant, env);
         Subnet subnet = os.networking().subnet().get(subnetId);
         GeminiSubnet gn = new GeminiSubnet();
         gn.setName(subnet.getName());
@@ -911,10 +902,10 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         return gn;
     }
 
-    public OSClient getOSClient(GeminiTenant tenant){
+    public OSClient getOSClient(GeminiTenant tenant, GeminiEnvironment env){
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         return os;

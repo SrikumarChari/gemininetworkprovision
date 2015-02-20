@@ -8,14 +8,10 @@ package com.gemini.provision.security.openstack;
 import com.gemini.domain.common.GeminiSecurityGroupRuleDirection;
 import com.gemini.domain.common.IPAddressType;
 import com.gemini.domain.common.Protocol;
-import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiEnvironment;
-import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSecurityGroup;
 import com.gemini.domain.model.GeminiSecurityGroupRule;
 import com.gemini.domain.model.GeminiServer;
-import com.gemini.domain.model.GeminiSubnet;
-import com.gemini.domain.model.GeminiSubnetAllocationPool;
 import com.gemini.domain.model.GeminiTenant;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.security.base.SecurityProvider;
@@ -70,8 +66,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
 
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -144,8 +140,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
 
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -214,8 +210,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
 
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -281,8 +277,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType getSecurityGroup(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -364,8 +360,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType createSecurityGroup(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -439,8 +435,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType updateSecurityGroup(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -513,8 +509,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType deleteSecurityGroup(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -584,8 +580,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType getSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -643,8 +639,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType createSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -694,8 +690,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType updateSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {
@@ -742,8 +738,8 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
     public ProvisioningProviderResponseType deleteSecurityGroupRule(GeminiTenant tenant, GeminiEnvironment env, GeminiSecurityGroup securityGroup, GeminiSecurityGroupRule securityRule) {
         //authenticate the session with the OpenStack installation
         OSClient os = OSFactory.builder()
-                .endpoint(tenant.getEndPoint())
-                .credentials(tenant.getAdminUserName(), tenant.getAdminPassword())
+                .endpoint(env.getEndPoint())
+                .credentials(env.getAdminUserName(), env.getAdminPassword())
                 .tenantName(tenant.getName())
                 .authenticate();
         if (os == null) {

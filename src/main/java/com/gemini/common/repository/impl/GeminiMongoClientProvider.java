@@ -27,7 +27,7 @@ public class GeminiMongoClientProvider implements Provider<MongoClient> {
         MongoClient mongoClient = null;
 
         try {
-            mongoClient = new MongoClient(properties.getProperties().getProperty("DATABASE_NAME"));
+            mongoClient = new MongoClient(properties.getProperties().getProperty("DATABASE_HOST"));
         } catch (UnknownHostException ex) {
             Logger.error("Severe Error: Unknown database host", ex);
         }

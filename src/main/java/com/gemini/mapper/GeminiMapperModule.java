@@ -5,7 +5,11 @@
  */
 package com.gemini.mapper;
 
+import com.gemini.properties.GeminiProperties;
+import com.gemini.properties.GeminiPropertiesModule;
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,8 +25,11 @@ public class GeminiMapperModule extends AbstractModule {
     @Override
     protected void configure() {
         DozerBeanMapper mapper = new DozerBeanMapper();
+        Injector propInjector = Guice.createInjector(new GeminiPropertiesModule());
+        GeminiProperties properties = propInjector.getInstance(GeminiProperties.class);
+
         try {
-            mapper.addMapping(new FileInputStream("C:\\Users\\Srikumar\\Documents\\NetBeansProjects\\gemininetworkprovision\\Properties\\DTOMapping.xml"));
+            mapper.addMapping(new FileInputStream(properties.getProperties().getProperty("MAPPING_FILE")));
         } catch (FileNotFoundException ex) {
             Logger.error("DTOMapping file not found!!");
         }

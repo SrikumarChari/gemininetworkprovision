@@ -12,5 +12,5 @@ import com.google.inject.assistedinject.Assisted;
  * @author schari
  */
 public interface BaseRepositoryFactory {
-    public BaseRepository create(@Assisted("dbName") String dbName, @Assisted("classType")Class<?> tableType);
+    public BaseRepository create(Class<?> tableType);
 }

@@ -47,7 +47,6 @@ public interface NetworkProvider {
     //each route will require a gateway - this is stored in the GeminiEnvironment
     //each router also requires a 1 to n host routes. This assumes that the GeminiSubnet will represent
     //the host route.
-    public List<GeminiNetworkRouter> getAllRouters(GeminiTenant tenant);
     public List<GeminiNetworkRouter> getEnvRouters(GeminiTenant tenant, GeminiEnvironment env);
     public ProvisioningProviderResponseType createRouter(GeminiTenant tenant, GeminiEnvironment env, GeminiNetworkRouter route);
     public List<ProvisioningProviderResponseType> bulkCreateRouter(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetworkRouter> routes);

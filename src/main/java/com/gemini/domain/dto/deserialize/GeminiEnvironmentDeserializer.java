@@ -57,6 +57,15 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
             Logger.error("Malformed JSON - no type for environment {}", newEnv.getName());
         }
 
+        try {
+            newEnv.setAdminUserName(json.getAsJsonObject().get("adminUserName").getAsString());
+            newEnv.setAdminPassword(json.getAsJsonObject().get("adminPassword").getAsString());
+            newEnv.setEndPoint(json.getAsJsonObject().get("endPoint").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            //TODO: SHOULD WE JUST RETURN AN ERROR AT THIS POINT?
+            Logger.error("Malformed JSON - no admin user name/password/endpointw for environment {}", newEnv.getName());
+        }
+
         //the security groups
         try {
             JsonArray secGrpArray = json.getAsJsonObject().get("securityGroups").getAsJsonArray();
@@ -141,7 +150,7 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
                                     .get();
                         } catch (NoSuchElementException exx) {
                             //can't do much ... just log and move on.
-                            Logger.debug("Malformed JSON - router {} refers to subnet not defined for environment {}", 
+                            Logger.debug("Malformed JSON - router {} refers to subnet not defined for environment {}",
                                     newRouter.getName(), newEnv.getName());
                         }
                     }
