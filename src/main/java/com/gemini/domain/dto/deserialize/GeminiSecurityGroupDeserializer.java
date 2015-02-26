@@ -31,10 +31,15 @@ public class GeminiSecurityGroupDeserializer implements JsonDeserializer<GeminiS
         //first the name and description
         try {
             newSecGroup.setName(json.getAsJsonObject().get("name").getAsString());
-            newSecGroup.setName(json.getAsJsonObject().get("cloudID").getAsString());
             newSecGroup.setDescription(json.getAsJsonObject().get("description").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - invalid security group object, no name or description provided");
+        }
+
+        try {
+            newSecGroup.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no cloud id for security group {}", newSecGroup.getName());
         }
 
         //now the list of security group rules

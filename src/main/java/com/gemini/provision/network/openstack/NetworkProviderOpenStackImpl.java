@@ -258,9 +258,9 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                         .tenantId(tenant.getTenantID())
                         .gateway(InetAddresses.toAddrString(gs.getGateway()))
                         .enableDHCP(gs.isEnableDHCP())
-                        .ipVersion(gs.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
+                        .ipVersion(gs.getNetworkType() == IPAddressType.IPv6 ? IPVersionType.V6 : IPVersionType.V4)
                         .name(gs.getName())
-                        .networkId(gs.getCloudID())
+                        .networkId(newNetwork.getCloudID())
                         .cidr(gs.getCidr())
                         .build());
                 gs.setGateway(InetAddresses.forString(subnet.getGateway()));
@@ -285,7 +285,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
     public List<ProvisioningProviderResponseType> bulkCreateNetwork(GeminiTenant tenant, GeminiEnvironment env, List<GeminiNetwork> networks) {
         List<ProvisioningProviderResponseType> retValues = Collections.synchronizedList(new ArrayList());
         //TODO: Only the first element is set ... NEED to research whether it is possible to get the current position from the stream
-        networks.stream().forEach(n -> retValues.set(0, createNetwork(tenant, env, n)));
+        networks.stream().forEach(n -> createNetwork(tenant, env, n));
         return retValues;
     }
 
@@ -436,7 +436,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                 }
             }
             gn.setEnableDHCP(s.isDHCPEnabled());
-            gn.setNetworkType(s.getIpVersion() == IPVersionType.V4 ? IPAddressType.IPv4 : IPAddressType.IPv6);
+            gn.setNetworkType(s.getIpVersion() == IPVersionType.V6 ? IPAddressType.IPv6 : IPAddressType.IPv4);
             //s.getHostRoutes();
             s.getAllocationPools().stream().forEach(ap -> {
                 GeminiSubnetAllocationPool gsap = new GeminiSubnetAllocationPool(InetAddresses.forString(ap.getStart()), InetAddresses.forString(ap.getEnd()));
@@ -544,7 +544,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .tenantId(tenant.getTenantID())
                     .gateway(InetAddresses.toAddrString(newSubnet.getGateway()))
                     .enableDHCP(newSubnet.isEnableDHCP())
-                    .ipVersion(newSubnet.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
+                    .ipVersion(newSubnet.getNetworkType() == IPAddressType.IPv6 ? IPVersionType.V6 : IPVersionType.V4)
                     .name(newSubnet.getName())
                     .networkId(parent.getCloudID())
                     .cidr(newSubnet.getCidr())
@@ -554,12 +554,6 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
             Logger.error("Cloud exception: failed to create subnet. status code {} tenant: {} env: {} parent network: {} subnet {} ",
                     ex.getStatusCode(), tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
             return ProvisioningProviderResponseType.CLOUD_EXCEPTION;
-        }
-
-        if (subnet == null) {
-            Logger.error("Failed to create subnet, Cloud provider failure tenant: {} env: {} parent network: {} subnet {} ",
-                    tenant.getName(), env.getName(), parent.getName(), newSubnet.getName());
-            return ProvisioningProviderResponseType.CLOUD_FAILURE;
         }
 
         //add the list of subnets (this will be an update the subnet just created)
@@ -621,7 +615,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
                     .gateway(InetAddresses.toAddrString(subnet.getGateway()))
                     .networkId(subnet.getParent().getCloudID())
                     .enableDHCP(subnet.isEnableDHCP())
-                    .ipVersion(subnet.getNetworkType() == IPAddressType.IPv4 ? IPVersionType.V4 : IPVersionType.V6)
+                    .ipVersion(subnet.getNetworkType() == IPAddressType.IPv6? IPVersionType.V6 : IPVersionType.V4)
                     .build());
             subnet.setGateway(InetAddresses.forString(updatedSubnet.getGateway()));
         } catch (ClientResponseException ex) {
@@ -891,6 +885,7 @@ public class NetworkProviderOpenStackImpl implements NetworkProvider {
         }
     }
 
+    @Override
     public GeminiSubnet getSubnet(GeminiTenant tenant, GeminiEnvironment env,String subnetId){
         OSClient os = getOSClient(tenant, env);
         Subnet subnet = os.networking().subnet().get(subnetId);

@@ -28,10 +28,10 @@ public class GeminiSubnetDeserializer implements JsonDeserializer<GeminiSubnetDT
     @Override
     public GeminiSubnetDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         GeminiSubnetDTO newSubnet = new GeminiSubnetDTO();
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(GeminiSubnetAllocationPoolDTO.class, new GeminiSubnetAllocationPoolDeserializer())
-                    .registerTypeAdapter(GeminiNetworkDTO.class, new GeminiNetworkDeserializer())
-                    .create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiSubnetAllocationPoolDTO.class, new GeminiSubnetAllocationPoolDeserializer())
+                .registerTypeAdapter(GeminiNetworkDTO.class, new GeminiNetworkDeserializer())
+                .create();
 
         try {
             newSubnet.setName(json.getAsJsonObject().get("name").getAsString());
@@ -41,11 +41,16 @@ public class GeminiSubnetDeserializer implements JsonDeserializer<GeminiSubnetDT
 
         try {
             newSubnet.setCidr(json.getAsJsonObject().get("cidr").getAsString());
-            newSubnet.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
             //ignore the parent, it will be set when the network is deserialized
             String parent = json.getAsJsonObject().get("parent").getAsString();
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - no cidr for subnet {}", newSubnet.getName());
+        }
+
+        try {
+            newSubnet.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no cloud id for subnet {}", newSubnet.getName());
         }
 
         try {

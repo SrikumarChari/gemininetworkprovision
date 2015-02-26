@@ -165,10 +165,10 @@ public class GeminiNetworkProvisionMainIT {
         //load the YAML file
         Yaml yaml = new Yaml();
         InputStream input;
-        Map<String, Object> json = new HashMap<>();
+        Object json = null;
         try {
             input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_NETWORK_CREATE_FILE")));
-            json = (Map<String, Object>) yaml.load(input);
+            json = yaml.load(input);
             input.close();
         } catch (FileNotFoundException ex) {
             Logger.error("Unable to open test create network YAML file Exception: {}", ex);
@@ -176,25 +176,18 @@ public class GeminiNetworkProvisionMainIT {
         } catch (IOException ex) {
             Logger.error("Unable to read test YAML file Exception: {}", ex);
             fail("Unable to read test YAML file.");
-        } finally {
-            try {
-                sendMsgChannel.close();
-                sendMsgConnection.close();
-            } catch (IOException ex) {
-                Logger.error("Unable to close the connection to messaging system. Exception: {}", ex);
-                fail("Unable to close the connection to messaging system.");
-            }
         }
 
         //convert the YAML to json
         Gson gs = new Gson();
         try {
-            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), "network.create", null, gs.toJson(json).getBytes());
+            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), 
+                    properties.getProperties().getProperty("NETWORK_TASK_CREATE"),
+                    null, gs.toJson(json).getBytes());
         } catch (IOException ex) {
             Logger.error("Unable to send a message to the messaging system. Exception: {}", ex);
             fail("Unable to send a message to the messaging system.");
         }
-        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
 
         //now receive the message and act on it
         QueueingConsumer.Delivery delivery = null;
@@ -221,9 +214,11 @@ public class GeminiNetworkProvisionMainIT {
                 continue;
             }
             String jsonBody = new String(delivery.getBody());
+            System.out.println(" [x] received '" + jsonBody);
 
             if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_CREATE"))) {
-                GeminiNetworkProvisionMain.createNetwork(jsonBody);
+                String returnJson = GeminiNetworkProvisionMain.createNetwork(jsonBody);
+                System.out.printf("Json from Create test \n %s\n", returnJson);
             }
 
             try {
@@ -232,168 +227,377 @@ public class GeminiNetworkProvisionMainIT {
                 //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
                 Logger.error("Could not ack message. Exception: {}", ex);
             }
+            
             //we need to just process one message for the test
             break;
         }
     }
 
-    @Test
-    public void testUpdateNetwork() {
-        System.out.println("testUpdateNetwork");
-
-        //first send the message
-        //load the YAML file
-        Yaml yaml = new Yaml();
-        InputStream input;
-        Map<String, Object> json = new HashMap<>();
-        try {
-            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_NETWORK_UPDATE_FILE")));
-            json = (Map<String, Object>) yaml.load(input);
-            input.close();
-        } catch (FileNotFoundException ex) {
-            Logger.error("Unable to open test update network YAML file Exception: {}", ex);
-            fail("Unable to open test YAML file.");
-        } catch (IOException ex) {
-            Logger.error("Unable to read test update network YAML file Exception: {}", ex);
-            fail("Unable to read test YAML file.");
-        } finally {
-            try {
-                sendMsgChannel.close();
-                sendMsgConnection.close();
-            } catch (IOException ex) {
-                Logger.error("Unable to close the connection to messaging system. Exception: {}", ex);
-                fail("Unable to close the connection to messaging system.");
-            }
-        }
-
-        //convert the YAML to json
-        Gson gs = new Gson();
-        try {
-            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), "network.update", null, gs.toJson(json).getBytes());
-        } catch (IOException ex) {
-            Logger.error("Unable to send a message to the messaging system. Exception: {}", ex);
-            fail("Unable to send a message to the messaging system.");
-        }
-        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
-
-        //now receive the message and act on it
-        QueueingConsumer.Delivery delivery = null;
-        while (true) {
-            try {
-                delivery = recvNetMsgconsumer.nextDelivery();
-            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
-                Logger.error("Could not get message from queue. Exception: {}", ex);
-
-                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
-                continue;
-            }
-
-            String routingKey = delivery.getEnvelope().getRoutingKey();
-            if (!routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE"))) {
-                try {
-                    //return the message to queue, we want this unit test to only process the create test case
-                    //the update and delete messages may already be in the queue
-                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), true, true);
-                } catch (IOException ex) {
-                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
-                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
-                }
-                continue;
-            }
-            String jsonBody = new String(delivery.getBody());
-
-            if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE"))) {
-                GeminiNetworkProvisionMain.updateNetwork(jsonBody);
-            }
-
-            try {
-                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-            } catch (IOException ex) {
-                Logger.error("Could not ack message. Exception: {}", ex);
-                fail("Could not ack message.");
-            }
-            //we need to just process one message for the test
-            break;
-        }
-    }
-
-    @Test
-    public void testDeleteNetwork() {
-        System.out.println("testDeleteNetwork");
-
-        //first send the message
-        //load the YAML file
-        Yaml yaml = new Yaml();
-        InputStream input;
-        Map<String, Object> json = new HashMap<>();
-        try {
-            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_NETWORK_DELETE_FILE")));
-            json = (Map<String, Object>) yaml.load(input);
-            input.close();
-        } catch (FileNotFoundException ex) {
-            Logger.error("Unable to open test delete network YAML file Exception: {}", ex);
-            fail("Unable to open test delete network YAML file.");
-        } catch (IOException ex) {
-            Logger.error("Unable to read test delete network YAML file Exception: {}", ex);
-            fail("Unable to read test delete network YAML file.");
-        } finally {
-            try {
-                sendMsgChannel.close();
-                sendMsgConnection.close();
-            } catch (IOException ex) {
-                Logger.error("Unable to close the connection to messaging system. Exception: {}", ex);
-                fail("Unable to close the connection to messaging system.");
-            }
-        }
-
-        //convert the YAML to json
-        Gson gs = new Gson();
-        try {
-            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), "network.delete", null, gs.toJson(json).getBytes());
-        } catch (IOException ex) {
-            Logger.error("Unable to send a delete network message to the messaging system. Exception: {}", ex);
-            fail("Unable to send a delete network message to the messaging system.");
-        }
-        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
-
-        //now receive the message and act on it
-        QueueingConsumer.Delivery delivery = null;
-        while (true) {
-            try {
-                delivery = recvNetMsgconsumer.nextDelivery();
-            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
-                Logger.error("Could not get message from queue. Exception: {}", ex);
-
-                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
-                continue;
-            }
-
-            String routingKey = delivery.getEnvelope().getRoutingKey();
-            if (!routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_DELETE"))) {
-                try {
-                    //return the message to queue, we want this unit test to only process the create test case
-                    //the update and delete messages may already be in the queue
-                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), false, true);
-                } catch (IOException ex) {
-                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
-                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
-                }
-                continue;
-            }
-            String jsonBody = new String(delivery.getBody());
-
-            if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_DELETE"))) {
-                GeminiNetworkProvisionMain.deleteNetwork(jsonBody);
-            }
-
-            try {
-                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-            } catch (IOException ex) {
-                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
-                Logger.error("Could not ack message. Exception: {}", ex);
-            }
-            //we need to just process one message for the test
-            break;
-        }
-    }
+//    @Test
+//    public void testUpdateNetwork() {
+//        System.out.println("testUpdateNetwork");
+//
+//        //first send the message
+//        //load the YAML file
+//        Yaml yaml = new Yaml();
+//        InputStream input;
+//        Map<String, Object> json = new HashMap<>();
+//        try {
+//            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_NETWORK_UPDATE_FILE")));
+//            json = (Map<String, Object>) yaml.load(input);
+//            input.close();
+//        } catch (FileNotFoundException ex) {
+//            Logger.error("Unable to open test update network YAML file Exception: {}", ex);
+//            fail("Unable to open test YAML file.");
+//        } catch (IOException ex) {
+//            Logger.error("Unable to read test update network YAML file Exception: {}", ex);
+//            fail("Unable to read test YAML file.");
+//        }
+//
+//        //convert the YAML to json
+//        Gson gs = new Gson();
+//        try {
+//            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"),
+//                    properties.getProperties().getProperty("NETWORK_TASK_UPDATE"),
+//                    null, gs.toJson(json).getBytes());
+//        } catch (IOException ex) {
+//            Logger.error("Unable to send a message to the messaging system. Exception: {}", ex);
+//            fail("Unable to send a message to the messaging system.");
+//        }
+//        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
+//
+//        //now receive the message and act on it
+//        QueueingConsumer.Delivery delivery = null;
+//        while (true) {
+//            try {
+//                delivery = recvNetMsgconsumer.nextDelivery();
+//            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+//                Logger.error("Could not get message from queue. Exception: {}", ex);
+//
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                continue;
+//            }
+//
+//            String routingKey = delivery.getEnvelope().getRoutingKey();
+//            if (!routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE"))) {
+//                try {
+//                    //return the message to queue, we want this unit test to only process the create test case
+//                    //the update and delete messages may already be in the queue
+//                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), true, true);
+//                } catch (IOException ex) {
+//                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
+//                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
+//                }
+//                continue;
+//            }
+//            String jsonBody = new String(delivery.getBody());
+//
+//            if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE"))) {
+//                GeminiNetworkProvisionMain.updateNetwork(jsonBody);
+//            }
+//
+//            try {
+//                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+//            } catch (IOException ex) {
+//                Logger.error("Could not ack message. Exception: {}", ex);
+//                fail("Could not ack message.");
+//            }
+//            //we need to just process one message for the test
+//            break;
+//        }
+//    }
+//
+//    @Test
+//    public void testDeleteNetwork() {
+//        System.out.println("testDeleteNetwork");
+//
+//        //first send the message
+//        //load the YAML file
+//        Yaml yaml = new Yaml();
+//        InputStream input;
+//        Map<String, Object> json = new HashMap<>();
+//        try {
+//            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_NETWORK_DELETE_FILE")));
+//            json = (Map<String, Object>) yaml.load(input);
+//            input.close();
+//        } catch (FileNotFoundException ex) {
+//            Logger.error("Unable to open test delete network YAML file Exception: {}", ex);
+//            fail("Unable to open test delete network YAML file.");
+//        } catch (IOException ex) {
+//            Logger.error("Unable to read test delete network YAML file Exception: {}", ex);
+//            fail("Unable to read test delete network YAML file.");
+//        }
+//
+//        //convert the YAML to json
+//        Gson gs = new Gson();
+//        try {
+//            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), 
+//                    properties.getProperties().getProperty("NETWORK_TASK_DELETE"),
+//                    null, gs.toJson(json).getBytes());
+//        } catch (IOException ex) {
+//            Logger.error("Unable to send a delete network message to the messaging system. Exception: {}", ex);
+//            fail("Unable to send a delete network message to the messaging system.");
+//        }
+//        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
+//
+//        //now receive the message and act on it
+//        QueueingConsumer.Delivery delivery = null;
+//        while (true) {
+//            try {
+//                delivery = recvNetMsgconsumer.nextDelivery();
+//            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+//                Logger.error("Could not get message from queue. Exception: {}", ex);
+//
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                continue;
+//            }
+//
+//            String routingKey = delivery.getEnvelope().getRoutingKey();
+//            if (!routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_DELETE"))) {
+//                try {
+//                    //return the message to queue, we want this unit test to only process the create test case
+//                    //the update and delete messages may already be in the queue
+//                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), false, true);
+//                } catch (IOException ex) {
+//                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
+//                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
+//                }
+//                continue;
+//            }
+//            String jsonBody = new String(delivery.getBody());
+//
+//            if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_DELETE"))) {
+//                GeminiNetworkProvisionMain.deleteNetwork(jsonBody);
+//            }
+//
+//            try {
+//                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+//            } catch (IOException ex) {
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                Logger.error("Could not ack message. Exception: {}", ex);
+//            }
+//            //we need to just process one message for the test
+//            break;
+//        }
+//    }
+//
+//    @Test
+//    public void testCreateSubnet() {
+//        System.out.println("testCreateSubnet");
+//
+//        //first send the message
+//        //load the YAML file
+//        Yaml yaml = new Yaml();
+//        InputStream input;
+//        Map<String, Object> json = new HashMap<>();
+//        try {
+//            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_SUBNET_CREATE_FILE")));
+//            json = (Map<String, Object>) yaml.load(input);
+//            input.close();
+//        } catch (FileNotFoundException ex) {
+//            Logger.error("Unable to open test create subnet YAML file Exception: {}", ex);
+//            fail("Unable to open test create subnet YAML file.");
+//        } catch (IOException ex) {
+//            Logger.error("Unable to read test YAML file Exception: {}", ex);
+//            fail("Unable to read test YAML file.");
+//        }
+//
+//        //convert the YAML to json
+//        Gson gs = new Gson();
+//        try {
+//            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), 
+//                    properties.getProperties().getProperty("SUBNET_TASK_CREATE"), 
+//                    null, gs.toJson(json).getBytes());
+//        } catch (IOException ex) {
+//            Logger.error("Unable to send a message to the messaging system. Exception: {}", ex);
+//            fail("Unable to send a message to the messaging system.");
+//        }
+//        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
+//
+//        //now receive the message and act on it
+//        QueueingConsumer.Delivery delivery = null;
+//        while (true) {
+//            try {
+//                delivery = recvNetMsgconsumer.nextDelivery();
+//            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+//                Logger.error("Could not get message from queue. Exception: {}", ex);
+//
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                continue;
+//            }
+//
+//            String routingKey = delivery.getEnvelope().getRoutingKey();
+//            if (!routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_CREATE"))) {
+//                try {
+//                    //return the message to queue, we want this unit test to only process the create test case
+//                    //the update and delete messages may already be in the queue
+//                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), true, true);
+//                } catch (IOException ex) {
+//                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
+//                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
+//                }
+//                continue;
+//            }
+//            String jsonBody = new String(delivery.getBody());
+//
+//            if (routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_CREATE"))) {
+//                GeminiNetworkProvisionMain.createSubnet(jsonBody);
+//            }
+//
+//            try {
+//                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+//            } catch (IOException ex) {
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                Logger.error("Could not ack message. Exception: {}", ex);
+//            }
+//            //we need to just process one message for the test
+//            break;
+//        }
+//    }
+//
+//    @Test
+//    public void testUpdateSubnet() {
+//        System.out.println("testUpdateSubnet");
+//
+//        //first send the message
+//        //load the YAML file
+//        Yaml yaml = new Yaml();
+//        InputStream input;
+//        Map<String, Object> json = new HashMap<>();
+//        try {
+//            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_SUBNET_UPDATE_FILE")));
+//            json = (Map<String, Object>) yaml.load(input);
+//            input.close();
+//        } catch (FileNotFoundException ex) {
+//            Logger.error("Unable to open test update subnet YAML file Exception: {}", ex);
+//            fail("Unable to open test update subnet YAML file.");
+//        } catch (IOException ex) {
+//            Logger.error("Unable to read test YAML file Exception: {}", ex);
+//            fail("Unable to read test YAML file.");
+//        }
+//
+//        //convert the YAML to json
+//        Gson gs = new Gson();
+//        try {
+//            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), 
+//                    properties.getProperties().getProperty("SUBNET_TASK_UPDATE"), 
+//                    null, gs.toJson(json).getBytes());
+//        } catch (IOException ex) {
+//            Logger.error("Unable to send a message to the messaging system. Exception: {}", ex);
+//            fail("Unable to send a message to the messaging system.");
+//        }
+//        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
+//
+//        //now receive the message and act on it
+//        QueueingConsumer.Delivery delivery = null;
+//        while (true) {
+//            try {
+//                delivery = recvNetMsgconsumer.nextDelivery();
+//            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+//                Logger.error("Could not get message from queue. Exception: {}", ex);
+//
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                continue;
+//            }
+//
+//            String routingKey = delivery.getEnvelope().getRoutingKey();
+//            if (!routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_UPDATE"))) {
+//                try {
+//                    //return the message to queue, we want this unit test to only process the create test case
+//                    //the update and delete messages may already be in the queue
+//                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), true, true);
+//                } catch (IOException ex) {
+//                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
+//                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
+//                }
+//                continue;
+//            }
+//            String jsonBody = new String(delivery.getBody());
+//
+//            if (routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_UPDATE"))) {
+//                GeminiNetworkProvisionMain.updateSubnet(jsonBody);
+//            }
+//
+//            try {
+//                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+//            } catch (IOException ex) {
+//                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
+//                Logger.error("Could not ack message. Exception: {}", ex);
+//            }
+//            //we need to just process one message for the test
+//            break;
+//        }
+//    }
+//
+//    @Test
+//    public void testDeleteSubnet() {
+//        System.out.println("testDeleteSubnet");
+//
+//        //first send the message
+//        //load the YAML file
+//        Yaml yaml = new Yaml();
+//        InputStream input;
+//        Map<String, Object> json = new HashMap<>();
+//        try {
+//            input = new FileInputStream(new File(properties.getProperties().getProperty("TEST_SUBNET_DELETE_FILE")));
+//            json = (Map<String, Object>) yaml.load(input);
+//            input.close();
+//        } catch (FileNotFoundException ex) {
+//            Logger.error("Unable to open test delete subnet YAML file Exception: {}", ex);
+//            fail("Unable to open test update delete YAML file.");
+//        } catch (IOException ex) {
+//            Logger.error("Unable to read test YAML file Exception: {}", ex);
+//            fail("Unable to read test YAML file.");
+//        }
+//
+//        //convert the YAML to json
+//        Gson gs = new Gson();
+//        try {
+//            sendMsgChannel.basicPublish(properties.getProperties().getProperty("EXCHANGE_NAME"), 
+//                    properties.getProperties().getProperty("SUBNET_TASK_DELETE"), 
+//                    null, gs.toJson(json).getBytes());
+//        } catch (IOException ex) {
+//            Logger.error("Unable to send a message to the messaging system. Exception: {}", ex);
+//            fail("Unable to send a message to the messaging system.");
+//        }
+//        System.out.println(" [x] Sent '" + gs.toJson(json) + "'");
+//
+//        //now receive the message and act on it
+//        QueueingConsumer.Delivery delivery = null;
+//        while (true) {
+//            try {
+//                delivery = recvNetMsgconsumer.nextDelivery();
+//            } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+//                Logger.error("Could not get message from queue. Exception: {}", ex);
+//                continue;
+//            }
+//
+//            String routingKey = delivery.getEnvelope().getRoutingKey();
+//            if (!routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_DELETE"))) {
+//                try {
+//                    //return the message to queue, we want this unit test to only process the create test case
+//                    //the update and delete messages may already be in the queue
+//                    recvNetMsgChannel.basicNack(delivery.getEnvelope().getDeliveryTag(), true, true);
+//                } catch (IOException ex) {
+//                    Logger.error("Could not return the message back to queue... routing key {} delivery tag {} Exception: {}",
+//                            routingKey, delivery.getEnvelope().getDeliveryTag(), ex);
+//                }
+//                continue;
+//            }
+//            String jsonBody = new String(delivery.getBody());
+//
+//            if (routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_DELETE"))) {
+//                GeminiNetworkProvisionMain.updateSubnet(jsonBody);
+//            }
+//
+//            try {
+//                recvNetMsgChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+//            } catch (IOException ex) {
+//                //TODO: DO WE NEED TO PUT THE MESSAGE BACK IN THE QUEUE?
+//                Logger.error("Could not ack message. Exception: {}", ex);
+//            }
+//            //we need to just process one message for the test
+//            break;
+//        }
+//    }
 }

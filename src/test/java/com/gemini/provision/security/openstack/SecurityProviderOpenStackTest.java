@@ -257,17 +257,17 @@ public class SecurityProviderOpenStackTest {
         provisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
 
         //delete the security groups and rules if they exist from a previous JUnit runs        
-        List<GeminiSecurityGroup> listGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env);
+        List<GeminiSecurityGroup> listGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env);
         listGrps.stream()
                 .filter(sg -> !sg.getName().equals("default"))
                 .forEach(sg -> {
-                    List<GeminiSecurityGroupRule> lstRules = provisioningService.getSecurityProvisioningService().listSecurityGroupRules(tenant, env, sg);
+                    List<GeminiSecurityGroupRule> lstRules = provisioningService.getProvider().listSecurityGroupRules(tenant, env, sg);
                     lstRules.stream().forEach(sgr -> {
-                        provisioningService.getSecurityProvisioningService().deleteSecurityGroupRule(tenant, env, sg, sgr);
+                        provisioningService.getProvider().deleteSecurityGroupRule(tenant, env, sg, sgr);
                     });
-                    provisioningService.getSecurityProvisioningService().deleteSecurityGroup(tenant, env, sg);
+                    provisioningService.getProvider().deleteSecurityGroup(tenant, env, sg);
                 });
-        listGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env);
+        listGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env);
         assert(listGrps.size() == 1); //only the default rule should exist
     }
 
@@ -286,7 +286,7 @@ public class SecurityProviderOpenStackTest {
     @Test
     public void getSecurityGroups() {
         System.out.println("Get Security Groups test");
-        List<GeminiSecurityGroup> secGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env);
+        List<GeminiSecurityGroup> secGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env);
         //env.setSecurityGroups(secGrps);
         System.out.printf("Security Groups for Tenant: %s and Environment: %s\n", tenant.getName(), env.getName());
         secGrps.stream().forEach(s -> System.out.println(s.toString()));
@@ -298,16 +298,16 @@ public class SecurityProviderOpenStackTest {
         System.out.println("Create Security Group test");
 
         //get the number of groups
-        int numGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env).size();
+        int numGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env).size();
         System.out.printf("Number of security groups before create: %d\n", numGrps);
 
         //create the security group
-        ProvisioningProviderResponseType result = provisioningService.getSecurityProvisioningService().createSecurityGroup(tenant, env,
+        ProvisioningProviderResponseType result = provisioningService.getProvider().createSecurityGroup(tenant, env,
                 env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp1.getName())).findFirst().get());
         assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         //get the new number of groups and check it is more than one
-        int newNumGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env).size();
+        int newNumGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env).size();
         System.out.printf("Number of security groups before create: %d\n", newNumGrps);
         assert (numGrps == newNumGrps - 1);
 
@@ -323,7 +323,7 @@ public class SecurityProviderOpenStackTest {
         //first create a new security group
             GeminiSecurityGroup tmpGrp = env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp2.getName())).findFirst().get();
         
-        ProvisioningProviderResponseType result = provisioningService.getSecurityProvisioningService().createSecurityGroup(tenant, env, tmpGrp);
+        ProvisioningProviderResponseType result = provisioningService.getProvider().createSecurityGroup(tenant, env, tmpGrp);
         assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         if (tmpGrp.isProvisioned()) {
@@ -331,13 +331,13 @@ public class SecurityProviderOpenStackTest {
             System.out.printf("Security Group before name change: %s\n", tmpGrp);
             String oldName = tmpGrp.getName();
             tmpGrp.setName("Name changed for testing");
-            result = provisioningService.getSecurityProvisioningService().updateSecurityGroup(tenant, env, tmpGrp);
+            result = provisioningService.getProvider().updateSecurityGroup(tenant, env, tmpGrp);
             assert (result == ProvisioningProviderResponseType.SUCCESS);
             System.out.printf("Security Group after name change: %s\n", tmpGrp);
 
             //now change the name back to what it was
             tmpGrp.setName(oldName);
-            result = provisioningService.getSecurityProvisioningService().updateSecurityGroup(tenant, env, tmpGrp);
+            result = provisioningService.getProvider().updateSecurityGroup(tenant, env, tmpGrp);
             assert (result == ProvisioningProviderResponseType.SUCCESS);
             System.out.println(env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp2.getName())).findFirst().get());
         }
@@ -351,18 +351,18 @@ public class SecurityProviderOpenStackTest {
         GeminiSecurityGroup tmpGrp = env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp3.getName())).findFirst().get();
         ProvisioningProviderResponseType result = ProvisioningProviderResponseType.CLOUD_FAILURE;
         if (!tmpGrp.isProvisioned()) {
-            result = provisioningService.getSecurityProvisioningService().createSecurityGroup(tenant, env, tmpGrp);
+            result = provisioningService.getProvider().createSecurityGroup(tenant, env, tmpGrp);
         }
 
         if (result == ProvisioningProviderResponseType.SUCCESS) {
-            List<GeminiSecurityGroup> lstGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env);
+            List<GeminiSecurityGroup> lstGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env);
             int numGrps = lstGrps.size();
             System.out.printf("Number of security groups before delete: %d\nSecurity Groups:\n", numGrps);
             lstGrps.stream().forEach(s -> System.out.println(s));
-            result = provisioningService.getSecurityProvisioningService().deleteSecurityGroup(tenant, env, tmpGrp);
+            result = provisioningService.getProvider().deleteSecurityGroup(tenant, env, tmpGrp);
             assert (result == ProvisioningProviderResponseType.SUCCESS);
 
-            lstGrps = provisioningService.getSecurityProvisioningService().listAllSecurityGroups(tenant, env);
+            lstGrps = provisioningService.getProvider().listAllSecurityGroups(tenant, env);
             int newNumGrps = lstGrps.size();
             assert (numGrps == newNumGrps + 1);
             System.out.printf("Number of security groups after delete: %d\nSecurity Groups:\n", newNumGrps);
@@ -378,12 +378,12 @@ public class SecurityProviderOpenStackTest {
         //first create the security group
         //create the security group
         GeminiSecurityGroup tmpGroup = env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp5.getName())).findFirst().get();
-        ProvisioningProviderResponseType result = provisioningService.getSecurityProvisioningService().createSecurityGroup(tenant, env, tmpGroup);
+        ProvisioningProviderResponseType result = provisioningService.getProvider().createSecurityGroup(tenant, env, tmpGroup);
         assert (result == ProvisioningProviderResponseType.SUCCESS);
 
         //now add the security group rule to group5
         tmpGroup.addSecurityRule(secGrp5Rule1);
-        result = provisioningService.getSecurityProvisioningService().createSecurityGroupRule(tenant, env, tmpGroup, secGrp5Rule1);
+        result = provisioningService.getProvider().createSecurityGroupRule(tenant, env, tmpGroup, secGrp5Rule1);
         assert (result == ProvisioningProviderResponseType.SUCCESS);
         System.out.printf("Successfully created security rule %s for Security Group %s\n",
                 secGrp5Rule1.getCloudID(), tmpGroup);
@@ -397,19 +397,19 @@ public class SecurityProviderOpenStackTest {
         //first create the security group
         //create the security group
         GeminiSecurityGroup tmpGroup = env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp5.getName())).findFirst().get();
-        ProvisioningProviderResponseType result = provisioningService.getSecurityProvisioningService().createSecurityGroup(tenant, env, tmpGroup);
+        ProvisioningProviderResponseType result = provisioningService.getProvider().createSecurityGroup(tenant, env, tmpGroup);
         //don't assert here... chances are the group 5 may have already been created
 
         //now add the security group rule to group5
         tmpGroup.addSecurityRule(secGrp5Rule2);
-        result = provisioningService.getSecurityProvisioningService().createSecurityGroupRule(tenant, env, tmpGroup, secGrp5Rule2);
+        result = provisioningService.getProvider().createSecurityGroupRule(tenant, env, tmpGroup, secGrp5Rule2);
         assert (result == ProvisioningProviderResponseType.SUCCESS);
         System.out.printf("Update rule test - successfully created security rule %s for Security Group %s\n", secGrp5Rule1.getCloudID(), tmpGroup.getName());
 
         //now change the security rule
         String oldIpPrefix = secGrp5Rule2.getRemoteIpPrefix();
         secGrp5Rule2.setRemoteIpPrefix("10.10.10.0/24");
-        result = provisioningService.getSecurityProvisioningService().updateSecurityGroupRule(tenant, env,
+        result = provisioningService.getProvider().updateSecurityGroupRule(tenant, env,
                 env.getSecurityGroups()
                 .stream()
                 .filter(sg -> sg.getName().equals(secGrp5.getName()))
@@ -447,7 +447,7 @@ public class SecurityProviderOpenStackTest {
         if (tmpRule != null) {
             if (!tmpRule.isProvisioned()) {
                 //the rule is not provisioned yet...
-                ProvisioningProviderResponseType result = provisioningService.getSecurityProvisioningService().createSecurityGroupRule(tenant, env,
+                ProvisioningProviderResponseType result = provisioningService.getProvider().createSecurityGroupRule(tenant, env,
                         env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp5.getName())).findFirst().get(),
                         secGrp5Rule1);
                 if (result != ProvisioningProviderResponseType.SUCCESS) {
@@ -456,7 +456,7 @@ public class SecurityProviderOpenStackTest {
             }
 
             //print the number of rules before deletion
-            List<GeminiSecurityGroupRule> rules = provisioningService.getSecurityProvisioningService().listSecurityGroupRules(tenant, env,
+            List<GeminiSecurityGroupRule> rules = provisioningService.getProvider().listSecurityGroupRules(tenant, env,
                     env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp5.getName())).findFirst().get());
             int numBeforeDelete = rules.size();
             System.out.printf("Number of rules for Security Group: %s is %d before deletion",
@@ -464,13 +464,13 @@ public class SecurityProviderOpenStackTest {
                     numBeforeDelete);
 
             //now delete it
-            ProvisioningProviderResponseType result = provisioningService.getSecurityProvisioningService().deleteSecurityGroupRule(tenant, env,
+            ProvisioningProviderResponseType result = provisioningService.getProvider().deleteSecurityGroupRule(tenant, env,
                     env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp5.getName())).findFirst().get(),
                     secGrp5Rule1);
             assert (result == ProvisioningProviderResponseType.SUCCESS);
 
             //once again get the rules and see if it was successfully deleted
-            rules = provisioningService.getSecurityProvisioningService().listSecurityGroupRules(tenant, env,
+            rules = provisioningService.getProvider().listSecurityGroupRules(tenant, env,
                     env.getSecurityGroups().stream().filter(sg -> sg.getName().equals(secGrp5.getName())).findFirst().get());
             int numRulesAfterDelete = rules.size();
             assert (numBeforeDelete == numRulesAfterDelete + 1);

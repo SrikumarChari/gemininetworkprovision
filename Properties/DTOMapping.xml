@@ -45,7 +45,7 @@
     <mapping>
         <class-a>com.gemini.domain.model.GeminiSubnet</class-a>
         <class-b>com.gemini.domain.dto.GeminiSubnetDTO</class-b>
-        <field>
+        <field custom-converter="com.gemini.mapper.IPAddressCustomConverter">            
             <a>gateway</a>
             <b>gateway</b>
         </field>

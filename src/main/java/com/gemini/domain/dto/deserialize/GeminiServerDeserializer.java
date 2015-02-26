@@ -39,7 +39,6 @@ public class GeminiServerDeserializer implements JsonDeserializer<GeminiServerDT
 
         //now the rest of native variables
         try {
-            newServer.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
             newServer.setDescription(json.getAsJsonObject().get("description").getAsString());
             newServer.setDateCreated(json.getAsJsonObject().get("dateCreated").getAsString());
             newServer.setAddress(json.getAsJsonObject().get("address").getAsString());
@@ -52,6 +51,13 @@ public class GeminiServerDeserializer implements JsonDeserializer<GeminiServerDT
             newServer.setPassword(json.getAsJsonObject().get("password").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - invalid server object {}", newServer.getName());
+        }
+
+        
+        try {
+            newServer.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no cloud id for server {}", newServer.getName());
         }
 
         Gson gson = new GsonBuilder()

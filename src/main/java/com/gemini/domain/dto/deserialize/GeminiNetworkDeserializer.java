@@ -30,12 +30,17 @@ public class GeminiNetworkDeserializer implements JsonDeserializer<GeminiNetwork
 
         try {
             network.setName(json.getAsJsonObject().get("name").getAsString());
-            network.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
             network.setDescription(json.getAsJsonObject().get("description").getAsString());
             network.setNetworkType(json.getAsJsonObject().get("networkType").getAsString());
             network.setProvisioned(json.getAsJsonObject().get("provisioned").getAsBoolean());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - network deserializer no name, networkType or provisioned fields");
+        }
+
+        try {
+            network.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no cloud id for network {}", network.getName());
         }
 
         //now the subnets

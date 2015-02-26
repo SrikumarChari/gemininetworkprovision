@@ -787,6 +787,6 @@ public class SecurityProviderOpenStackImpl implements SecurityProvider {
         Logger.error("detachIpRange feature not supported in OpenStack. Use deleteSecurityGroupRule instead. "
                 + "Tenant: {} Env: {} security group {}",
                 tenant.getName(), env.getName(), securityGroup.getName());
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("detachIpRange feature not supported in OpenStack. Use deleteSecurityGroupRule instead. "); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -13,7 +13,7 @@ import com.google.inject.Inject;
  */
 public class SecurityProvisioningService {
 
-    public SecurityProvider getSecurityProvisioningService() {
+    public SecurityProvider getProvider() {
         return securityProvisioningService;
     }
 

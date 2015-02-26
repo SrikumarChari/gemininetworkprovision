@@ -3,21 +3,23 @@ package com.gemini.provision.network.main;
 import com.gemini.common.repository.BaseRepository;
 import com.gemini.common.repository.BaseRepositoryFactory;
 import com.gemini.common.repository.GeminiDatabaseModule;
-import com.gemini.domain.dto.GeminiNetworkDTO;
 import com.gemini.domain.dto.GeminiTenantDTO;
-import com.gemini.domain.dto.deserialize.GeminiNetworkDeserializer;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
 import com.gemini.domain.model.GeminiApplication;
-import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
+import com.gemini.domain.model.GeminiSecurityGroup;
+import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.model.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;
 import com.gemini.mapper.GeminiMapperModule;
 import com.gemini.properties.GeminiProperties;
 import com.gemini.properties.GeminiPropertiesModule;
 import com.gemini.provision.base.ProvisioningProviderResponseType;
+import com.gemini.provision.loadbalancer.base.LoadBalancerProvisioningService;
 import com.gemini.provision.network.base.NetworkProviderModule;
 import com.gemini.provision.network.base.NetworkProvisioningService;
+import com.gemini.provision.security.base.SecurityProviderModule;
+import com.gemini.provision.security.base.SecurityProvisioningService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
@@ -48,7 +50,10 @@ import org.pmw.tinylog.Logger;
  */
 public class GeminiNetworkProvisionMain {
 
-    static NetworkProvisioningService provisioningService;
+    static NetworkProvisioningService netProvisioningService;
+    static SecurityProvisioningService secProvisioningService;
+    static LoadBalancerProvisioningService lbProvisioningService;
+
     static GeminiMapper mapper;
 
     public static void main(String[] args) {
@@ -57,8 +62,7 @@ public class GeminiNetworkProvisionMain {
         //action if it is otherwise
         Injector propInjector = Guice.createInjector(new GeminiPropertiesModule());
         GeminiProperties properties = propInjector.getInstance(GeminiProperties.class);
-        String loggingLevel = properties.getProperties().getProperty("LOGGING_LEVEL");
-        if (loggingLevel.equals("DEBUG")) {
+        if (properties.getProperties().getProperty("LOGGING_LEVEL").equals("DEBUG")) {
             Configurator.defaultConfig().level(Level.DEBUG).activate();
         }
 
@@ -144,28 +148,29 @@ public class GeminiNetworkProvisionMain {
         List<GeminiNetwork> listNetworks = baseRepo.list();
     }
 
-    public static void createNetwork(String jsonBody) {
+    public static String createNetwork(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
         Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
-        GeminiEnvironment env = tenant.getEnvironments().get(0);
-
-        //create the provisioning service 
-        Injector provisioningInjector = Guice.createInjector(
-                new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
-        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
         //get the network(s) to be created
-        List<GeminiNetwork> listNetworks = tenant.getEnvironments().stream()
-                .map(GeminiEnvironment::getApplications)
-                .flatMap(List::stream)
-                .map(GeminiApplication::getNetworks)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
-        provisioningService.getProvider().bulkCreateNetwork(tenant, env, listNetworks);
+            List<GeminiNetwork> listNetworks = e.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+
+            netProvisioningService.getProvider().bulkCreateNetwork(tenant, e, listNetworks);
+        });
+        return gson.toJson(tenant);
     }
 
     public static void updateNetwork(String jsonBody) {
@@ -174,22 +179,20 @@ public class GeminiNetworkProvisionMain {
         Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
-        GeminiEnvironment env = tenant.getEnvironments().get(0); //only the first one matters.
 
-        //create the provisioning service 
-        Injector provisioningInjector = Guice.createInjector(
-                new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
-        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+        //update the network(s) 
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
-        List<ProvisioningProviderResponseType> retVals = new ArrayList();
-
-        //get the network(s) to be created
-        tenant.getEnvironments().stream()
-                .map(GeminiEnvironment::getApplications)
-                .flatMap(List::stream)
-                .map(GeminiApplication::getNetworks)
-                .flatMap(List::stream)
-                .forEach(n -> provisioningService.getProvider().updateNetwork(tenant, env, n));
+            e.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .forEach(n -> netProvisioningService.getProvider().updateNetwork(tenant, e, n));
+        });
     }
 
     public static void deleteNetwork(String jsonBody) {
@@ -198,21 +201,273 @@ public class GeminiNetworkProvisionMain {
         Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
-        GeminiEnvironment env = tenant.getEnvironments().get(0); //only the first one matters.
-
-        //create the provisioning service 
-        Injector provisioningInjector = Guice.createInjector(
-                new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
-        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
 
         List<ProvisioningProviderResponseType> retVals = new ArrayList();
 
+        //update the network(s) 
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+            e.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .forEach(n -> netProvisioningService.getProvider().deleteNetwork(tenant, e, n));
+        });
+    }
+
+    public static void createSubnet(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
         //get the network(s) to be created
-        tenant.getEnvironments().stream()
-                .map(GeminiEnvironment::getApplications)
-                .flatMap(List::stream)
-                .map(GeminiApplication::getNetworks)
-                .flatMap(List::stream)
-                .forEach(n -> provisioningService.getProvider().deleteNetwork(tenant, env, n));
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+            e.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .forEach(n -> netProvisioningService.getProvider().bulkCreateSubnet(tenant, e, n, n.getSubnets()));
+        });
+    }
+
+    public static void updateSubnet(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+            e.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .map(GeminiNetwork::getSubnets)
+                    .flatMap(List::stream)
+                    .forEach(s -> netProvisioningService.getProvider().updateSubnet(tenant, e, s));
+        });
+    }
+
+    public static void deleteSubnet(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+            e.getApplications().stream()
+                    .map(GeminiApplication::getNetworks)
+                    .flatMap(List::stream)
+                    .map(GeminiNetwork::getSubnets)
+                    .flatMap(List::stream)
+                    .forEach(s -> netProvisioningService.getProvider().deleteSubnet(tenant, e, s));
+        });
+    }
+
+    public static void createRouter(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+            netProvisioningService.getProvider().bulkCreateRouter(tenant, e, e.getRouters());
+        });
+    }
+
+    public static void updateRouter(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+            e.getRouters().stream().forEach(r -> netProvisioningService.getProvider().updateRouter(tenant, e, r));
+        });
+    }
+
+    public static void deleteRouter(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service - could be different environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(new NetworkProviderModule(e.getType()));
+            netProvisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+            e.getRouters().stream().forEach(r -> netProvisioningService.getProvider().deleteRouter(tenant, e, r));
+        });
+    }
+
+    public static void createSecurityGroup(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service, it could be different types of environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new SecurityProviderModule(e.getType()));
+            secProvisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
+
+            e.getSecurityGroups().stream()
+                    .forEach(sg -> secProvisioningService.getProvider().createSecurityGroup(tenant, e, sg));
+        });
+    }
+
+    public static void updateSecurityGroup(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service, it could be different types of environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new SecurityProviderModule(e.getType()));
+            secProvisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
+
+            e.getSecurityGroups().stream()
+                    .forEach(sg -> secProvisioningService.getProvider().updateSecurityGroup(tenant, e, sg));
+        });
+    }
+
+    public static void deleteSecurityGroup(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service, it could be different types of environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new SecurityProviderModule(e.getType()));
+            secProvisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
+
+            e.getSecurityGroups().stream()
+                    .forEach(sg -> secProvisioningService.getProvider().deleteSecurityGroup(tenant, e, sg));
+        });
+    }
+
+    public static void createSecurityGroupRule(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service, it could be different types of environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new SecurityProviderModule(e.getType()));
+            secProvisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
+
+            e.getSecurityGroups()
+                    .stream()
+                    .map(GeminiSecurityGroup::getSecurityRules)
+                    .flatMap(List::stream)
+                    .forEach(sgr -> secProvisioningService.getProvider().createSecurityGroupRule(tenant, e, sgr.getParent(), sgr));
+        });
+    }
+
+    public static void updateSecurityGroupRule(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service, it could be different types of environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new SecurityProviderModule(e.getType()));
+            secProvisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
+
+            e.getSecurityGroups()
+                    .stream()
+                    .map(GeminiSecurityGroup::getSecurityRules)
+                    .flatMap(List::stream)
+                    .forEach(sgr -> secProvisioningService.getProvider().updateSecurityGroupRule(tenant, e, sgr.getParent(), sgr));
+        });
+    }
+
+    public static void deleteSecurityGroupRule(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream().forEach(e -> {
+            //create the provisioning service, it could be different types of environments
+            //it shouldn't matter if it is the same because the provisioning service is a singleton
+            Injector provisioningInjector = Guice.createInjector(
+                    new SecurityProviderModule(e.getType()));
+            secProvisioningService = provisioningInjector.getInstance(SecurityProvisioningService.class);
+
+            e.getSecurityGroups()
+                    .stream()
+                    .map(GeminiSecurityGroup::getSecurityRules)
+                    .flatMap(List::stream)
+                    .forEach(sgr -> secProvisioningService.getProvider().deleteSecurityGroupRule(tenant, e, sgr.getParent(), sgr));
+        });
     }
 }
