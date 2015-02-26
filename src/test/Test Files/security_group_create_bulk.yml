@@ -1,0 +1,114 @@
+## YAML Template.
+---
+securityGroups:
+    - name: secGrp1
+      description: Allow bi-directional HTTP, HTTPS
+      rules:
+          - name: secGrp1Rule1
+            parent: secGrp1
+            direction: EGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 80
+            portRangeMax: 80
+            remoteIpPrefix: 0.0.0.0/0 
+          - name: secGrp1Rule2
+            parent: secGrp1
+            direction: INGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 80
+            portRangeMax: 80
+            remoteIpPrefix: 0.0.0.0/0 
+          - name: secGrp1Rule3
+            parent: secGrp1
+            direction: EGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 443
+            portRangeMax: 443
+            remoteIpPrefix: 0.0.0.0/0 
+          - name: secGrp1Rule4
+            parent: secGrp1
+            direction: INGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 443
+            portRangeMax: 443
+            remoteIpPrefix: 0.0.0.0/0 
+    - name: secGrp2
+      description: Allow bi-directional SSH
+      rules:
+          - name: secGrp2Rule1
+            parent: secGrp2
+            direction: INGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 22
+            portRangeMax: 22
+            remoteIpPrefix: 191.168.1.0/0 
+          - name: secGrp2Rule2
+            parent: secGrp2
+            direction: EGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 22
+            portRangeMax: 22
+            remoteIpPrefix: 191.168.1.0/0 
+    - name: secGrp3
+      description: Allow MongoDB instances to listen for connections
+      rules:
+          - name: secGrp3Rule1
+            parent: secGrp3
+            direction: EGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 27017
+            portRangeMax: 27017
+            remoteIpPrefix: 10.10.10.0/24
+          - name: secGrp3Rule2
+            parent: secGrp3
+            direction: INGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 27017
+            portRangeMax: 27017
+            remoteIpPrefix: 10.10.10.0/24 
+    - name: secGrp4
+      description: Allow Postgres instances to listen for connections and serve requests
+      rules:
+          - name: secGrp4Rule1
+            parent: secGrp4
+            direction: EGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 5432
+            portRangeMax: 5432
+            remoteIpPrefix: 10.10.10.0/24
+          - name: secGrp4Rule2
+            parent: secGrp4
+            direction: INGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 5432
+            portRangeMax: 5432
+            remoteIpPrefix: 10.10.10.0/24 
+    - name: secGrp5
+      description: Allow appPod (a python app) to talk on port 5000; only traffic from web tier will be able to talk to the servers, but they can talk to anybody
+      rule:
+          - name: secGrp5Rule1
+            parent: secGrp5
+            direction: EGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 5000
+            portRangeMax: 5000
+            remoteIpPrefix: 0.0.0.0/0
+          - name: secGrp5Rule2
+            parent: secGrp5
+            direction: INGRESS
+            ipAddressType: IPv4
+            protocol: TCP
+            portRangeMin: 5000
+            portRangeMax: 5000
+            remoteIpPrefix: 192.162.2.0/24 

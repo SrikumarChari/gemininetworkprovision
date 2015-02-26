@@ -30,6 +30,7 @@ public class GeminiNetworkDeserializer implements JsonDeserializer<GeminiNetwork
 
         try {
             network.setName(json.getAsJsonObject().get("name").getAsString());
+            network.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
             network.setDescription(json.getAsJsonObject().get("description").getAsString());
             network.setNetworkType(json.getAsJsonObject().get("networkType").getAsString());
             network.setProvisioned(json.getAsJsonObject().get("provisioned").getAsBoolean());

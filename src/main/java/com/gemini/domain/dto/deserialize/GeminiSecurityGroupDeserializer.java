@@ -31,6 +31,7 @@ public class GeminiSecurityGroupDeserializer implements JsonDeserializer<GeminiS
         //first the name and description
         try {
             newSecGroup.setName(json.getAsJsonObject().get("name").getAsString());
+            newSecGroup.setName(json.getAsJsonObject().get("cloudID").getAsString());
             newSecGroup.setDescription(json.getAsJsonObject().get("description").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - invalid security group object, no name or description provided");

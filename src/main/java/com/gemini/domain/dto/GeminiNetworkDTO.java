@@ -18,6 +18,7 @@ public class GeminiNetworkDTO {
     private String name;
     private String description;
     private String networkType;
+    private String cloudID;
 
     //is the provisioning complete
     private boolean provisioned;
@@ -47,6 +48,14 @@ public class GeminiNetworkDTO {
 
     public void setNetworkType(String networkType) {
         this.networkType = networkType;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public boolean isProvisioned() {

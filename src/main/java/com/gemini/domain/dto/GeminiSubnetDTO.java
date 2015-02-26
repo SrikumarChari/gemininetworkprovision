@@ -17,6 +17,7 @@ import java.util.Objects;
  */
 public class GeminiSubnetDTO extends GeminiBaseDTO {
     private String name; 
+    private String cloudID;
     //network string with mask
     private String cidr;
     //network gateway
@@ -124,6 +125,14 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
         hash = 59 * hash + Objects.hashCode(this.cidr);
         hash = 59 * hash + Objects.hashCode(this.gateway);
         return hash;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public String getName() {

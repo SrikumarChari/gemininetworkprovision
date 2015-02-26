@@ -37,6 +37,7 @@ public class GeminiNetworkRouterDeserializer implements JsonDeserializer<GeminiN
         //first the name
         try {
             newRouter.setName(json.getAsJsonObject().get("name").getAsString());
+            newRouter.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON: no name specified for Network router");
         }

@@ -18,6 +18,7 @@ import java.util.Map;
 public class GeminiServerDTO extends GeminiBaseDTO {
 
     private String name;
+    private String cloudID;
     private String description;
     private String dateCreated;
     private String address;
@@ -39,6 +40,14 @@ public class GeminiServerDTO extends GeminiBaseDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public String getDescription() {
@@ -157,11 +166,11 @@ public class GeminiServerDTO extends GeminiBaseDTO {
         this.image = image;
     }
 
-    public List<String> getSecGroupNames() {
+    public List<String> getSecurityGroupNames() {
         return securityGroupNames;
     }
 
-    public void setSecGroupNames(List<String> secGroups) {
+    public void setSecurityGroupNames(List<String> secGroups) {
         this.securityGroupNames = secGroups;
     }
     

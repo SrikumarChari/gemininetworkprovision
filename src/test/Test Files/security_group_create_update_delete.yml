@@ -1,0 +1,37 @@
+## YAML Template.
+---
+- name: secGrp1
+  description: Allow bi-directional HTTP, HTTPS
+  rules:
+      - name: secGrp1Rule1
+        parent: secGrp1
+        direction: EGRESS
+        ipAddressType: IPv4
+        protocol: TCP
+        portRangeMin: 80
+        portRangeMax: 80
+        remoteIpPrefix: 0.0.0.0/0 
+      - name: secGrp1Rule2
+        parent: secGrp1
+        direction: INGRESS
+        ipAddressType: IPv4
+        protocol: TCP
+        portRangeMin: 80
+        portRangeMax: 80
+        remoteIpPrefix: 0.0.0.0/0 
+      - name: secGrp1Rule3
+        parent: secGrp1
+        direction: EGRESS
+        ipAddressType: IPv4
+        protocol: TCP
+        portRangeMin: 443
+        portRangeMax: 443
+        remoteIpPrefix: 0.0.0.0/0 
+      - name: secGrp1Rule4
+        parent: secGrp1
+        direction: INGRESS
+        ipAddressType: IPv4
+        protocol: TCP
+        portRangeMin: 443
+        portRangeMax: 443
+        remoteIpPrefix: 0.0.0.0/0 

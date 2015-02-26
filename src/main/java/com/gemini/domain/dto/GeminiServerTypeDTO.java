@@ -16,6 +16,7 @@ import java.util.List;
  */
 public class GeminiServerTypeDTO {
     private String name;
+    private String cloudID;
     private Integer disk;
     private List<GeminiLink> links = Collections.synchronizedList(new ArrayList());
     private Integer ram;
@@ -27,6 +28,14 @@ public class GeminiServerTypeDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public Integer getDisk() {

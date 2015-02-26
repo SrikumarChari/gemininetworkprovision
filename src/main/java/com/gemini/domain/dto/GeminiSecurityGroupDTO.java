@@ -16,6 +16,7 @@ import java.util.List;
 public class GeminiSecurityGroupDTO {
     private String name;
     private String description;
+    private String cloudID;
     private List<GeminiSecurityGroupRuleDTO> securityRules = Collections.synchronizedList(new ArrayList());
 
     public String getName() {
@@ -32,6 +33,14 @@ public class GeminiSecurityGroupDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
    public List<GeminiSecurityGroupRuleDTO> getSecurityRules() {

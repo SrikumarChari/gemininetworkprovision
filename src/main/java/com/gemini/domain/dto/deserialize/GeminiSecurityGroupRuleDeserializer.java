@@ -27,8 +27,9 @@ class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecu
         //first the name
         try {
             newRule.setName(json.getAsJsonObject().get("name").getAsString());
+            newRule.setName(json.getAsJsonObject().get("cloudID").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid security group rule object, no name specified");
+            Logger.error("Malformed JSON - invalid security group rule object, no name or cloud ID specified");
         }
 
         //ignore the parent object, it will be set when the parent security group is being deserialized

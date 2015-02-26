@@ -1,0 +1,50 @@
+## YAML Template.
+---
+
+- name: Financial Application Network
+  description: Network work for all resources related to the financial application
+  networkType: Class C
+  provisioned: false
+  subnets:
+      - name: subnet-for-fin-db
+        parent: Financial Application Network
+        cidr: 192.162.1.0/24
+        gateway: 192.0.0.1
+        provisioned: false
+        allocationPool:
+          - start: 192.161.1.1
+            end: 192.161.1.50
+            parent: subnet-for-fin-db
+            servers:
+          - start: 191.161.1.51
+            end: 192.161.1.100
+            parent: subnet-for-fin-db
+            servers:
+      - name: subnet-for-fin-servers-15-20
+        parent: Financial Application Network
+        cidr: 192.162.2.0/24
+        gateway: 192.0.0.1
+        provisioned: false
+        allocationPool:
+          - start: 192.161.2.1
+            end: 192.161.2.50
+            parent: subnet-for-fin-servers-15-20
+            servers:
+          - start: 191.161.2.51
+            end: 192.161.2.100
+            parent: subnet-for-fin-servers-15-20
+            servers:
+      - name: subnet-for-fin-webserver
+        parent: Financial Application Network
+        cidr: 192.162.3.0/24
+        gateway: 192.0.0.1
+        provisioned: false
+        allocationPool:
+          - start: 192.161.3.1
+            end: 192.161.1.50
+            parent: subnet-for-fin-webserver
+            servers:
+          - start: 191.161.3.51
+            end: 192.161.1.100
+            parent: subnet-for-fin-webserver
+            servers:

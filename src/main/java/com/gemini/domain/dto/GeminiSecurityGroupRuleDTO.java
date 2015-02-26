@@ -11,6 +11,7 @@ package com.gemini.domain.dto;
  */
 public class GeminiSecurityGroupRuleDTO {
     private String name;
+    private String cloudID;
     private GeminiSecurityGroupDTO parent;
     private String direction;
     private String cidr;
@@ -27,6 +28,14 @@ public class GeminiSecurityGroupRuleDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public GeminiSecurityGroupDTO getParent() {

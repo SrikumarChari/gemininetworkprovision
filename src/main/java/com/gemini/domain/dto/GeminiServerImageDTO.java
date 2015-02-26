@@ -18,6 +18,7 @@ import java.util.Map;
 public class GeminiServerImageDTO {
 
     private String name;
+    private String cloudID;
     private List<GeminiLinkDTO> links = Collections.synchronizedList(new ArrayList());
     private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
     private Integer minDisk;
@@ -33,6 +34,14 @@ public class GeminiServerImageDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCloudID() {
+        return cloudID;
+    }
+
+    public void setCloudID(String cloudID) {
+        this.cloudID = cloudID;
     }
 
     public List<GeminiLinkDTO> getLinks() {

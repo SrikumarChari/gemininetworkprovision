@@ -41,6 +41,7 @@ public class GeminiSubnetDeserializer implements JsonDeserializer<GeminiSubnetDT
 
         try {
             newSubnet.setCidr(json.getAsJsonObject().get("cidr").getAsString());
+            newSubnet.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
             //ignore the parent, it will be set when the network is deserialized
             String parent = json.getAsJsonObject().get("parent").getAsString();
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {

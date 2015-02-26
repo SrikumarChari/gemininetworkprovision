@@ -7,12 +7,15 @@ import com.gemini.domain.dto.GeminiNetworkDTO;
 import com.gemini.domain.dto.GeminiTenantDTO;
 import com.gemini.domain.dto.deserialize.GeminiNetworkDeserializer;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
+import com.gemini.domain.model.GeminiApplication;
+import com.gemini.domain.model.GeminiEnvironment;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;
 import com.gemini.mapper.GeminiMapperModule;
 import com.gemini.properties.GeminiProperties;
 import com.gemini.properties.GeminiPropertiesModule;
+import com.gemini.provision.base.ProvisioningProviderResponseType;
 import com.gemini.provision.network.base.NetworkProviderModule;
 import com.gemini.provision.network.base.NetworkProvisioningService;
 import com.google.gson.Gson;
@@ -26,7 +29,9 @@ import com.rabbitmq.client.ConsumerCancelledException;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.pmw.tinylog.Configurator;
 import org.pmw.tinylog.Level;
 import org.pmw.tinylog.Logger;
@@ -101,14 +106,10 @@ public class GeminiNetworkProvisionMain {
                 String routingKey = delivery.getEnvelope().getRoutingKey();
                 String jsonBody = new String(delivery.getBody());
 
-                if (routingKey.contains(properties.getProperties().getProperty("NETWORK_TASK_CREATE_SINGLE"))) {
-                    createSingleNetwork(jsonBody);
-                } else if (routingKey.contains(properties.getProperties().getProperty("NETWORK_TASK_CREATE_BULK"))) {
-                    createBulkNetwork(jsonBody);
-                } else if (routingKey.contains(properties.getProperties().getProperty("NETWORK_TASK_UPDATE_SINGLE"))) {
+                if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_CREATE_SINGLE"))) {
+                    createNetwork(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE_SINGLE"))) {
                     updateNetwork(jsonBody);
-                } else if (routingKey.contains(properties.getProperties().getProperty("NETWORK_TASK_UPDATE_BULK"))) {
-                    updateBulkNetwork(jsonBody);
                 }
 
                 try {
@@ -118,8 +119,7 @@ public class GeminiNetworkProvisionMain {
                     Logger.error("Could not ack message. Exception: {}", ex);
                 }
             }
-        }
-        );
+        });
         networkingThread.start();
 
         //the load balancer 
@@ -139,35 +139,80 @@ public class GeminiNetworkProvisionMain {
         BaseRepositoryFactory baseRepoFactory;
 
         Injector dbInjector = Guice.createInjector(new GeminiDatabaseModule());
-        baseRepoFactory
-                = dbInjector.getInstance(BaseRepositoryFactory.class
-                );
+        baseRepoFactory = dbInjector.getInstance(BaseRepositoryFactory.class);
         BaseRepository baseRepo = baseRepoFactory.create(GeminiNetwork.class);
         List<GeminiNetwork> listNetworks = baseRepo.list();
     }
 
-    private static void createSingleNetwork(String jsonBody) {
+    public static void createNetwork(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
         Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+        GeminiEnvironment env = tenant.getEnvironments().get(0);
 
         //create the provisioning service 
         Injector provisioningInjector = Guice.createInjector(
                 new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
         provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+        //get the network(s) to be created
+        List<GeminiNetwork> listNetworks = tenant.getEnvironments().stream()
+                .map(GeminiEnvironment::getApplications)
+                .flatMap(List::stream)
+                .map(GeminiApplication::getNetworks)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        provisioningService.getProvider().bulkCreateNetwork(tenant, env, listNetworks);
     }
 
-    private static void createBulkNetwork(String jsonBody) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public static void updateNetwork(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+        GeminiEnvironment env = tenant.getEnvironments().get(0); //only the first one matters.
+
+        //create the provisioning service 
+        Injector provisioningInjector = Guice.createInjector(
+                new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
+        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+        List<ProvisioningProviderResponseType> retVals = new ArrayList();
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream()
+                .map(GeminiEnvironment::getApplications)
+                .flatMap(List::stream)
+                .map(GeminiApplication::getNetworks)
+                .flatMap(List::stream)
+                .forEach(n -> provisioningService.getProvider().updateNetwork(tenant, env, n));
     }
 
-    private static void updateNetwork(String jsonBody) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public static void deleteNetwork(String jsonBody) {
+        //create a gson object and pass the customer deserialization module for the tenant. Other custom
+        //deserializers will be passed in the respective deserialization functions
+        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
+        GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
+        GeminiEnvironment env = tenant.getEnvironments().get(0); //only the first one matters.
 
-    private static void updateBulkNetwork(String jsonBody) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //create the provisioning service 
+        Injector provisioningInjector = Guice.createInjector(
+                new NetworkProviderModule(tenant.getEnvironments().get(0).getType()));
+        provisioningService = provisioningInjector.getInstance(NetworkProvisioningService.class);
+
+        List<ProvisioningProviderResponseType> retVals = new ArrayList();
+
+        //get the network(s) to be created
+        tenant.getEnvironments().stream()
+                .map(GeminiEnvironment::getApplications)
+                .flatMap(List::stream)
+                .map(GeminiApplication::getNetworks)
+                .flatMap(List::stream)
+                .forEach(n -> provisioningService.getProvider().deleteNetwork(tenant, env, n));
     }
 }
