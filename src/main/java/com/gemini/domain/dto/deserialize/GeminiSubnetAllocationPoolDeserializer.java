@@ -26,15 +26,20 @@ public class GeminiSubnetAllocationPoolDeserializer implements JsonDeserializer<
     @Override
     public GeminiSubnetAllocationPoolDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         GeminiSubnetAllocationPoolDTO newAllocPool = new GeminiSubnetAllocationPoolDTO();
+        //ignore the parent, it will be set when the parent subnet is deserialized
 
         try {
             newAllocPool.setStart(json.getAsJsonObject().get("start").getAsString());
-            newAllocPool.setEnd(json.getAsJsonObject().get("end").getAsString());
-            //ignore the parent, it will be set when the parent subnet is deserialized
-            String parent = json.getAsJsonObject().get("parent").getAsString();
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid subnet allocation pool, no start and end");
+            Logger.error("Malformed JSON - invalid subnet allocation pool, no start specified");
         }
+
+        try {
+            newAllocPool.setEnd(json.getAsJsonObject().get("end").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid subnet allocation pool, no end specified");
+        }
+
         //now the servers
         try {
             JsonArray serverArray = json.getAsJsonObject().get("servers").getAsJsonArray();

@@ -17,8 +17,8 @@ import java.util.Map;
  */
 public class GeminiNetworkRouterDTO extends GeminiBaseDTO {
 
-    private String name;
-    private String cloudID;
+    private String name = "";
+    private String cloudID = "";
     private GeminiNetworkDTO gateway;
     private Map<String, String> routes = Collections.synchronizedMap(new HashMap<String, String>());
     private List<GeminiSubnetDTO> interfaces = Collections.synchronizedList(new ArrayList());

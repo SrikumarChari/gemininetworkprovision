@@ -15,12 +15,12 @@ import java.util.List;
  * @author Srikumar
  */
 public class GeminiServerTypeDTO {
-    private String name;
-    private String cloudID;
-    private Integer disk;
+    private String name = "";
+    private String cloudID = "";
+    private Integer disk = 0;
     private List<GeminiLink> links = Collections.synchronizedList(new ArrayList());
-    private Integer ram;
-    private Integer vcpu;
+    private Integer ram = 0;
+    private Integer vcpu = 0;
 
     public String getName() {
         return name;

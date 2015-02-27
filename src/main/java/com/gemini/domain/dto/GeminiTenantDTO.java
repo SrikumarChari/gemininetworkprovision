@@ -15,8 +15,8 @@ import java.util.List;
  */
 public class GeminiTenantDTO extends GeminiBaseDTO {
 
-    private String name;
-    private String domainName;
+    private String name = "";
+    private String domainName = "";
 
     private List<GeminiTenantUserDTO> users = Collections.synchronizedList(new ArrayList());
     private List<GeminiEnvironmentDTO> environments = Collections.synchronizedList(new ArrayList());

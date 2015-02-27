@@ -15,10 +15,10 @@ import java.util.List;
  */
 public class GeminiNetworkDTO {
     //general 
-    private String name;
-    private String description;
-    private String networkType;
-    private String cloudID;
+    private String name = "";
+    private String description = "";
+    private String networkType = "";
+    private String cloudID = "";
 
     //is the provisioning complete
     private boolean provisioned;

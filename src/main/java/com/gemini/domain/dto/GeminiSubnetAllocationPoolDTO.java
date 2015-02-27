@@ -15,8 +15,8 @@ import java.util.List;
  */
 public class GeminiSubnetAllocationPoolDTO extends GeminiBaseDTO {
 
-    private String start;
-    private String end;
+    private String start = "";
+    private String end = "";
     private GeminiSubnetDTO parent;
 
     private List<GeminiServerDTO> servers = Collections.synchronizedList(new ArrayList());

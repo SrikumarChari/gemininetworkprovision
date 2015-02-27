@@ -2,6 +2,7 @@ package com.gemini.provision.network.main;
 
 import com.gemini.domain.dto.GeminiTenantDTO;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
+import com.gemini.domain.dto.serialize.GeminiTenantSerializer;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSecurityGroup;
@@ -207,7 +208,10 @@ public class GeminiNetworkProvisionMain {
     public static String createNetwork(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -226,13 +230,18 @@ public class GeminiNetworkProvisionMain {
 
             netProvisioningService.getProvider().bulkCreateNetwork(tenant, e, listNetworks);
         });
-        return gson.toJson(tenant);
+        
+        tenantDTO = mapper.getDTOFromTenant(tenant);
+        return gson.toJson(tenantDTO);
     }
 
     public static void updateNetwork(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -254,7 +263,10 @@ public class GeminiNetworkProvisionMain {
     public static void deleteNetwork(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -278,7 +290,10 @@ public class GeminiNetworkProvisionMain {
     public static void createSubnet(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -300,7 +315,10 @@ public class GeminiNetworkProvisionMain {
     public static void updateSubnet(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -324,7 +342,10 @@ public class GeminiNetworkProvisionMain {
     public static void deleteSubnet(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -348,7 +369,10 @@ public class GeminiNetworkProvisionMain {
     public static void createRouter(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -366,7 +390,10 @@ public class GeminiNetworkProvisionMain {
     public static void updateRouter(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -384,7 +411,10 @@ public class GeminiNetworkProvisionMain {
     public static void deleteRouter(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -401,7 +431,10 @@ public class GeminiNetworkProvisionMain {
     public static void createSecurityGroup(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -421,7 +454,10 @@ public class GeminiNetworkProvisionMain {
     public static void updateSecurityGroup(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -441,7 +477,10 @@ public class GeminiNetworkProvisionMain {
     public static void deleteSecurityGroup(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -461,7 +500,10 @@ public class GeminiNetworkProvisionMain {
     public static void createSecurityGroupRule(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -484,7 +526,10 @@ public class GeminiNetworkProvisionMain {
     public static void updateSecurityGroupRule(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 
@@ -507,7 +552,10 @@ public class GeminiNetworkProvisionMain {
     public static void deleteSecurityGroupRule(String jsonBody) {
         //create a gson object and pass the customer deserialization module for the tenant. Other custom
         //deserializers will be passed in the respective deserialization functions
-        Gson gson = new GsonBuilder().registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantDeserializer())
+                .registerTypeAdapter(GeminiTenantDTO.class, new GeminiTenantSerializer())
+                .create();
         GeminiTenantDTO tenantDTO = gson.fromJson(jsonBody, GeminiTenantDTO.class);
         GeminiTenant tenant = mapper.getTenantFromDTO(tenantDTO);
 

@@ -28,9 +28,11 @@ public class GeminiSubnet extends EntityMongoDB {
     //network gateway
     private InetAddress gateway;
 
-    private IPAddressType networkType;
-    private boolean enableDHCP;
-    
+    private IPAddressType networkType = IPAddressType.IPv4;
+    private boolean enableDHCP = true;
+    private String cloudID = "";
+    boolean provisioned = false;
+
     //parent network that contains this subnet
     @Reference
     private GeminiNetwork parent;
@@ -38,9 +40,6 @@ public class GeminiSubnet extends EntityMongoDB {
     //address pool
     @Embedded
     private List<GeminiSubnetAllocationPool> allocationPools = Collections.synchronizedList(new ArrayList());
-
-    private String cloudID = "";
-    boolean provisioned = false;
 
     public GeminiNetwork getParent() {
         return parent;

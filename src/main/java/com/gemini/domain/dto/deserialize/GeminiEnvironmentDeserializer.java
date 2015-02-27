@@ -59,11 +59,23 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
 
         try {
             newEnv.setAdminUserName(json.getAsJsonObject().get("adminUserName").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            //TODO: SHOULD WE JUST RETURN AN ERROR AT THIS POINT?
+            Logger.error("Malformed JSON - no admin user name for environment {}", newEnv.getName());
+        }
+
+        try {
             newEnv.setAdminPassword(json.getAsJsonObject().get("adminPassword").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            //TODO: SHOULD WE JUST RETURN AN ERROR AT THIS POINT?
+            Logger.error("Malformed JSON - no admin user password for environment {}", newEnv.getName());
+        }
+
+        try {
             newEnv.setEndPoint(json.getAsJsonObject().get("endPoint").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             //TODO: SHOULD WE JUST RETURN AN ERROR AT THIS POINT?
-            Logger.error("Malformed JSON - no admin user name/password/endpointw for environment {}", newEnv.getName());
+            Logger.error("Malformed JSON - no admin user nendpoint for environment {}", newEnv.getName());
         }
 
         //the security groups
@@ -140,6 +152,7 @@ public class GeminiEnvironmentDeserializer implements JsonDeserializer<GeminiEnv
                                 .findAny()
                                 .get();
                     } catch (NoSuchElementException ex) {
+                        //not found in the application networks, now look in the orphan networks.
                         try {
                             foundSubnet = newEnv.getOrphanNetworks()
                                     .stream()

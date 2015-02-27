@@ -14,11 +14,11 @@ import java.util.List;
  * @author schari
  */
 public class GeminiApplicationDTO extends GeminiBaseDTO {
-    private String name;
-    private String description;
-    private String custom; //string for any custom description, URL's etc.
-    private Integer backupSize;
-    private String location; //TODO: convert to a geo coordinate 
+    private String name = "";
+    private String description = "";
+    private String custom = ""; //string for any custom description, URL's etc.
+    private Integer backupSize = 0;
+    private String location = ""; //TODO: convert to a geo coordinate 
 
     private List<GeminiNetworkDTO> networks = Collections.synchronizedList(new ArrayList());
 

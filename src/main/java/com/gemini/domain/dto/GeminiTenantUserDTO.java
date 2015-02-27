@@ -11,9 +11,9 @@ package com.gemini.domain.dto;
  */
 public class GeminiTenantUserDTO extends GeminiBaseDTO {
 
-    private String userID;
-    private String name;
-    private String preferences; //will eventually become another with granular preference values
+    private String userID = "";
+    private String name = "";
+    private String preferences = ""; //will eventually become another with granular preference values
 
     public String getUserID() {
         return userID;

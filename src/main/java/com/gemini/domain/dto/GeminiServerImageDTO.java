@@ -17,16 +17,16 @@ import java.util.Map;
  */
 public class GeminiServerImageDTO {
 
-    private String name;
-    private String cloudID;
+    private String name = "";
+    private String cloudID = "";
     private List<GeminiLinkDTO> links = Collections.synchronizedList(new ArrayList());
     private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
-    private Integer minDisk;
-    private Integer minRam;
-    private Long size;
-    private String updated;
-    private String status;
-    private Integer progress;
+    private Integer minDisk = 0;
+    private Integer minRam = 0;
+    private Long size = 0L;
+    private String updated = "";
+    private String status = "";
+    private Integer progress = 0;
 
     public String getName() {
         return name;

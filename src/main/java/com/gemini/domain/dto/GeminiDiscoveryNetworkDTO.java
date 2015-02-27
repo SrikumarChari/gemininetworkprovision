@@ -10,12 +10,12 @@ package com.gemini.domain.dto;
  * @author schari
  */
 public class GeminiDiscoveryNetworkDTO extends GeminiBaseDTO  {
-    private String discNetStart;
-    private String discNetEnd;
-    private String discNetwork;
-    private Integer discNetworkMask;
-    private String discHost;
-    private String networkType;
+    private String discNetStart = "";
+    private String discNetEnd = "";
+    private String discNetwork = "";
+    private Integer discNetworkMask = 0;
+    private String discHost = "";
+    private String networkType = "";
     private boolean discovered = false;
 
     public GeminiDiscoveryNetworkDTO () {

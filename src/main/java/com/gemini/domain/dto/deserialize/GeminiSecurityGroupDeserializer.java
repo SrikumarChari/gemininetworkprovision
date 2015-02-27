@@ -28,14 +28,19 @@ public class GeminiSecurityGroupDeserializer implements JsonDeserializer<GeminiS
     public GeminiSecurityGroupDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         GeminiSecurityGroupDTO newSecGroup = new GeminiSecurityGroupDTO();
 
-        //first the name and description
+        //first the name
         try {
             newSecGroup.setName(json.getAsJsonObject().get("name").getAsString());
-            newSecGroup.setDescription(json.getAsJsonObject().get("description").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid security group object, no name or description provided");
+            Logger.error("Malformed JSON - invalid security group object, no name provided");
         }
 
+        try {
+            newSecGroup.setDescription(json.getAsJsonObject().get("description").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("No description provided for security group {}", newSecGroup.getName());
+        }
+        
         try {
             newSecGroup.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {

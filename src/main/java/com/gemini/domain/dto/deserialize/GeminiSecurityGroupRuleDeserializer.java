@@ -18,7 +18,7 @@ import org.pmw.tinylog.Logger;
  *
  * @author Srikumar
  */
-class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecurityGroupRuleDTO> {
+public class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecurityGroupRuleDTO> {
 
     @Override
     public GeminiSecurityGroupRuleDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -40,15 +40,46 @@ class GeminiSecurityGroupRuleDeserializer implements JsonDeserializer<GeminiSecu
         //ignore the parent object, it will be set when the parent security group is being deserialized
         try {
             newRule.setDirection(json.getAsJsonObject().get("direction").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid security group rule object, no direction specified {}", newRule.getName());
+        }
+
+        try {
             newRule.setIpAddressType(json.getAsJsonObject().get("ipAddressType").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid security group rule object, no address type specified {}", newRule.getName());
+        }
+        try {
             newRule.setPortRangeMax(json.getAsJsonObject().get("portRangeMax").getAsInt());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid security group rule object, no maxPort specified {}", newRule.getName());
+        }
+        try {
             newRule.setPortRangeMin(json.getAsJsonObject().get("portRangeMin").getAsInt());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid security group rule object no minPort value specified {}", newRule.getName());
+        }
+        try {
             newRule.setProtocol(json.getAsJsonObject().get("protocol").getAsString());
-            //newRule.setRemoteGroupId(json.getAsJsonObject().get("remoteGroupId").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON - invalid security group rule object, no protocol specified {}", newRule.getName());
+        }
+        try {
+            newRule.setRemoteGroupId(json.getAsJsonObject().get("remoteGroupId").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("Malformed JSON - invalid security group rule object no group ID specified {}", newRule.getName());
+        }
+        try {
             newRule.setRemoteIpPrefix(json.getAsJsonObject().get("remoteIpPrefix").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON - invalid security group rule object {}", newRule.getName());
+            Logger.debug("Malformed JSON - invalid security group rule object, no remoteIPPrefix specified {}", newRule.getName());
         }
+
+        //one last check... the rule must have either an ip prefix or group id
+        if (newRule.getRemoteGroupId().isEmpty() && newRule.getRemoteIpPrefix().isEmpty()) {
+            Logger.error("Malformed JSON - invalid security group rule object, no remoteIPPrefix sor remoteGroupID pecified {}", newRule.getName());
+        }
+
         return newRule;
     }
 }

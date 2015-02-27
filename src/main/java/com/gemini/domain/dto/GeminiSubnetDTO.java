@@ -16,15 +16,15 @@ import java.util.Objects;
  * @author schari
  */
 public class GeminiSubnetDTO extends GeminiBaseDTO {
-    private String name; 
-    private String cloudID;
+    private String name = ""; 
+    private String cloudID = "";
     //network string with mask
-    private String cidr;
+    private String cidr = "";
     //network gateway
-    private String gateway;
+    private String gateway = "";
     
-    private boolean enableDHCP;
-    private String networkType;
+    private boolean enableDHCP = true;
+    private String networkType = "IPv4";
 
     //parent network that contains this subnet
     private GeminiNetworkDTO parent;

@@ -30,11 +30,20 @@ public class GeminiNetworkDeserializer implements JsonDeserializer<GeminiNetwork
 
         try {
             network.setName(json.getAsJsonObject().get("name").getAsString());
-            network.setDescription(json.getAsJsonObject().get("description").getAsString());
-            network.setNetworkType(json.getAsJsonObject().get("networkType").getAsString());
-            network.setProvisioned(json.getAsJsonObject().get("provisioned").getAsBoolean());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
             Logger.error("Malformed JSON - network deserializer no name, networkType or provisioned fields");
+        }
+
+        try {
+            network.setDescription(json.getAsJsonObject().get("description").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no description for network {}", network.getName());
+        }
+
+        try {
+            network.setNetworkType(json.getAsJsonObject().get("networkType").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("No networkType for network {}", network.getName());
         }
 
         try {

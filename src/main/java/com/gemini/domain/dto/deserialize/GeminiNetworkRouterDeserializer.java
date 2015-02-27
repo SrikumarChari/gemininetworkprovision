@@ -5,7 +5,6 @@
  */
 package com.gemini.domain.dto.deserialize;
 
-import com.gemini.domain.dto.GeminiApplicationDTO;
 import com.gemini.domain.dto.GeminiNetworkDTO;
 import com.gemini.domain.dto.GeminiNetworkRouterDTO;
 import com.google.common.base.Splitter;
@@ -51,7 +50,7 @@ public class GeminiNetworkRouterDeserializer implements JsonDeserializer<GeminiN
         try {
             newRouter.setGateway(gson.fromJson(json.getAsJsonObject().get("gateway"), GeminiNetworkDTO.class));
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON: No gateway specified for Network Router {}", newRouter.getName());
+            Logger.debug("Malformed JSON: No gateway specified for Network Router {}", newRouter.getName());
         }
 
         //now the routes, no straight forward way to convert to the HashMap

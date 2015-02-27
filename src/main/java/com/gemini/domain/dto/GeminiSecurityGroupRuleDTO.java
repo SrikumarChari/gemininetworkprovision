@@ -10,17 +10,17 @@ package com.gemini.domain.dto;
  * @author Srikumar
  */
 public class GeminiSecurityGroupRuleDTO {
-    private String name;
-    private String cloudID;
+    private String name = "";
+    private String cloudID = "";
     private GeminiSecurityGroupDTO parent;
-    private String direction;
-    private String cidr;
-    private String ipAddressType;
-    private String protocol;
-    private Integer portRangeMin;
-    private Integer portRangeMax;
-    private String remoteGroupId;
-    private String remoteIpPrefix;
+    private String direction = "";
+    private String cidr = "";
+    private String ipAddressType = "";
+    private String protocol = "";
+    private Integer portRangeMin = 0;
+    private Integer portRangeMax = 0;
+    private String remoteGroupId = "";
+    private String remoteIpPrefix = "";
 
     public String getName() {
         return name;

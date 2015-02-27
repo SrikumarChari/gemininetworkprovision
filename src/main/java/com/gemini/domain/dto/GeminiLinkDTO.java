@@ -10,9 +10,9 @@ package com.gemini.domain.dto;
  * @author Srikumar
  */
 public class GeminiLinkDTO {
-    private String link;
-    private String rel;
-    private String type;
+    private String link = "";
+    private String rel = "";
+    private String type = "";
 
     public String getLink() {
         return link;

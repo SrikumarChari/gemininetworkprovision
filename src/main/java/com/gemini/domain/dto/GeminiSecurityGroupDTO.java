@@ -14,9 +14,9 @@ import java.util.List;
  * @author Srikumar
  */
 public class GeminiSecurityGroupDTO {
-    private String name;
-    private String description;
-    private String cloudID;
+    private String name = "";
+    private String description = "";
+    private String cloudID = "";
     private List<GeminiSecurityGroupRuleDTO> securityRules = Collections.synchronizedList(new ArrayList());
 
     public String getName() {

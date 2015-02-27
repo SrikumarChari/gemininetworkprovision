@@ -40,6 +40,12 @@ public class GeminiSubnetDeserializer implements JsonDeserializer<GeminiSubnetDT
         }
 
         try {
+            newSubnet.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no cloud id for subnet {}", newSubnet.getName());
+        }
+        
+        try {
             newSubnet.setCidr(json.getAsJsonObject().get("cidr").getAsString());
             //ignore the parent, it will be set when the network is deserialized
             String parent = json.getAsJsonObject().get("parent").getAsString();
@@ -48,9 +54,15 @@ public class GeminiSubnetDeserializer implements JsonDeserializer<GeminiSubnetDT
         }
 
         try {
-            newSubnet.setCloudID(json.getAsJsonObject().get("cloudID").getAsString());
+            newSubnet.setEnableDHCP(json.getAsJsonObject().get("enableDHCP").getAsBoolean());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.debug("no cloud id for subnet {}", newSubnet.getName());
+            Logger.debug("enableDHCP not specified for subnet {}", newSubnet.getName());
+        }
+        
+        try {
+            newSubnet.setNetworkType(json.getAsJsonObject().get("networkType").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("no network type for subnet {}", newSubnet.getName());
         }
 
         try {

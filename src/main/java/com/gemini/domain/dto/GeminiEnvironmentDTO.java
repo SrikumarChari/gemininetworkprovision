@@ -15,11 +15,11 @@ import java.util.List;
  */
 public class GeminiEnvironmentDTO extends GeminiBaseDTO {
 
-    private String name;
-    private String type;
-    private String adminUserName;
-    private String adminPassword;
-    private String endPoint;
+    private String name = "";
+    private String type = "";
+    private String adminUserName = "";
+    private String adminPassword = "";
+    private String endPoint = "";
 
     private List<GeminiNetworkDTO> gateways = Collections.synchronizedList(new ArrayList());
 

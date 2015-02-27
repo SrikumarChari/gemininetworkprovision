@@ -17,19 +17,19 @@ import java.util.Map;
  */
 public class GeminiServerDTO extends GeminiBaseDTO {
 
-    private String name;
-    private String cloudID;
-    private String description;
-    private String dateCreated;
-    private String address;
-    private String addressType;
-    private String serverType;
-    private String subnetMask;
-    private Integer port;
-    private String os;
-    private String type; //TODO: Convert to an enum when the types are finalized
-    private String admin;
-    private String password;
+    private String name = "";
+    private String cloudID = "";
+    private String description = "";
+    private String dateCreated = "";
+    private String address = "";
+    private String addressType = "";
+    private String serverType = "";
+    private String subnetMask = "";
+    private Integer port = 0;
+    private String os = "";
+    private String type = ""; 
+    private String admin = "";
+    private String password = "";
     private Map<String, String> metadata = Collections.synchronizedMap(new HashMap<String, String>());
     private GeminiServerImageDTO image;
     private List<String> securityGroupNames = Collections.synchronizedList(new ArrayList());

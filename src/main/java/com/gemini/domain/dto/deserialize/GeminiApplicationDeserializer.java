@@ -32,12 +32,33 @@ public class GeminiApplicationDeserializer implements JsonDeserializer<GeminiApp
         //first the primitive fields
         try {
             newApp.setName(json.getAsJsonObject().get("name").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.error("Malformed JSON Application Deserializer - no application name");
+        }
+
+        try {
             newApp.setDescription(json.getAsJsonObject().get("description").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("No application description for application: {}", newApp.getName());
+        }
+
+        try {
             newApp.setCustom(json.getAsJsonObject().get("custom").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("No custom data for application: {}", newApp.getName());
+        }
+
+        try {
             newApp.setBackupSize(json.getAsJsonObject().get("backupSize").getAsInt());
             newApp.setLocation(json.getAsJsonObject().get("location").getAsString());
         } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
-            Logger.error("Malformed JSON Application Deserializer - no application name, description, custom, backupSize and location");
+            Logger.debug("No backupSize for application: {}", newApp.getName());
+        }
+
+        try {
+            newApp.setLocation(json.getAsJsonObject().get("location").getAsString());
+        } catch (NullPointerException | JsonSyntaxException | IllegalStateException ex) {
+            Logger.debug("No location information for application: {}", newApp.getName());
         }
 
         //now the networks
