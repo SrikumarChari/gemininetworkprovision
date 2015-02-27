@@ -233,6 +233,8 @@ public class GeminiNetworkProvisionMainIT {
         }
     }
 
+    //TESTS HAVE BEEN DELIBERATELY COMMENTED OUT BECAUSE THE SERIALIZATION 
+    //FUNCTIONS NEED TO BE IMPLEMENTED
 //    @Test
 //    public void testUpdateNetwork() {
 //        System.out.println("testUpdateNetwork");

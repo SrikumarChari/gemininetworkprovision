@@ -1,14 +1,10 @@
 package com.gemini.provision.network.main;
 
-import com.gemini.common.repository.BaseRepository;
-import com.gemini.common.repository.BaseRepositoryFactory;
-import com.gemini.common.repository.GeminiDatabaseModule;
 import com.gemini.domain.dto.GeminiTenantDTO;
 import com.gemini.domain.dto.deserialize.GeminiTenantDeserializer;
 import com.gemini.domain.model.GeminiApplication;
 import com.gemini.domain.model.GeminiNetwork;
 import com.gemini.domain.model.GeminiSecurityGroup;
-import com.gemini.domain.model.GeminiSubnet;
 import com.gemini.domain.model.GeminiTenant;
 import com.gemini.mapper.GeminiMapper;
 import com.gemini.mapper.GeminiMapperModule;
@@ -110,16 +106,30 @@ public class GeminiNetworkProvisionMain {
                 String routingKey = delivery.getEnvelope().getRoutingKey();
                 String jsonBody = new String(delivery.getBody());
 
-                if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_CREATE_SINGLE"))) {
+                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE IF THERE IS A FAILURE
+                if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_CREATE"))) {
                     createNetwork(jsonBody);
-                } else if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE_SINGLE"))) {
+                } else if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_UPDATE"))) {
                     updateNetwork(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("NETWORK_TASK_DELETE"))) {
+                    deleteNetwork(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_CREATE"))) {
+                    createSubnet(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_UPDATE"))) {
+                    updateSubnet(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SUBNET_TASK_DELETE"))) {
+                    deleteSubnet(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("ROUTER_TASK_CREATE"))) {
+                    createRouter(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("ROUTER_TASK_UPDATE"))) {
+                    updateRouter(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("ROUTER_TASK_DELETE"))) {
+                    deleteRouter(jsonBody);
                 }
 
                 try {
                     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                 } catch (IOException ex) {
-                    //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE
                     Logger.error("Could not ack message. Exception: {}", ex);
                 }
             }
@@ -134,18 +144,64 @@ public class GeminiNetworkProvisionMain {
 
         //the security thread
         Thread securityThread = new Thread(() -> {
+            //setup the message receiver
+            final Connection connection;
+            final Channel channel;
+            final QueueingConsumer consumer;
+
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost(properties.getProperties().getProperty("MESSAGING_HOST"));
+            String queueName = null;
+            try {
+                connection = factory.newConnection();
+                channel = connection.createChannel();
+                channel.exchangeDeclare(properties.getProperties().getProperty("EXCHANGE_NAME"), "topic");
+                queueName = channel.queueDeclare().getQueue();
+                channel.queueBind(queueName, properties.getProperties().getProperty("EXCHANGE_NAME"),
+                        properties.getProperties().getProperty("SECURITY_TOPIC"));
+//                channel.basicQos(Integer.parseUnsignedInt(properties.getProperties().getProperty("PREFETCH_COUNT")));
+                consumer = new QueueingConsumer(channel);
+                channel.basicConsume(queueName, true, consumer);
+            } catch (IOException | NullPointerException | NumberFormatException ex) {
+                Logger.error("Fatal Error: could not connect to messaging system. Exception: {}", ex);
+                return;
+            }
+
+            QueueingConsumer.Delivery delivery = null;
+            while (true) {
+                try {
+                    delivery = consumer.nextDelivery();
+                } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+                    Logger.error("Could not get message from queue. Exception: {}", ex);
+                    continue;
+                }
+
+                String routingKey = delivery.getEnvelope().getRoutingKey();
+                String jsonBody = new String(delivery.getBody());
+
+                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE IF THERE IS A FAILURE
+                if (routingKey.equals(properties.getProperties().getProperty("SECURITY_TASK_SG_CREATE"))) {
+                    createSecurityGroup(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SECURITY_TASK_SG_UPDATE"))) {
+                    updateSecurityGroup(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SECURITY_TASK_SG_DELETE"))) {
+                    deleteSecurityGroup(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SECURITY_TASK_SG_RULE_CREATE"))) {
+                    createSecurityGroupRule(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SECURITY_TASK_SG_RULE_UPDATE"))) {
+                    updateSecurityGroupRule(jsonBody);
+                } else if (routingKey.equals(properties.getProperties().getProperty("SECURITY_TASK_SG_RULE_DELETE"))) {
+                    deleteSecurityGroupRule(jsonBody);
+                }
+
+                try {
+                    channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                } catch (IOException ex) {
+                    Logger.error("Could not ack message. Exception: {}", ex);
+                }
+            }
         });
-
         securityThread.start();
-    }
-
-    private static void initializeTenant(GeminiTenant tenant) {
-        BaseRepositoryFactory baseRepoFactory;
-
-        Injector dbInjector = Guice.createInjector(new GeminiDatabaseModule());
-        baseRepoFactory = dbInjector.getInstance(BaseRepositoryFactory.class);
-        BaseRepository baseRepo = baseRepoFactory.create(GeminiNetwork.class);
-        List<GeminiNetwork> listNetworks = baseRepo.list();
     }
 
     public static String createNetwork(String jsonBody) {
