@@ -14,9 +14,10 @@ import org.mongodb.morphia.annotations.Embedded;
  */
 @Embedded
 public class GeminiTenantUser extends EntityMongoDB {
-    private String userID;
-    private String name;
-    private String preferences; //will eventually become another with granular preference values
+    private String userID = "";
+    private String name = "";
+    private String password = "";
+    private String preferences = ""; //will eventually become another with granular preference values
 
     public String getUserID() {
         return userID;
@@ -41,5 +42,12 @@ public class GeminiTenantUser extends EntityMongoDB {
     public void setPreferences(String preferences) {
         this.preferences = preferences;
     }
-    
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

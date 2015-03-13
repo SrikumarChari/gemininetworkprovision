@@ -39,7 +39,7 @@ public class GeminiSubnetSerializer implements JsonSerializer<GeminiSubnetDTO> {
                 .registerTypeAdapter(GeminiSubnetAllocationPoolDTO.class, new GeminiSubnetAllocationPoolSerializer())
                 .create();
         JsonArray allocPool = new JsonArray();
-        src.getAllocationPool().stream().forEach(ap -> allocPool.add(gson.toJsonTree(ap, GeminiSubnetAllocationPoolDTO.class)));
+        src.getAllocationPools().stream().forEach(ap -> allocPool.add(gson.toJsonTree(ap, GeminiSubnetAllocationPoolDTO.class)));
         subnetElement.add("allocationPool", allocPool);
         
         return subnetElement;

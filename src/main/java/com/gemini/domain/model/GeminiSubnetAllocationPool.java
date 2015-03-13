@@ -32,6 +32,12 @@ public class GeminiSubnetAllocationPool extends EntityMongoDB {
     @Reference
     private GeminiSubnet parent;
 
+    public GeminiSubnetAllocationPool() {
+        //need this constructor, DozerMapper seems to choke without it 
+        //Suspect because there is a constructor with arguments, the no argument
+        //constructor is not automatic
+    }
+    
     public GeminiSubnetAllocationPool(InetAddress start, InetAddress end) {
         this.start = start;
         this.end = end;
@@ -85,5 +91,4 @@ public class GeminiSubnetAllocationPool extends EntityMongoDB {
     public String toString() {
         return start.getHostAddress() + "," + end.getHostAddress();
     }
-
 }

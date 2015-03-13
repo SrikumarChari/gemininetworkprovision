@@ -67,7 +67,68 @@ public class GeminiNetworkProvisionMain {
         Injector mapperInjector = Guice.createInjector(new GeminiMapperModule());
         mapper = mapperInjector.getInstance(GeminiMapper.class);
 
-        //start the topic 
+        //the app.yml to deployment.yml converter
+        Thread yamlConverterThread = new Thread(() -> {
+            //setup the message receiver
+            final Connection connection;
+            final Channel channel;
+            final QueueingConsumer consumer;
+
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost(properties.getProperties().getProperty("MESSAGING_HOST"));
+            String queueName = null;
+            try {
+                connection = factory.newConnection();
+                channel = connection.createChannel();
+                channel.exchangeDeclare(properties.getProperties().getProperty("EXCHANGE_NAME"), "topic");
+                queueName = channel.queueDeclare().getQueue();
+                channel.queueBind(queueName, properties.getProperties().getProperty("EXCHANGE_NAME"),
+                        properties.getProperties().getProperty("YAML_MAPPER_TOPIC"));
+                consumer = new QueueingConsumer(channel);
+                channel.basicConsume(queueName, true, consumer);
+            } catch (IOException | NullPointerException | NumberFormatException ex) {
+                Logger.error("Fatal Error: YAML Mapper - could not connect to messaging system. Exception: {}", ex);
+                return;
+            }
+
+            QueueingConsumer.Delivery delivery = null;
+            while (true) {
+                try {
+                    delivery = consumer.nextDelivery();
+                } catch (InterruptedException | ShutdownSignalException | ConsumerCancelledException ex) {
+                    Logger.error("Fatal Error: YAML Mapper - could not retrieve message. Exception: {}", ex);
+                    continue;
+                }
+
+                String routingKey = delivery.getEnvelope().getRoutingKey();
+                String jsonBody = new String(delivery.getBody());
+
+                //TODO: NEED TO PUT THE MESSAGE BACK IN THE QUEUE IF THERE IS A FAILURE
+                Integer status = 0;
+                if (routingKey.equals(properties.getProperties().getProperty("YAML_MAPPER_MAP_APP"))) {
+                    status = mapApptoDeployment(jsonBody);
+                } else {
+                    continue;
+                }
+
+                if (status == 0) {
+                    try {
+                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                    } catch (IOException ex) {
+                        Logger.error("Could not ack message. Exception: {}", ex);
+                    }
+                } else {
+                    //failed so requeue the message
+                    try {
+                        channel.basicNack(delivery.getEnvelope().getDeliveryTag(), false, true);
+                    } catch (IOException ex) {
+                        Logger.error("Could not nack message. Exception: {}", ex);
+                    }
+                }
+            }
+        });
+        yamlConverterThread.start();
+
         //the networking message recevier
         Thread networkingThread = new Thread(() -> {
             //setup the message receiver
@@ -230,7 +291,7 @@ public class GeminiNetworkProvisionMain {
 
             netProvisioningService.getProvider().bulkCreateNetwork(tenant, e, listNetworks);
         });
-        
+
         tenantDTO = mapper.getDTOFromTenant(tenant);
         return gson.toJson(tenantDTO);
     }
@@ -573,5 +634,10 @@ public class GeminiNetworkProvisionMain {
                     .flatMap(List::stream)
                     .forEach(sgr -> secProvisioningService.getProvider().deleteSecurityGroupRule(tenant, e, sgr.getParent(), sgr));
         });
+    }
+
+    public static Integer mapApptoDeployment(String jsonBody) {
+        Integer status = 0;
+        return status;
     }
 }

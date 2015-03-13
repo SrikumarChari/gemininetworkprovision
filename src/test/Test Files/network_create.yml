@@ -4,10 +4,12 @@ name: Gemini-network-prj
 domainName: not used for now
 users:
 - name: user 1
-  password: user 1 password
+  userID: user1
+  password: user1password
   preferences: placeholder
 - name : user 2
-  password: user 2 password
+  userID: user2
+  password: user2password
   preferences: placeholder
 environments:
   - name: dev

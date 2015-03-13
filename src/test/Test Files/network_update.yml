@@ -1,0 +1,142 @@
+name: Gemini-network-prj
+domain: not used for now
+users:
+- {name: user 1, userID: user1, password: user1password, preferences: placeholder}
+- {name: user 2, userID: user2, password: user2password, preferences: placeholder}
+environments:
+- name: dev
+  type: OPENSTACK
+  adminUserName: sri
+  adminPassword: srikumar12
+  endPoint: http://198.11.209.34:5000/v2.0
+  securityGroups: []
+  gateways: []
+  applications:
+  - name: Financial Application
+    description: Description for Application 1
+    custom: ignored for now
+    backupSize: 100.0
+    location: in my closet
+    networks:
+    - name: Financial Application Network
+      description: Network work for all resources related to the financial application
+      type: Class C
+      cloudID: 5f9397df-9227-40b5-9c4f-0f67c6475bbf
+      subnets:
+      - name: subnet-for-fin-db
+        cloudID: aabdfe68-4a5a-4f39-975b-1e2eaabbc14b
+        cidr: 192.162.1.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 192.161.1.1
+          end: 192.161.1.50
+          parent: subnet-for-fin-db
+          servers: []
+        - start: 191.161.1.51
+          end: 192.161.1.100
+          parent: subnet-for-fin-db
+          servers: []
+      - name: subnet-for-fin-servers-15-20
+        cloudID: 8c662f93-0dd3-4145-9842-c6d25ba01791
+        cidr: 192.162.2.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 192.161.2.1
+          end: 192.161.2.50
+          parent: subnet-for-fin-servers-15-20
+          servers: []
+        - start: 191.161.2.51
+          end: 192.161.2.100
+          parent: subnet-for-fin-servers-15-20
+          servers: []
+      - name: subnet-for-fin-webserver
+        cloudID: 02d88d81-cd29-4969-8b4b-91e78581064c
+        cidr: 192.162.3.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 192.161.3.1
+          end: 192.161.1.50
+          parent: subnet-for-fin-webserver
+          servers: []
+        - start: 191.161.3.51
+          end: 192.161.1.100
+          parent: subnet-for-fin-webserver
+          servers: []
+  - name: Email Application
+    description: Description for Application 1
+    custom: ignored for now
+    backupSize: 100.0
+    location: in my closet
+    networks:
+    - name: Email Application Network
+      description: Network work for all resources related to the email application
+      type: Class C
+      cloudID: cb2f70fa-c38b-4d83-86b6-59aa5d22c785
+      subnets:
+      - name: subnet-for-email-db
+        cloudID: 057d356b-7a95-4b39-85d4-48dab6f8f94f
+        cidr: 10.10.1.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 10.10.1.1
+          end: 10.10.1.50
+          parent: subnet-for-email-db
+          servers: []
+        - start: 10.10.1.51
+          end: 10.10.1.100
+          parent: subnet-for-email-db
+          servers: []
+      - name: subnet-for-email-servers
+        cloudID: b0bf65aa-845f-46c3-96ef-24b1d78c4012
+        cidr: 10.10.2.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 10.10.2.1
+          end: 10.10.2.50
+          parent: subnet-for-email-servers
+          servers: []
+        - start: 10.10.2.51
+          end: 10.10.2.100
+          parent: subnet-for-email-servers
+          servers: []
+      - name: subnet-for-email-webserver
+        cloudID: 240e1fec-6b5e-46dd-b938-4570ae39fe6f
+        cidr: 10.10.3.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 10.10.3.1
+          end: 10.10.1.50
+          parent: subnet-for-email-webserver
+          servers: []
+        - start: 10.10.3.51
+          end: 10.10.1.100
+          parent: subnet-for-email-webserver
+          servers: []
+      - name: subnet-for-email-block-storage
+        cloudID: dee7ce96-5c21-4f0f-af18-30c0561399ac
+        cidr: 10.10.4.0/24
+        gateway: 192.0.0.1
+        enableDHCP: true
+        networkType: IPv4
+        allocationPool:
+        - start: 10.10.4.1
+          end: 10.10.1.50
+          parent: subnet-for-email-block-storage
+          servers: []
+        - start: 10.10.4.51
+          end: 10.10.1.100
+          parent: subnet-for-email-block-storage
+          servers: []
+  routers: []

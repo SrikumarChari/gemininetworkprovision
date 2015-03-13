@@ -14,6 +14,7 @@ public class GeminiTenantUserDTO extends GeminiBaseDTO {
     private String userID = "";
     private String name = "";
     private String preferences = ""; //will eventually become another with granular preference values
+    private String password = "";
 
     public String getUserID() {
         return userID;
@@ -39,4 +40,11 @@ public class GeminiTenantUserDTO extends GeminiBaseDTO {
         this.preferences = preferences;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

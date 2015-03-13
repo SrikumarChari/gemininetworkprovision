@@ -30,7 +30,7 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
     private GeminiNetworkDTO parent;
 
     //address pool
-    private List<GeminiSubnetAllocationPoolDTO> allocationPool = Collections.synchronizedList(new ArrayList());
+    private List<GeminiSubnetAllocationPoolDTO> allocationPools = Collections.synchronizedList(new ArrayList());
 
     public GeminiNetworkDTO getParent() {
         return parent;
@@ -56,25 +56,25 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
         this.networkType = networkType;
     }
 
-    public List<GeminiSubnetAllocationPoolDTO> getAllocationPool() {
-        return allocationPool;
+    public List<GeminiSubnetAllocationPoolDTO> getAllocationPools() {
+        return allocationPools;
     }
 
-    public void setAllocationPool(List<GeminiSubnetAllocationPoolDTO> allocationPool) {
-        this.allocationPool = allocationPool;
+    public void setAllocationPools(List<GeminiSubnetAllocationPoolDTO> allocationPools) {
+        this.allocationPools = allocationPools;
     }
 
     public boolean addAllocationPool(GeminiSubnetAllocationPoolDTO pool) {
-        if (allocationPool.stream().filter(p -> p.getStart().equals(pool.getStart())
+        if (allocationPools.stream().filter(p -> p.getStart().equals(pool.getStart())
                 && p.getEnd().equals(pool.getEnd())).count() == 0) {
-            return allocationPool.add(pool);
+            return allocationPools.add(pool);
         } else {
             return false;
         }
     }
 
     public void deleteAllocationPool(InetAddress start, InetAddress end) {
-        allocationPool.removeIf(s -> s.getStart().equals(start.getHostAddress())
+        allocationPools.removeIf(s -> s.getStart().equals(start.getHostAddress())
                 && s.getEnd().equals(end.getHostAddress()));
     }
 
@@ -106,7 +106,7 @@ public class GeminiSubnetDTO extends GeminiBaseDTO {
         if (!Objects.equals(getParent(), other.getParent())) {
             return false;
         }
-        if (!Objects.equals(this.getAllocationPool(), other.getAllocationPool())) {
+        if (!Objects.equals(this.getAllocationPools(), other.getAllocationPools())) {
             return false;
         }
         if (!Objects.equals(this.cidr, other.cidr)) {

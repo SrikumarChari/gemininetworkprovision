@@ -81,6 +81,14 @@ public class GeminiSubnet extends EntityMongoDB {
         this.networkType = networkType;
     }
 
+    public List<GeminiSubnetAllocationPool> getAllocationPools() {
+        return allocationPools;
+    }
+
+    public void setAllocationPools(List<GeminiSubnetAllocationPool> allocationPools) {
+        this.allocationPools = allocationPools;
+    }
+
     public void addAllocationPool(InetAddress start, InetAddress end) {
         allocationPools.add(new GeminiSubnetAllocationPool(start, end));
     }
@@ -97,14 +105,6 @@ public class GeminiSubnet extends EntityMongoDB {
     public void deleteAllocationPool(InetAddress start, InetAddress end) {
         allocationPools.removeIf(s -> s.getStart().getHostAddress().equals(start.getHostAddress())
                 && s.getEnd().getHostAddress().equals(end.getHostAddress()));
-    }
-
-    public List<GeminiSubnetAllocationPool> getAllocationPools() {
-        return allocationPools;
-    }
-
-    public void setAllocationPools(List<GeminiSubnetAllocationPool> allocationPool) {
-        this.allocationPools = allocationPool;
     }
 
     public String getName() {

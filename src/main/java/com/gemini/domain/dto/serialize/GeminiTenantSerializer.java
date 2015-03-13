@@ -38,7 +38,11 @@ public class GeminiTenantSerializer implements JsonSerializer<GeminiTenantDTO>{
         //the users 
         JsonArray userArray = new JsonArray();
         src.getUsers().stream().forEach(u -> {
-            JsonElement jsonUser = context.serialize(u);
+            JsonObject jsonUser = new JsonObject();
+            jsonUser.addProperty("name", u.getName());
+            jsonUser.addProperty("userID", u.getUserID());
+            jsonUser.addProperty("password", u.getPassword());
+            jsonUser.addProperty("preferences", u.getPreferences());
             userArray.add(jsonUser);
         });
         tenantElement.add("users", userArray);
@@ -52,5 +56,4 @@ public class GeminiTenantSerializer implements JsonSerializer<GeminiTenantDTO>{
         tenantElement.add("environments", envArray);
         return tenantElement;
     }
-    
 }
